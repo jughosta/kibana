@@ -17,6 +17,7 @@ import { getSchemaByKbnType } from './discover_grid_schema';
 import { SelectButton } from './discover_grid_document_selection';
 import { defaultTimeColumnWidth } from './constants';
 import { buildCopyColumnNameButton } from './copy_column_name_button';
+import { buildCopyColumnValueButton } from './copy_column_value_button';
 
 export function getLeadControlColumns() {
   return [
@@ -81,7 +82,10 @@ export function buildEuiGridColumn(
             },
       showMoveLeft: !defaultColumns,
       showMoveRight: !defaultColumns,
-      additional: columnName === '_source' ? undefined : [buildCopyColumnNameButton(columnName)],
+      additional:
+        columnName === '_source'
+          ? undefined
+          : [buildCopyColumnNameButton(columnName), buildCopyColumnValueButton(columnName)],
     },
     cellActions: indexPatternField ? buildCellActions(indexPatternField) : [],
   };

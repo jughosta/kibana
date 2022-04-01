@@ -10,18 +10,18 @@ import React from 'react';
 import { copyToClipboard, EuiListGroupItemProps } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 
-export function buildCopyColumnNameButton(columnName: string) {
+export function buildCopyColumnValueButton(columnValue: string) {
   const copyToClipBoardButton: EuiListGroupItemProps = {
     size: 'xs',
     label: (
       <FormattedMessage
-        id="discover.grid.copyColumnNameToClipBoardButton"
-        defaultMessage="Copy name"
+        id="discover.grid.copyColumnValueToClipBoardButton"
+        defaultMessage="Copy column"
       />
     ),
     iconType: 'copyClipboard',
     iconProps: { size: 'm' },
-    onClick: () => copyToClipboard(columnName),
+    onClick: () => copyToClipboard(columnValue),
   };
 
   return copyToClipBoardButton;

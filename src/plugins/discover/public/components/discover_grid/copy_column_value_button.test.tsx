@@ -7,16 +7,16 @@
  */
 
 import React from 'react';
-import { buildCopyColumnNameButton } from './copy_column_name_button';
+import { buildCopyColumnValueButton } from './copy_column_value_button';
 import { EuiButton } from '@elastic/eui';
 import { mountWithIntl } from '@kbn/test-jest-helpers';
 
 const execCommandMock = (global.document.execCommand = jest.fn());
 const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-describe('Copy column name to clipboard button', () => {
+describe('Copy column value to clipboard button', () => {
   it('should copy to clipboard on click', () => {
-    const { label, iconType, onClick } = buildCopyColumnNameButton('test-field-name');
+    const { label, iconType, onClick } = buildCopyColumnValueButton('test-value');
     execCommandMock.mockImplementationOnce(() => true);
 
     const wrapper = mountWithIntl(
@@ -32,7 +32,7 @@ describe('Copy column name to clipboard button', () => {
   });
 
   it('should not copy to clipboard on click', () => {
-    const { label, iconType, onClick } = buildCopyColumnNameButton('test-field-name');
+    const { label, iconType, onClick } = buildCopyColumnValueButton('test-value');
     execCommandMock.mockImplementationOnce(() => false);
 
     const wrapper = mountWithIntl(
