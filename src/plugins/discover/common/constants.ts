@@ -6,6 +6,8 @@
  * Side Public License, v 1.
  */
 
+export const APP_ICON = 'discoverApp';
+
 export enum VIEW_MODE {
   DOCUMENT_LEVEL = 'documents',
   AGGREGATED_LEVEL = 'aggregated',

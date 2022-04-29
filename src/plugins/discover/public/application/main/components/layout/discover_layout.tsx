@@ -46,7 +46,7 @@ import {
   useSavedSearchAliasMatchRedirect,
 } from '../../../../services/saved_searches';
 import { FieldStatisticsTable } from '../field_stats_table';
-import { VIEW_MODE } from '../../../../components/view_mode_toggle';
+import { VIEW_MODE } from '../../../../../common/constants';
 import { DOCUMENTS_VIEW_CLICK, FIELD_STATISTICS_VIEW_CLICK } from '../field_stats_table/constants';
 import { hasActiveFilter } from './utils';
 

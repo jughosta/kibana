@@ -21,7 +21,7 @@ import { discoverServiceMock } from '../../../../__mocks__/services';
 import { FetchStatus } from '../../../types';
 import { Chart } from './point_series';
 import { DiscoverChart } from './discover_chart';
-import { VIEW_MODE } from '../../../../components/view_mode_toggle';
+import { VIEW_MODE } from '../../../../../common/constants';
 import { KibanaContextProvider } from '@kbn/kibana-react-plugin/public';
 import { UiActionsStart } from '@kbn/ui-actions-plugin/public';
 import { ReactWrapper } from 'enzyme';

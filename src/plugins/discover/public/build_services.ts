@@ -42,7 +42,7 @@ import { EmbeddableStart } from '@kbn/embeddable-plugin/public';
 import type { SpacesApi } from '@kbn/spaces-plugin/public';
 import { DataViewEditorStart } from '@kbn/data-view-editor-plugin/public';
 import type { TriggersAndActionsUIPublicPluginStart } from '@kbn/triggers-actions-ui-plugin/public';
-import { DiscoverAppLocator } from './locator';
+import { DiscoverAppLocator } from '../common/locator';
 import { getHistory } from './kibana_services';
 import { DiscoverStartPlugins } from './plugin';
 

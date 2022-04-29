@@ -38,7 +38,7 @@ import { FieldFilterState, getDefaultFieldFilter, setFieldFilterProp } from './l
 import { getIndexPatternFieldList } from './lib/get_index_pattern_field_list';
 import { DiscoverSidebarResponsiveProps } from './discover_sidebar_responsive';
 import { DiscoverIndexPatternManagement } from './discover_index_pattern_management';
-import { VIEW_MODE } from '../../../../components/view_mode_toggle';
+import { VIEW_MODE } from '../../../../../common/constants';
 import { ElasticSearchHit } from '../../../../types';
 
 /**

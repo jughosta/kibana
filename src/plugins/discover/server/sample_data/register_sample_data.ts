@@ -8,12 +8,13 @@
 
 import { i18n } from '@kbn/i18n';
 import type { SampleDataRegistrySetup } from '@kbn/home-plugin/server';
-import { APP_ICON } from '../../common';
-
-// TODO: update and use Discover locator instead
-const getSampleSearchPath = (objId: string) => `/app/discover#/view/${encodeURIComponent(objId)}`;
+import { DiscoverAppLocatorDefinition } from '../../common/locator';
+import { APP_ICON } from '../../common/constants';
 
 export function registerSampleData(sampleDataRegistry: SampleDataRegistrySetup) {
+  const locatorDefinition = new DiscoverAppLocatorDefinition({
+    useHash: false,
+  });
   const linkLabel = i18n.translate('discover.sampleData.viewLinkLabel', {
     defaultMessage: 'Discover',
   });
@@ -29,7 +30,7 @@ export function registerSampleData(sampleDataRegistry: SampleDataRegistrySetup) 
       addAppLinksToSampleDataset(sampleDataset.id, [
         {
           sampleObject: sampleSavedSearchObject,
-          getPath: getSampleSearchPath,
+          getPath: (objectId) => locatorDefinition.getPath({ savedSearchId: objectId }),
           label: linkLabel,
           icon: APP_ICON,
           order: -1,

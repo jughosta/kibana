@@ -9,7 +9,7 @@
 import { hashedItemStore, getStatesFromKbnUrl } from '@kbn/kibana-utils-plugin/public';
 import { mockStorage } from '@kbn/kibana-utils-plugin/public/storage/hashed_item_store/mock';
 import { FilterStateStore } from '@kbn/data-plugin/public';
-import { DiscoverAppLocatorDefinition } from './locator';
+import { DiscoverAppLocatorDefinition } from '@kbn/discover-plugin/common/locator';
 import { SerializableRecord } from '@kbn/utility-types';
 
 const indexPatternId: string = 'c367b774-a4c2-11ea-bb37-0242ac130002';

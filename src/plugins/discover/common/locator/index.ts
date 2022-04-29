@@ -6,4 +6,9 @@
  * Side Public License, v 1.
  */
 
-export { DocumentViewModeToggle } from './view_mode_toggle';
+export {
+  DiscoverAppLocator,
+  DiscoverAppLocatorDefinition,
+  DISCOVER_APP_LOCATOR,
+  DiscoverAppLocatorParams,
+} from './locator';

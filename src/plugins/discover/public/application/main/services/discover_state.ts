@@ -33,8 +33,8 @@ import { migrateLegacyQuery } from '../../../utils/migrate_legacy_query';
 import { DiscoverGridSettings } from '../../../components/discover_grid/types';
 import { SavedSearch } from '../../../services/saved_searches';
 import { handleSourceColumnState } from '../../../utils/state_helpers';
-import { DISCOVER_APP_LOCATOR, DiscoverAppLocatorParams } from '../../../locator';
-import { VIEW_MODE } from '../../../components/view_mode_toggle';
+import { DISCOVER_APP_LOCATOR, DiscoverAppLocatorParams } from '../../../../common/locator';
+import { VIEW_MODE } from '../../../../common/constants';
 
 export interface AppState {
   /**

@@ -47,7 +47,7 @@ import {
 } from './kibana_services';
 import { registerFeature } from './register_feature';
 import { buildServices } from './build_services';
-import { DiscoverAppLocator, DiscoverAppLocatorDefinition } from './locator';
+import { DiscoverAppLocator, DiscoverAppLocatorDefinition } from '../common/locator';
 import { SearchEmbeddableFactory } from './embeddable';
 import { DeferredSpinner } from './components';
 import { ViewSavedSearchAction } from './embeddable/view_saved_search_action';

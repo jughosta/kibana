@@ -8,10 +8,11 @@
 
 import type { SerializableRecord } from '@kbn/utility-types';
 import type { Filter } from '@kbn/es-query';
+import { isFilterPinned } from '@kbn/es-query';
 import type { TimeRange, Query, QueryState, RefreshInterval } from '@kbn/data-plugin/public';
 import type { LocatorDefinition, LocatorPublic } from '@kbn/share-plugin/public';
 import { setStateToKbnUrl } from '@kbn/kibana-utils-plugin/public';
-import type { VIEW_MODE } from './components/view_mode_toggle';
+import type { VIEW_MODE } from '../constants';
 
 export const DISCOVER_APP_LOCATOR = 'DISCOVER_APP_LOCATOR';
 
@@ -97,7 +98,7 @@ export class DiscoverAppLocatorDefinition implements LocatorDefinition<DiscoverA
 
   constructor(protected readonly deps: DiscoverAppLocatorDependencies) {}
 
-  public readonly getLocation = async (params: DiscoverAppLocatorParams) => {
+  public readonly getPath = (params: DiscoverAppLocatorParams) => {
     const {
       useHash = this.deps.useHash,
       filters,
@@ -127,7 +128,6 @@ export class DiscoverAppLocatorDefinition implements LocatorDefinition<DiscoverA
       hideAggregatedPreview?: boolean;
     } = {};
     const queryState: QueryState = {};
-    const { isFilterPinned } = await import('@kbn/es-query');
 
     if (query) appState.query = query;
     if (filters && filters.length) appState.filters = filters?.filter((f) => !isFilterPinned(f));
@@ -151,9 +151,13 @@ export class DiscoverAppLocatorDefinition implements LocatorDefinition<DiscoverA
       path = `${path}&searchSessionId=${searchSessionId}`;
     }
 
+    return path;
+  };
+
+  public readonly getLocation = async (params: DiscoverAppLocatorParams) => {
     return {
       app: 'discover',
-      path,
+      path: this.getPath(params),
       state: {},
     };
   };
