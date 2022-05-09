@@ -10,6 +10,7 @@ import React, { Fragment, useContext, useEffect, useMemo } from 'react';
 import classnames from 'classnames';
 import { euiLightVars as themeLight, euiDarkVars as themeDark } from '@kbn/ui-theme';
 import type { DataView, DataViewField } from '@kbn/data-views-plugin/public';
+import { FormattedMessage } from '@kbn/i18n-react';
 import {
   EuiDataGridCellValueElementProps,
   EuiDescriptionList,
@@ -19,6 +20,7 @@ import {
   EuiFlexGroup,
   EuiCopy,
   EuiButtonEmpty,
+  useInnerText,
 } from '@elastic/eui';
 import { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import { DiscoverGridContext } from './discover_grid_context';
@@ -30,7 +32,6 @@ import { formatHit } from '../../utils/format_hit';
 import { ElasticSearchHit } from '../../types';
 import { useDiscoverServices } from '../../utils/use_discover_services';
 import { MAX_DOC_FIELDS_DISPLAYED } from '../../../common';
-import { FormattedMessage } from '@kbn/i18n-react';
 
 const CELL_CLASS = 'dscDiscoverGrid__cellValue';
 
@@ -155,23 +156,9 @@ function getInnerColumns(fields: Record<string, unknown[]>, columnId: string) {
 /**
  * Helper function for the cell popover
  */
-function renderPopoverContent({
-  rowRaw,
-  rowFlattened,
-  field,
-  columnId,
-  dataView,
-  useTopLevelObjectColumns,
-  fieldFormats,
-}: {
-  rowRaw: ElasticSearchHit;
-  rowFlattened: Record<string, unknown>;
-  field: DataViewField | undefined;
-  columnId: string;
-  dataView: DataView;
-  useTopLevelObjectColumns: boolean;
-  fieldFormats: FieldFormatsStart;
-}) {
+function renderPopoverContent(params: PopoverContentProps) {
+  const { rowRaw, field, columnId, useTopLevelObjectColumns } = params;
+
   if (useTopLevelObjectColumns || field?.type === '_source') {
     const json = useTopLevelObjectColumns
       ? getInnerColumns(rowRaw.fields as Record<string, unknown[]>, columnId)
@@ -181,24 +168,50 @@ function renderPopoverContent({
     );
   }
 
+  return <PopoverContent {...params} />;
+}
+
+interface PopoverContentProps {
+  rowRaw: ElasticSearchHit;
+  rowFlattened: Record<string, unknown>;
+  field: DataViewField | undefined;
+  columnId: string;
+  dataView: DataView;
+  useTopLevelObjectColumns: boolean;
+  fieldFormats: FieldFormatsStart;
+}
+
+function PopoverContent({
+  rowRaw,
+  rowFlattened,
+  field,
+  columnId,
+  dataView,
+  fieldFormats,
+}: PopoverContentProps) {
+  const [ref, innerText] = useInnerText();
+
   return (
     <EuiFlexGroup direction="column" gutterSize="s">
-      <EuiFlexItem>
-        <div className="eui-textRight">
-          <EuiCopy textToCopy="">
-            {(copy) => (
-              <EuiButtonEmpty size="xs" flush="right" iconType="copyClipboard" onClick={copy}>
-                <FormattedMessage
-                  id="discover.grid.cellPopover.copyToClipboardButton"
-                  defaultMessage="Copy to clipboard"
-                />
-              </EuiButtonEmpty>
-            )}
-          </EuiCopy>
-        </div>
-      </EuiFlexItem>
-      <EuiFlexItem>
+      {innerText && (
+        <EuiFlexItem>
+          <div className="eui-textRight">
+            <EuiCopy textToCopy={innerText}>
+              {(copy) => (
+                <EuiButtonEmpty size="xs" flush="right" iconType="copyClipboard" onClick={copy}>
+                  <FormattedMessage
+                    id="discover.grid.cellPopover.copyToClipboardButton"
+                    defaultMessage="Copy to clipboard"
+                  />
+                </EuiButtonEmpty>
+              )}
+            </EuiCopy>
+          </div>
+        </EuiFlexItem>
+      )}
+      <EuiFlexItem className="eui-textBreakWord">
         <span
+          ref={ref}
           className="dscDiscoverGrid__cellPopoverValue"
           // formatFieldValue guarantees sanitized values
           // eslint-disable-next-line react/no-danger
@@ -210,6 +223,7 @@ function renderPopoverContent({
     </EuiFlexGroup>
   );
 }
+
 /**
  * Helper function to show top level objects
  * this is used for legacy stuff like displaying products of our ecommerce dataset
