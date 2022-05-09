@@ -8,7 +8,6 @@
 
 import React, { Fragment, useContext, useEffect, useMemo } from 'react';
 import classnames from 'classnames';
-import { i18n } from '@kbn/i18n';
 import { euiLightVars as themeLight, euiDarkVars as themeDark } from '@kbn/ui-theme';
 import type { DataView, DataViewField } from '@kbn/data-views-plugin/public';
 import {
@@ -18,7 +17,6 @@ import {
   EuiDescriptionListDescription,
   EuiFlexItem,
   EuiFlexGroup,
-  EuiSpacer,
   EuiCopy,
   EuiButtonEmpty,
 } from '@elastic/eui';
