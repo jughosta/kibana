@@ -8,6 +8,8 @@
 
 import React from 'react';
 import { shallow } from 'enzyme';
+import { EuiFlexGroup } from '@elastic/eui';
+import { mountWithIntl } from '@kbn/test-jest-helpers';
 import { getRenderCellValueFn } from './get_render_cell_value';
 import { indexPatternMock } from '../../__mocks__/index_pattern';
 import { flattenHit } from '@kbn/data-plugin/public';
@@ -118,7 +120,7 @@ describe('Discover grid cell rendering', function () {
       />
     );
     expect(component.html()).toMatchInlineSnapshot(
-      `"<span class=\\"dscDiscoverGrid__cellPopoverValue\\">100</span>"`
+      `"<div class=\\"euiFlexGroup euiFlexGroup--gutterSmall euiFlexGroup--directionColumn euiFlexGroup--responsive\\"><div class=\\"euiFlexItem eui-textBreakWord\\"><span class=\\"dscDiscoverGrid__cellPopoverValue\\">100</span></div></div>"`
     );
   });
 
@@ -143,7 +145,7 @@ describe('Discover grid cell rendering', function () {
       />
     );
     expect(component.html()).toMatchInlineSnapshot(
-      `"<span class=\\"dscDiscoverGrid__cellPopoverValue\\">100</span>"`
+      `"<div class=\\"euiFlexGroup euiFlexGroup--gutterSmall euiFlexGroup--directionColumn euiFlexGroup--responsive\\"><div class=\\"euiFlexItem eui-textBreakWord\\"><span class=\\"dscDiscoverGrid__cellPopoverValue\\">100</span></div></div>"`
     );
   });
 
@@ -717,7 +719,7 @@ describe('Discover grid cell rendering', function () {
       />
     `);
 
-    const componentWithDetails = shallow(
+    const componentWithDetails = mountWithIntl(
       <DiscoverGridCellValue
         rowIndex={0}
         colIndex={0}
@@ -728,7 +730,7 @@ describe('Discover grid cell rendering', function () {
         setCellProps={jest.fn()}
       />
     );
-    expect(componentWithDetails).toMatchInlineSnapshot(`
+    expect(componentWithDetails.find('.dscDiscoverGrid__cellPopoverValue')).toMatchInlineSnapshot(`
       <span
         className="dscDiscoverGrid__cellPopoverValue"
         dangerouslySetInnerHTML={
