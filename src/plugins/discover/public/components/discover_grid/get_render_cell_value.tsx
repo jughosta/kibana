@@ -8,6 +8,7 @@
 
 import React, { Fragment, useContext, useEffect, useMemo } from 'react';
 import classnames from 'classnames';
+import { i18n } from '@kbn/i18n';
 import { euiLightVars as themeLight, euiDarkVars as themeDark } from '@kbn/ui-theme';
 import type { DataView, DataViewField } from '@kbn/data-views-plugin/public';
 import {
@@ -15,6 +16,11 @@ import {
   EuiDescriptionList,
   EuiDescriptionListTitle,
   EuiDescriptionListDescription,
+  EuiFlexItem,
+  EuiFlexGroup,
+  EuiSpacer,
+  EuiCopy,
+  EuiButtonEmpty,
 } from '@elastic/eui';
 import { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import { DiscoverGridContext } from './discover_grid_context';
@@ -26,6 +32,7 @@ import { formatHit } from '../../utils/format_hit';
 import { ElasticSearchHit } from '../../types';
 import { useDiscoverServices } from '../../utils/use_discover_services';
 import { MAX_DOC_FIELDS_DISPLAYED } from '../../../common';
+import { FormattedMessage } from '@kbn/i18n-react';
 
 const CELL_CLASS = 'dscDiscoverGrid__cellValue';
 
@@ -177,14 +184,32 @@ function renderPopoverContent({
   }
 
   return (
-    <span
-      className="dscDiscoverGrid__cellPopoverValue"
-      // formatFieldValue guarantees sanitized values
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{
-        __html: formatFieldValue(rowFlattened[columnId], rowRaw, fieldFormats, dataView, field),
-      }}
-    />
+    <EuiFlexGroup direction="column" gutterSize="s">
+      <EuiFlexItem>
+        <div className="eui-textRight">
+          <EuiCopy textToCopy="">
+            {(copy) => (
+              <EuiButtonEmpty size="xs" flush="right" iconType="copyClipboard" onClick={copy}>
+                <FormattedMessage
+                  id="discover.grid.cellPopover.copyToClipboardButton"
+                  defaultMessage="Copy to clipboard"
+                />
+              </EuiButtonEmpty>
+            )}
+          </EuiCopy>
+        </div>
+      </EuiFlexItem>
+      <EuiFlexItem>
+        <span
+          className="dscDiscoverGrid__cellPopoverValue"
+          // formatFieldValue guarantees sanitized values
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: formatFieldValue(rowFlattened[columnId], rowRaw, fieldFormats, dataView, field),
+          }}
+        />
+      </EuiFlexItem>
+    </EuiFlexGroup>
   );
 }
 /**
