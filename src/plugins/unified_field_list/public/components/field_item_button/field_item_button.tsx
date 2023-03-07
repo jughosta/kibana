@@ -10,7 +10,7 @@ import React from 'react';
 import { i18n } from '@kbn/i18n';
 import classnames from 'classnames';
 import { FieldButton, type FieldButtonProps } from '@kbn/react-field';
-import { EuiHighlight } from '@elastic/eui';
+import { EuiButtonIcon, EuiButtonIconProps, EuiHighlight, EuiToolTip } from '@elastic/eui';
 import type { DataViewField } from '@kbn/data-views-plugin/common';
 import { type FieldListItem, type GetCustomFieldType } from '../../types';
 import { wrapFieldNameOnDot } from '../../utils/wrap_field_name_on_dot';
@@ -23,33 +23,51 @@ import './field_item_button.scss';
 export interface FieldItemButtonProps<T extends FieldListItem> {
   field: T;
   fieldSearchHighlight?: string;
-  isActive?: FieldButtonProps['isActive'];
-  isEmpty?: boolean; // whether the field has data or not
+  isSelected: boolean; // whether a field is under Selected section
+  isActive: FieldButtonProps['isActive']; // whether a popover is open
+  isEmpty: boolean; // whether the field has data or not
   className?: FieldButtonProps['className'];
   getCustomFieldType?: GetCustomFieldType<T>;
   onClick: FieldButtonProps['onClick'];
+  shouldAlwaysShowAction?: boolean; // should the field action be visible on hover or always
+  buttonAddFieldToWorkspaceProps?: Partial<EuiButtonIconProps>;
+  buttonRemoveFieldFromWorkspaceProps?: Partial<EuiButtonIconProps>;
+  onAddFieldToWorkspace?: (field: T) => unknown;
+  onRemoveFieldFromWorkspace?: (field: T) => unknown;
 }
 
 /**
- * Inner part of field list item
+ * Field list item component
  * @param field
  * @param fieldSearchHighlight
+ * @param isSelected
  * @param isActive
  * @param isEmpty
  * @param className
  * @param getCustomFieldType
  * @param onClick
+ * @param shouldAlwaysShowAction
+ * @param buttonAddFieldToWorkspaceProps
+ * @param buttonRemoveFieldFromWorkspaceProps
+ * @param onAddFieldToWorkspace
+ * @param onRemoveFieldFromWorkspace
  * @param otherProps
  * @constructor
  */
 export function FieldItemButton<T extends FieldListItem = DataViewField>({
   field,
   fieldSearchHighlight,
+  isSelected,
   isActive,
   isEmpty,
   className,
   getCustomFieldType,
   onClick,
+  shouldAlwaysShowAction,
+  buttonAddFieldToWorkspaceProps,
+  buttonRemoveFieldFromWorkspaceProps,
+  onAddFieldToWorkspace,
+  onRemoveFieldFromWorkspace,
   ...otherProps
 }: FieldItemButtonProps<T>) {
   const displayName = field.displayName || field.name;
@@ -59,17 +77,85 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
   const type = iconProps.type;
 
   const classes = classnames(
-    'unifiedFieldItemButton',
+    'unifiedFieldListItemButton',
     {
-      [`unifiedFieldItemButton--${type}`]: type,
-      [`unifiedFieldItemButton--exists`]: !isEmpty,
-      [`unifiedFieldItemButton--missing`]: isEmpty,
+      [`unifiedFieldListItemButton--${type}`]: type,
+      [`unifiedFieldListItemButton--exists`]: !isEmpty,
+      [`unifiedFieldListItemButton--missing`]: isEmpty,
     },
     className
   );
 
+  const addFieldToWorkspaceTooltip =
+    buttonAddFieldToWorkspaceProps?.['aria-label'] ??
+    i18n.translate('unifiedFieldList.fieldItemButton.addFieldToWorkspaceLabel', {
+      defaultMessage: 'Add "{field}" field',
+      values: {
+        field: field.displayName,
+      },
+    });
+
+  const removeFieldFromWorkspaceTooltip =
+    buttonRemoveFieldFromWorkspaceProps?.['aria-label'] ??
+    i18n.translate('unifiedFieldList.fieldItemButton.removeFieldToWorkspaceLabel', {
+      defaultMessage: 'Remove "{field}" field',
+      values: {
+        field: field.displayName,
+      },
+    });
+
+  const fieldActionClassName = classnames('unifiedFieldListItemButton__action', {
+    'unifiedFieldListItemButton__action--always': shouldAlwaysShowAction,
+  });
+  const fieldAction = isSelected
+    ? onRemoveFieldFromWorkspace && (
+        <EuiToolTip
+          key={`selected-to-remove-${field.name}-${removeFieldFromWorkspaceTooltip}`}
+          content={removeFieldFromWorkspaceTooltip}
+        >
+          <EuiButtonIcon
+            data-test-subj={`unifiedFieldListItem_removeField-${field.name}`}
+            aria-label={removeFieldFromWorkspaceTooltip}
+            {...(buttonRemoveFieldFromWorkspaceProps || {})}
+            className={classnames(
+              fieldActionClassName,
+              buttonRemoveFieldFromWorkspaceProps?.className
+            )}
+            color="danger"
+            iconType="cross"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRemoveFieldFromWorkspace(field);
+            }}
+          />
+        </EuiToolTip>
+      )
+    : onAddFieldToWorkspace && (
+        <EuiToolTip
+          key={`deselected-to-add-${field.name}-${addFieldToWorkspaceTooltip}`}
+          content={addFieldToWorkspaceTooltip}
+        >
+          <EuiButtonIcon
+            data-test-subj={`unifiedFieldListItem_addField-${field.name}`}
+            aria-label={addFieldToWorkspaceTooltip}
+            {...(buttonAddFieldToWorkspaceProps || {})}
+            className={classnames(fieldActionClassName, buttonAddFieldToWorkspaceProps?.className)}
+            color="text"
+            iconType="plusInCircle"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onAddFieldToWorkspace(field);
+            }}
+          />
+        </EuiToolTip>
+      );
+
   return (
     <FieldButton
+      key={`field-item-button-${field.name}`}
+      size="s"
       className={classes}
       isActive={isActive}
       buttonProps={{
@@ -87,6 +173,7 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
           {wrapFieldNameOnDot(displayName)}
         </EuiHighlight>
       }
+      fieldAction={fieldAction}
       onClick={onClick}
       {...otherProps}
     />

@@ -28,11 +28,6 @@
   @include mixinDomDraggable;
   @include mixinDomDragDropHover;
 
-  // Include a possible nested button like when using FieldButton
-  > .kbnFieldButton__button {
-    cursor: grab;
-  }
-
   &:focus {
     @include euiFocusRing;
   }

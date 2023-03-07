@@ -34,6 +34,7 @@ import { APP_ID } from '../../../common/constants';
 import { combineQueryAndFilters } from '../../app_plugin/show_underlying_data';
 
 export interface FieldItemProps {
+  isSelected: boolean;
   core: DatasourceDataPanelProps['core'];
   fieldFormats: FieldFormatsStart;
   field: IndexPatternField;
@@ -56,6 +57,7 @@ export interface FieldItemProps {
 
 export const InnerFieldItem = function InnerFieldItem(props: FieldItemProps) {
   const {
+    isSelected,
     field,
     indexPattern,
     highlight,
@@ -145,6 +147,18 @@ export const InnerFieldItem = function InnerFieldItem(props: FieldItemProps) {
   }, [setOpen]);
 
   const order = useMemo(() => [0, groupIndex, itemIndex], [groupIndex, itemIndex]);
+  const canAddToWorkspace = hasSuggestionForField(value);
+  const addToWorkplaceButtonTitle = canAddToWorkspace
+    ? i18n.translate('xpack.lens.indexPattern.moveToWorkspace', {
+        defaultMessage: 'Add {field} to workspace',
+        values: {
+          field: value.field.displayName,
+        },
+      })
+    : i18n.translate('xpack.lens.indexPattern.moveToWorkspaceNotAvailable', {
+        defaultMessage:
+          'To visualize this field, please add it directly to the desired layer. Adding this field to the workspace is not supported based on your current configuration.',
+      });
 
   return (
     <li>
@@ -168,35 +182,28 @@ export const InnerFieldItem = function InnerFieldItem(props: FieldItemProps) {
             onDragStart={onDragStart}
           >
             <FieldItemButton<IndexPatternField>
+              isSelected={isSelected}
               isEmpty={!exists}
               isActive={infoIsOpen}
               field={field}
               fieldSearchHighlight={highlight}
               onClick={togglePopover}
+              buttonAddFieldToWorkspaceProps={{
+                isDisabled: !canAddToWorkspace,
+                'aria-label': addToWorkplaceButtonTitle,
+              }}
+              onAddFieldToWorkspace={dropOntoWorkspaceAndClose}
             />
           </DragDrop>
         }
         renderHeader={() => {
-          const canAddToWorkspace = hasSuggestionForField(value);
-          const buttonTitle = canAddToWorkspace
-            ? i18n.translate('xpack.lens.indexPattern.moveToWorkspace', {
-                defaultMessage: 'Add {field} to workspace',
-                values: {
-                  field: value.field.name,
-                },
-              })
-            : i18n.translate('xpack.lens.indexPattern.moveToWorkspaceNotAvailable', {
-                defaultMessage:
-                  'To visualize this field, please add it directly to the desired layer. Adding this field to the workspace is not supported based on your current configuration.',
-              });
-
           return (
             <FieldPopoverHeader
               field={dataViewField}
               closePopover={closePopover}
               buttonAddFieldToWorkspaceProps={{
                 isDisabled: !canAddToWorkspace,
-                'aria-label': buttonTitle,
+                'aria-label': addToWorkplaceButtonTitle,
               }}
               onAddFieldToWorkspace={dropOntoWorkspaceAndClose}
               onAddFilter={addFilterAndClose}
