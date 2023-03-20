@@ -26,6 +26,7 @@ export interface FieldItemButtonProps<T extends FieldListItem> {
   isSelected: boolean; // whether a field is under Selected section
   isActive: FieldButtonProps['isActive']; // whether a popover is open
   isEmpty: boolean; // whether the field has data or not
+  infoIcon?: FieldButtonProps['fieldInfoIcon'];
   className?: FieldButtonProps['className'];
   getCustomFieldType?: GetCustomFieldType<T>;
   onClick: FieldButtonProps['onClick'];
@@ -43,6 +44,7 @@ export interface FieldItemButtonProps<T extends FieldListItem> {
  * @param isSelected
  * @param isActive
  * @param isEmpty
+ * @param infoIcon
  * @param className
  * @param getCustomFieldType
  * @param onClick
@@ -60,6 +62,7 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
   isSelected,
   isActive,
   isEmpty,
+  infoIcon,
   className,
   getCustomFieldType,
   onClick,
@@ -174,6 +177,7 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
         </EuiHighlight>
       }
       fieldAction={fieldAction}
+      fieldInfoIcon={infoIcon}
       onClick={onClick}
       {...otherProps}
     />
