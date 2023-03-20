@@ -55,7 +55,7 @@ export function DimensionButton({
                 ? 'danger'
                 : message?.severity === 'warning'
                 ? 'warning'
-                : undefined
+                : 'text'
             }
           >
             <DimensionButtonIcon message={message} accessorConfig={accessorConfig}>

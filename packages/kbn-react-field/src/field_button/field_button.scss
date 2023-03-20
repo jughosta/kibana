@@ -62,7 +62,7 @@
 }
 
 // Reduce text size and spacing for the small size
-.kbnFieldButton--small {
+.kbnFieldButton--xs {
   font-size: $euiFontSizeXS;
 
   .kbnFieldButton__button {
@@ -72,5 +72,19 @@
   .kbnFieldButton__fieldIcon,
   .kbnFieldButton__fieldAction {
     margin-right: $euiSizeXS;
+  }
+}
+
+.kbnFieldButton--s {
+  font-size: $euiFontSizeS;
+
+  .kbnFieldButton__button {
+    padding: $euiSizeS;
+    padding-top: $euiSizeS - 1px;
+  }
+
+  .kbnFieldButton__fieldIcon,
+  .kbnFieldButton__fieldAction {
+    margin-right: $euiSizeS;
   }
 }

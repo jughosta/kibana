@@ -185,7 +185,7 @@ const MultiFields: React.FC<MultiFieldsProps> = memo(
       <EuiSpacer size="xs" />
       {multiFields.map((entry) => (
         <FieldButton
-          size="s"
+          size="xs"
           className="dscSidebarItem dscSidebarItem--multi"
           isActive={false}
           dataTestSubj={`field-${entry.field.name}-showDetails`}
@@ -353,7 +353,7 @@ function DiscoverFieldComponent({
   if (field.type === '_source') {
     return (
       <FieldButton
-        size="s"
+        size="xs"
         className="dscSidebarItem"
         dataTestSubj={`field-${field.name}-showDetails`}
         fieldIcon={<DiscoverFieldTypeIcon field={field} />}
@@ -372,7 +372,7 @@ function DiscoverFieldComponent({
 
   const button = (
     <FieldButton
-      size="s"
+      size="xs"
       className="dscSidebarItem"
       isActive={infoIsOpen}
       onClick={isDocumentRecord ? togglePopover : undefined}

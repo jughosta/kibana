@@ -57,7 +57,8 @@ export interface FieldButtonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const sizeToClassNameMap = {
-  s: 'kbnFieldButton--small',
+  xs: 'kbnFieldButton--xs',
+  s: 'kbnFieldButton--s',
   m: null,
 } as const;
 

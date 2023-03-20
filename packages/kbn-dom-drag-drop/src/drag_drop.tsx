@@ -24,6 +24,7 @@ import {
   Ghost,
 } from './providers';
 import { DropType } from './types';
+import { REORDER_ITEM_MARGIN } from './constants';
 import './sass/drag_drop.scss';
 
 /**
@@ -152,7 +153,7 @@ interface DropsInnerProps extends BaseProps {
   isNotDroppable: boolean;
 }
 
-const lnsLayerPanelDimensionMargin = 8;
+const REORDER_OFFSET = REORDER_ITEM_MARGIN / 2;
 
 /**
  * DragDrop component
@@ -772,7 +773,7 @@ const ReorderableDrag = memo(function ReorderableDrag(
       | KeyboardEvent<HTMLButtonElement>['currentTarget']
   ) => {
     if (currentTarget) {
-      const height = currentTarget.offsetHeight + lnsLayerPanelDimensionMargin;
+      const height = currentTarget.offsetHeight + REORDER_OFFSET;
       setReorderState((s: ReorderState) => ({
         ...s,
         draggingHeight: height,
@@ -875,7 +876,7 @@ const ReorderableDrag = memo(function ReorderableDrag(
         areItemsReordered
           ? {
               transform: `translateY(${direction === '+' ? '-' : '+'}${reorderedItems.reduce(
-                (acc, cur) => acc + Number(cur.height || 0) + lnsLayerPanelDimensionMargin,
+                (acc, cur) => acc + Number(cur.height || 0) + REORDER_OFFSET,
                 0
               )}px)`,
             }
