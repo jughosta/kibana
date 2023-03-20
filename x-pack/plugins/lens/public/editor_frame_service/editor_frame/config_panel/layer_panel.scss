@@ -64,6 +64,12 @@
   padding: $euiSizeS $euiSize;
 }
 
+.lnsLayerPanel__dimensionRemove {
+  margin-right: $euiSizeS;
+  visibility: hidden;
+  opacity: 0;
+}
+
 .lnsLayerPanel__dimension {
   @include euiFontSizeS;
   border-radius: $euiBorderRadius;
@@ -76,6 +82,15 @@
   // NativeRenderer is messing this up
   > div {
     flex-grow: 1;
+  }
+
+  &:hover,
+  &:focus {
+    .lnsLayerPanel__dimensionRemove {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity $euiAnimSpeedFast ease-in-out;
+    }
   }
 }
 
@@ -92,10 +107,6 @@
   & + & {
     margin-top: $euiSizeS;
   }
-}
-
-.lnsLayerPanel__dimensionRemove {
-  margin-right: $euiSizeS;
 }
 
 .lnsLayerPanel__triggerText {
