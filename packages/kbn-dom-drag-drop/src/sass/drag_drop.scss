@@ -195,3 +195,13 @@ $reorderItemMargin: 8px;
     color: $euiColorWarningText;
   }
 }
+
+.domDragDrop__dragHandle {
+  opacity: .5;
+  transition: opacity $euiAnimSpeedFast ease;
+  cursor: grab;
+
+  .domDragDrop:hover & {
+    opacity: 1;
+  }
+}

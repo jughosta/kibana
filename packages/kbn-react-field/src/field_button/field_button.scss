@@ -61,6 +61,10 @@
   margin-right: $euiSizeS;
 }
 
+.kbnFieldButton__dragHandle {
+  padding-left: $euiSizeS;
+}
+
 // Reduce text size and spacing for the small size
 .kbnFieldButton--xs {
   font-size: $euiFontSizeXS;

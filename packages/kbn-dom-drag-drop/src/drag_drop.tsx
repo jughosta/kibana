@@ -23,6 +23,7 @@ import {
   announce,
   Ghost,
 } from './providers';
+import { DragHandle } from './drag_handle';
 import { DropType } from './types';
 import { REORDER_ITEM_MARGIN } from './constants';
 import './sass/drag_drop.scss';
@@ -475,6 +476,7 @@ const DragInner = memo(function DragInner({
         'data-test-subj': dataTestSubj || dataTestSubjPrefix,
         className: classNames(children.props.className, 'domDragDrop', 'domDragDrop-isDraggable'),
         draggable: true,
+        dragHandle: <DragHandle />,
         onDragEnd: dragEnd,
         onDragStart: dragStart,
         onMouseDown: removeSelection,
