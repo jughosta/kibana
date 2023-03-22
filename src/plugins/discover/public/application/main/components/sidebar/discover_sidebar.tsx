@@ -238,7 +238,7 @@ export function DiscoverSidebarComponent({
   });
 
   const renderFieldItem: FieldListGroupedProps<DataViewField>['renderFieldItem'] = useCallback(
-    ({ field, groupName, fieldSearchHighlight }) => (
+    ({ field, groupName, groupIndex, itemIndex, fieldSearchHighlight }) => (
       <li key={`field${field.name}`} data-attr-field={field.name}>
         <DiscoverField
           alwaysShowActionButton={alwaysShowActionButtons}
@@ -255,6 +255,8 @@ export function DiscoverSidebarComponent({
           onDeleteField={deleteField}
           showFieldStats={showFieldStats}
           contextualFields={columns}
+          groupIndex={groupIndex}
+          itemIndex={itemIndex}
           isEmpty={groupName === FieldsGroupNames.EmptyFields}
           isSelected={
             groupName === FieldsGroupNames.SelectedFields ||

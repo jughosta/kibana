@@ -6,6 +6,7 @@
  * Side Public License, v 1.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { RootDragDropProvider } from '@kbn/dom-drag-drop';
 import { useHistory } from 'react-router-dom';
 import { SavedSearch } from '@kbn/saved-search-plugin/public';
 import { DataViewListItem } from '@kbn/data-views-plugin/public';
@@ -105,21 +106,23 @@ export function DiscoverMainApp(props: DiscoverMainProps) {
 
   return (
     <DiscoverMainProvider value={stateContainer}>
-      <DiscoverLayoutMemoized
-        inspectorAdapters={inspectorAdapters}
-        expandedDoc={expandedDoc}
-        onChangeDataView={onChangeDataView}
-        onUpdateQuery={onUpdateQuery}
-        resetSavedSearch={resetCurrentSavedSearch}
-        setExpandedDoc={setExpandedDoc}
-        navigateTo={navigateTo}
-        savedSearch={savedSearch}
-        searchSource={searchSource}
-        stateContainer={stateContainer}
-        persistDataView={persistDataView}
-        updateAdHocDataViewId={updateAdHocDataViewId}
-        updateDataViewList={updateDataViewList}
-      />
+      <RootDragDropProvider>
+        <DiscoverLayoutMemoized
+          inspectorAdapters={inspectorAdapters}
+          expandedDoc={expandedDoc}
+          onChangeDataView={onChangeDataView}
+          onUpdateQuery={onUpdateQuery}
+          resetSavedSearch={resetCurrentSavedSearch}
+          setExpandedDoc={setExpandedDoc}
+          navigateTo={navigateTo}
+          savedSearch={savedSearch}
+          searchSource={searchSource}
+          stateContainer={stateContainer}
+          persistDataView={persistDataView}
+          updateAdHocDataViewId={updateAdHocDataViewId}
+          updateDataViewList={updateDataViewList}
+        />
+      </RootDragDropProvider>
     </DiscoverMainProvider>
   );
 }

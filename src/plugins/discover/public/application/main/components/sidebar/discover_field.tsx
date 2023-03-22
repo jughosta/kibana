@@ -21,6 +21,7 @@ import {
   FieldPopoverHeaderProps,
   FieldPopoverVisualize,
 } from '@kbn/unified-field-list-plugin/public';
+import { DragDrop } from '@kbn/dom-drag-drop';
 import { DiscoverFieldStats } from './discover_field_stats';
 import { DiscoverFieldDetails } from './deprecated_stats/discover_field_details';
 import { useDiscoverServices } from '../../../../hooks/use_discover_services';
@@ -180,6 +181,16 @@ export interface DiscoverFieldProps {
    * Search by field name
    */
   highlight?: string;
+
+  /**
+   * Group index in the field list
+   */
+  groupIndex: number;
+
+  /**
+   * Item index in the field list
+   */
+  itemIndex: number;
 }
 
 function DiscoverFieldComponent({
@@ -199,6 +210,8 @@ function DiscoverFieldComponent({
   onDeleteField,
   showFieldStats,
   contextualFields,
+  groupIndex,
+  itemIndex,
 }: DiscoverFieldProps) {
   const services = useDiscoverServices();
   const [infoIsOpen, setOpen] = useState(false);
@@ -257,18 +270,6 @@ function DiscoverFieldComponent({
     [field.name]
   );
 
-  const button = (
-    <FieldItemButton
-      fieldSearchHighlight={highlight}
-      className="dscSidebarItem"
-      isEmpty={isEmpty}
-      isActive={infoIsOpen}
-      shouldAlwaysShowAction={alwaysShowActionButton}
-      onClick={isDocumentRecord && field.type !== '_source' ? togglePopover : undefined}
-      {...getCommonFieldItemButtonProps({ field, isSelected, toggleDisplay })}
-    />
-  );
-
   const renderPopover = () => {
     const showLegacyFieldStats = services.uiSettings.get(SHOW_LEGACY_FIELD_TOP_VALUES);
 
@@ -318,10 +319,34 @@ function DiscoverFieldComponent({
     );
   };
 
+  const value = useMemo(
+    () => ({
+      id: field.name,
+      humanData: {
+        label: field.displayName,
+        position: itemIndex + 1,
+      },
+    }),
+    [field, itemIndex]
+  );
+  const order = useMemo(() => [0, groupIndex, itemIndex], [groupIndex, itemIndex]);
+
   return (
     <FieldPopover
       isOpen={infoIsOpen}
-      button={button}
+      button={
+        <DragDrop draggable order={order} value={value} onDragStart={closePopover}>
+          <FieldItemButton
+            fieldSearchHighlight={highlight}
+            className="dscSidebarItem"
+            isEmpty={isEmpty}
+            isActive={infoIsOpen}
+            shouldAlwaysShowAction={alwaysShowActionButton}
+            onClick={isDocumentRecord && field.type !== '_source' ? togglePopover : undefined}
+            {...getCommonFieldItemButtonProps({ field, isSelected, toggleDisplay })}
+          />
+        </DragDrop>
+      }
       closePopover={closePopover}
       data-test-subj="discoverFieldListPanelPopover"
       renderHeader={() => (

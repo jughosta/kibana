@@ -100,6 +100,8 @@ async function getComponent({
     showFieldStats,
     isSelected: selected,
     isEmpty: false,
+    groupIndex: 1,
+    itemIndex: 0,
     contextualFields: [],
   };
   const services = {

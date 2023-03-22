@@ -6,7 +6,7 @@
  * Side Public License, v 1.
  */
 import './discover_layout.scss';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   EuiButtonIcon,
   EuiFlexGroup,
@@ -21,6 +21,7 @@ import { i18n } from '@kbn/i18n';
 import { METRIC_TYPE } from '@kbn/analytics';
 import classNames from 'classnames';
 import { generateFilters } from '@kbn/data-plugin/public';
+import { DragContext, DragDrop, type DropType } from '@kbn/dom-drag-drop';
 import { DataView, DataViewField, DataViewType } from '@kbn/data-views-plugin/public';
 import { VIEW_MODE } from '../../../../../common/constants';
 import { useInternalStateSelector } from '../../services/discover_internal_state_container';
@@ -45,6 +46,19 @@ import { getRawRecordType } from '../../utils/get_raw_record_type';
 import { SavedSearchURLConflictCallout } from '../../../../components/saved_search_url_conflict_callout/saved_search_url_conflict_callout';
 import { DiscoverHistogramLayout } from './discover_histogram_layout';
 import { ErrorCallout } from '../../../../components/common/error_callout';
+
+const DROP_PROPS = {
+  value: {
+    id: 'dscDropZoneTable',
+    humanData: {
+      label: i18n.translate('discover.dropZoneTableLabel', {
+        defaultMessage: 'Drop zone to add field as a column to the table',
+      }),
+    },
+  },
+  order: [1, 0, 0, 0],
+  types: ['field_add'] as DropType[],
+};
 
 /**
  * Local storage key for sidebar persistence state
@@ -272,6 +286,18 @@ export function DiscoverLayout({
     stateContainer,
     viewMode,
   ]);
+
+  const dragDropContext = useContext(DragContext);
+  const draggingFieldName = dragDropContext.dragging?.id;
+
+  const onDropField = useCallback(() => {
+    if (!draggingFieldName) {
+      return;
+    }
+
+    onAddColumn(draggingFieldName);
+  }, [onAddColumn, draggingFieldName]);
+
   return (
     <EuiPage className="dscPage" data-fetch-counter={fetchCounter.current}>
       <h1
@@ -365,19 +391,27 @@ export function DiscoverLayout({
                 data-test-subj="discoverNoResultsError"
               />
             ) : (
-              <EuiPageContent
-                panelRef={resizeRef}
-                verticalPosition={contentCentered ? 'center' : undefined}
-                horizontalPosition={contentCentered ? 'center' : undefined}
-                paddingSize="none"
-                hasShadow={false}
-                className={classNames('dscPageContent', {
-                  'dscPageContent--centered': contentCentered,
-                  'dscPageContent--emptyPrompt': resultState === 'none',
-                })}
+              <DragDrop
+                draggable={false}
+                dropTypes={DROP_PROPS.types}
+                value={DROP_PROPS.value}
+                order={DROP_PROPS.order}
+                onDrop={onDropField}
               >
-                {mainDisplay}
-              </EuiPageContent>
+                <EuiPageContent
+                  panelRef={resizeRef}
+                  verticalPosition={contentCentered ? 'center' : undefined}
+                  horizontalPosition={contentCentered ? 'center' : undefined}
+                  paddingSize="none"
+                  hasShadow={false}
+                  className={classNames('dscPageContent', {
+                    'dscPageContent--centered': contentCentered,
+                    'dscPageContent--emptyPrompt': resultState === 'none',
+                  })}
+                >
+                  {mainDisplay}
+                </EuiPageContent>
+              </DragDrop>
             )}
           </EuiFlexItem>
         </EuiFlexGroup>
