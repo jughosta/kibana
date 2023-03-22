@@ -73,6 +73,11 @@ interface BaseProps {
    * The React element which will be passed the draggable handlers
    */
   children: ReactElement;
+
+  /**
+   * Disable any drag & drop behaviour
+   */
+  isDisabled?: boolean;
   /**
    * Indicates whether or not this component is draggable.
    */
@@ -175,6 +180,10 @@ export const DragDrop = (props: BaseProps) => {
     dataTestSubjPrefix,
     onTrackUICounterEvent,
   } = useContext(DragContext);
+
+  if (props.isDisabled) {
+    return props.children;
+  }
 
   const { value, draggable, dropTypes, reorderableGroup } = props;
   const isDragging = !!(draggable && value.id === dragging?.id);

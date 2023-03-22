@@ -255,7 +255,8 @@ export function DiscoverSidebarComponent({
           onDeleteField={deleteField}
           showFieldStats={showFieldStats}
           contextualFields={columns}
-          selected={
+          isEmpty={groupName === FieldsGroupNames.EmptyFields}
+          isSelected={
             groupName === FieldsGroupNames.SelectedFields ||
             Boolean(selectedFieldsState.selectedFieldsMap[field.name])
           }

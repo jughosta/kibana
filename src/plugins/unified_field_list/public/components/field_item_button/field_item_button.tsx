@@ -10,7 +10,7 @@ import React from 'react';
 import { i18n } from '@kbn/i18n';
 import classnames from 'classnames';
 import { FieldButton, type FieldButtonProps } from '@kbn/react-field';
-import { EuiButtonIcon, EuiButtonIconProps, EuiHighlight, EuiToolTip } from '@elastic/eui';
+import { EuiButtonIcon, EuiButtonIconProps, EuiHighlight, EuiIcon, EuiToolTip } from '@elastic/eui';
 import type { DataViewField } from '@kbn/data-views-plugin/common';
 import { type FieldListItem, type GetCustomFieldType } from '../../types';
 import { wrapFieldNameOnDot } from '../../utils/wrap_field_name_on_dot';
@@ -29,6 +29,8 @@ export interface FieldItemButtonProps<T extends FieldListItem> {
   infoIcon?: FieldButtonProps['fieldInfoIcon'];
   className?: FieldButtonProps['className'];
   getCustomFieldType?: GetCustomFieldType<T>;
+  dataTestSubj?: string;
+  size?: FieldButtonProps['size'];
   onClick: FieldButtonProps['onClick'];
   shouldAlwaysShowAction?: boolean; // should the field action be visible on hover or always
   buttonAddFieldToWorkspaceProps?: Partial<EuiButtonIconProps>;
@@ -47,6 +49,8 @@ export interface FieldItemButtonProps<T extends FieldListItem> {
  * @param infoIcon
  * @param className
  * @param getCustomFieldType
+ * @param dataTestSubj
+ * @param size
  * @param onClick
  * @param shouldAlwaysShowAction
  * @param buttonAddFieldToWorkspaceProps
@@ -65,6 +69,8 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
   infoIcon,
   className,
   getCustomFieldType,
+  dataTestSubj,
+  size,
   onClick,
   shouldAlwaysShowAction,
   buttonAddFieldToWorkspaceProps,
@@ -74,6 +80,17 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
   ...otherProps
 }: FieldItemButtonProps<T>) {
   const displayName = field.displayName || field.name;
+  const title =
+    displayName !== field.name
+      ? i18n.translate('unifiedFieldList.fieldItemButton.fieldTitle', {
+          defaultMessage: '{fieldName} ({fieldDisplayName})',
+          values: {
+            fieldName: field.name,
+            fieldDisplayName: displayName,
+          },
+        })
+      : displayName;
+
   const iconProps = getCustomFieldType
     ? { type: getCustomFieldType(field) }
     : getFieldIconProps(field);
@@ -155,14 +172,17 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
         </EuiToolTip>
       );
 
+  const conflictInfoIcon = field.type === 'conflict' ? <FieldConflictInfoIcon /> : null;
+
   return (
     <FieldButton
       key={`field-item-button-${field.name}`}
-      size="s"
+      dataTestSubj={dataTestSubj}
+      size={size || 's'}
       className={classes}
       isActive={isActive}
       buttonProps={{
-        ['aria-label']: i18n.translate('unifiedFieldList.fieldItemButtonAriaLabel', {
+        ['aria-label']: i18n.translate('unifiedFieldList.fieldItemButton.ariaLabel', {
           defaultMessage: 'Preview {fieldName}: {fieldType}',
           values: {
             fieldName: displayName,
@@ -172,14 +192,40 @@ export function FieldItemButton<T extends FieldListItem = DataViewField>({
       }}
       fieldIcon={<FieldIcon {...iconProps} />}
       fieldName={
-        <EuiHighlight search={wrapFieldNameOnDot(fieldSearchHighlight)}>
+        <EuiHighlight
+          search={wrapFieldNameOnDot(fieldSearchHighlight)}
+          title={title}
+          data-test-subj={`field-${field.name}`}
+        >
           {wrapFieldNameOnDot(displayName)}
         </EuiHighlight>
       }
       fieldAction={fieldAction}
-      fieldInfoIcon={infoIcon}
+      fieldInfoIcon={conflictInfoIcon || infoIcon}
       onClick={onClick}
       {...otherProps}
     />
+  );
+}
+
+function FieldConflictInfoIcon() {
+  return (
+    <EuiToolTip
+      position="bottom"
+      content={i18n.translate('unifiedFieldList.fieldItemButton.mappingConflictDescription', {
+        defaultMessage:
+          'This field is defined as several types (string, integer, etc) across the indices that match this pattern.' +
+          'You may still be able to use this conflicting field, but it will be unavailable for functions that require Kibana to know their type. Correcting this issue will require reindexing your data.',
+      })}
+    >
+      <EuiIcon
+        tabIndex={0}
+        type="warning"
+        title={i18n.translate('unifiedFieldList.fieldItemButton.mappingConflictTitle', {
+          defaultMessage: 'Mapping Conflict',
+        })}
+        size="s"
+      />
+    </EuiToolTip>
   );
 }
