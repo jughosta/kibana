@@ -331,6 +331,8 @@ function DiscoverFieldComponent({
   );
   const order = useMemo(() => [0, groupIndex, itemIndex], [groupIndex, itemIndex]);
 
+  // TODO: disable drag&drop for mobile view
+
   return (
     <FieldPopover
       isOpen={infoIsOpen}
