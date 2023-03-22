@@ -140,6 +140,10 @@ $reorderItemMargin: 8px;
   }
 }
 
+.domDragDrop-isDragStarted {
+  opacity: .5;
+}
+
 .domDragDrop__extraDrops {
   opacity: 0;
   visibility: hidden;

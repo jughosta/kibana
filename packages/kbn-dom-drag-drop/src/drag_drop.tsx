@@ -419,12 +419,14 @@ const DragInner = memo(function DragInner({
     keyboardMode &&
     activeDropTarget &&
     activeDropTarget.dropType !== 'reorder';
+
   return (
     <div
       className={classNames(className, {
         'domDragDrop-isHidden':
           (activeDraggingProps && dragType === 'move' && !keyboardMode) ||
           shouldShowGhostImageInstead,
+        'domDragDrop-isDragStarted': activeDraggingProps,
       })}
       data-test-subj={`${dataTestSubjPrefix}_draggable-${value.humanData.label}`}
     >
