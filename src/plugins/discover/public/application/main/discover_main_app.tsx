@@ -5,7 +5,7 @@
  * in compliance with, at your election, the Elastic License 2.0 or the Server
  * Side Public License, v 1.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { RootDragDropProvider } from '@kbn/dom-drag-drop';
 import { useHistory } from 'react-router-dom';
 import { SavedSearch } from '@kbn/saved-search-plugin/public';
@@ -16,7 +16,6 @@ import { addHelpMenuToAppChrome } from '../../components/help_menu/help_menu_uti
 import { useDiscoverState } from './hooks/use_discover_state';
 import { useUrl } from './hooks/use_url';
 import { useDiscoverServices } from '../../hooks/use_discover_services';
-import { DataTableRecord } from '../../types';
 import { useSavedSearchAliasMatchRedirect } from '../../hooks/saved_search_alias_match_redirect';
 import { DiscoverMainProvider } from './services/discover_state_provider';
 
@@ -38,7 +37,6 @@ export function DiscoverMainApp(props: DiscoverMainProps) {
   const services = useDiscoverServices();
   const { chrome, docLinks, data, spaces, history } = services;
   const usedHistory = useHistory();
-  const [expandedDoc, setExpandedDoc] = useState<DataTableRecord | undefined>(undefined);
   const navigateTo = useCallback(
     (path: string) => {
       usedHistory.push(path);
@@ -63,7 +61,6 @@ export function DiscoverMainApp(props: DiscoverMainProps) {
     services,
     history: usedHistory,
     savedSearch,
-    setExpandedDoc,
   });
 
   /**
@@ -109,11 +106,9 @@ export function DiscoverMainApp(props: DiscoverMainProps) {
       <RootDragDropProvider>
         <DiscoverLayoutMemoized
           inspectorAdapters={inspectorAdapters}
-          expandedDoc={expandedDoc}
           onChangeDataView={onChangeDataView}
           onUpdateQuery={onUpdateQuery}
           resetSavedSearch={resetCurrentSavedSearch}
-          setExpandedDoc={setExpandedDoc}
           navigateTo={navigateTo}
           savedSearch={savedSearch}
           searchSource={searchSource}
