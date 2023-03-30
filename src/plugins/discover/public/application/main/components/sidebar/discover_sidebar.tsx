@@ -207,6 +207,11 @@ export function DiscoverSidebarComponent({
           }),
         };
       }
+      if (groupName === FieldsGroupNames.SelectedFields) {
+        return {
+          canReorderItems: true,
+        };
+      }
     }, []);
   const { fieldListFiltersProps, fieldListGroupedProps } = useGroupedFields({
     dataViewId: (!isPlainRecord && selectedDataView?.id) || null, // passing `null` for text-based queries
@@ -223,7 +228,7 @@ export function DiscoverSidebarComponent({
   });
 
   const renderFieldItem: FieldListGroupedProps<DataViewField>['renderFieldItem'] = useCallback(
-    ({ field, groupName, groupIndex, itemIndex, fieldSearchHighlight }) => (
+    ({ field, groupName, groupIndex, itemIndex, fieldSearchHighlight, reorderContextState }) => (
       <li key={`field${field.name}`} data-attr-field={field.name}>
         <DiscoverField
           alwaysShowActionButton={alwaysShowActionButtons}
@@ -248,6 +253,8 @@ export function DiscoverSidebarComponent({
             groupName === FieldsGroupNames.SelectedFields ||
             Boolean(selectedFieldsState.selectedFieldsMap[field.name])
           }
+          selectedFields={selectedFieldsState.selectedFields}
+          reorderContextState={reorderContextState}
         />
       </li>
     ),
@@ -265,6 +272,7 @@ export function DiscoverSidebarComponent({
       showFieldStats,
       columns,
       selectedFieldsState.selectedFieldsMap,
+      selectedFieldsState.selectedFields,
     ]
   );
 

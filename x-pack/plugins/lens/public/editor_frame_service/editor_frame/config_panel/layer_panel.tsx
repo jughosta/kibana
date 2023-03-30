@@ -20,7 +20,7 @@ import {
 import { i18n } from '@kbn/i18n';
 import { css } from '@emotion/react';
 import { euiThemeVars } from '@kbn/ui-theme';
-import { DragDropIdentifier, ReorderProvider, DropType } from '@kbn/dom-drag-drop';
+import { DragDropIdentifier, GroupReorderProvider, DropType } from '@kbn/dom-drag-drop';
 import { LayerType } from '../../../../common';
 import { LayerActions } from './layer_actions';
 import { IndexPatternServiceAPI } from '../../../data_views_service/service';
@@ -507,7 +507,7 @@ export function LayerPanel(
               >
                 <>
                   {group.accessors.length ? (
-                    <ReorderProvider
+                    <GroupReorderProvider
                       id={group.groupId}
                       className={'lnsLayerPanel__group'}
                       dataTestSubj="lnsDragDrop"
@@ -596,7 +596,7 @@ export function LayerPanel(
                           </DraggableDimensionButton>
                         );
                       })}
-                    </ReorderProvider>
+                    </GroupReorderProvider>
                   ) : null}
 
                   {group.fakeFinalAccessor && (

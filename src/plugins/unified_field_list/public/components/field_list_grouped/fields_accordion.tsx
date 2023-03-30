@@ -9,6 +9,11 @@
 import React, { useMemo, Fragment } from 'react';
 import { i18n } from '@kbn/i18n';
 import {
+  MultiGroupChildReorderProvider,
+  ReorderContext,
+  ReorderContextState,
+} from '@kbn/dom-drag-drop';
+import {
   EuiText,
   EuiNotificationBadge,
   EuiSpacer,
@@ -34,6 +39,7 @@ export interface FieldsAccordionProps<T extends FieldListItem> {
   groupIndex: number;
   groupName: FieldsGroupNames;
   fieldSearchHighlight?: string;
+  canReorderItems?: boolean;
   paginatedFields: T[];
   renderFieldItem: (params: {
     field: T;
@@ -42,6 +48,7 @@ export interface FieldsAccordionProps<T extends FieldListItem> {
     groupIndex: number;
     groupName: FieldsGroupNames;
     fieldSearchHighlight?: string;
+    reorderContextState?: ReorderContextState;
   }) => JSX.Element;
   renderCallout: () => JSX.Element;
   showExistenceFetchError?: boolean;
@@ -61,6 +68,7 @@ function InnerFieldsAccordion<T extends FieldListItem = DataViewField>({
   groupIndex,
   groupName,
   fieldSearchHighlight,
+  canReorderItems,
   paginatedFields,
   renderFieldItem,
   renderCallout,
@@ -140,6 +148,22 @@ function InnerFieldsAccordion<T extends FieldListItem = DataViewField>({
     return <EuiLoadingSpinner size="m" data-test-subj={`${id}-countLoading`} />;
   }, [showExistenceFetchError, showExistenceFetchTimeout, hasLoaded, isFiltered, id, fieldsCount]);
 
+  const renderPaginatedFields = (reorderContextState?: ReorderContextState) =>
+    paginatedFields &&
+    paginatedFields.map((field, index) => (
+      <Fragment key={getFieldKey(field)}>
+        {renderFieldItem({
+          field,
+          itemIndex: index,
+          groupIndex,
+          groupName,
+          hideDetails,
+          fieldSearchHighlight,
+          reorderContextState,
+        })}
+      </Fragment>
+    ));
+
   return (
     <EuiAccordion
       initialIsOpen={initialIsOpen}
@@ -153,19 +177,15 @@ function InnerFieldsAccordion<T extends FieldListItem = DataViewField>({
       {hasLoaded &&
         (!!fieldsCount ? (
           <ul className="unifiedFieldList__fieldsAccordion__fieldItems">
-            {paginatedFields &&
-              paginatedFields.map((field, index) => (
-                <Fragment key={getFieldKey(field)}>
-                  {renderFieldItem({
-                    field,
-                    itemIndex: index,
-                    groupIndex,
-                    groupName,
-                    hideDetails,
-                    fieldSearchHighlight,
-                  })}
-                </Fragment>
-              ))}
+            {canReorderItems ? (
+              <MultiGroupChildReorderProvider groupId={groupName}>
+                <ReorderContext.Consumer>
+                  {(reorderContextState) => renderPaginatedFields(reorderContextState)}
+                </ReorderContext.Consumer>
+              </MultiGroupChildReorderProvider>
+            ) : (
+              renderPaginatedFields()
+            )}
           </ul>
         ) : (
           renderCallout()

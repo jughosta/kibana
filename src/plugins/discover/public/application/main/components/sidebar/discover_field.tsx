@@ -8,7 +8,7 @@
 
 import './discover_field.scss';
 
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { EuiSpacer, EuiTitle } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { UiCounterMetricType } from '@kbn/analytics';
@@ -22,7 +22,7 @@ import {
   FieldPopoverVisualize,
   FieldsGroupNames,
 } from '@kbn/unified-field-list-plugin/public';
-import { DragDrop } from '@kbn/dom-drag-drop';
+import { DragContext, DragDrop, ReorderContext, ReorderContextState } from '@kbn/dom-drag-drop';
 import { DiscoverFieldStats } from './discover_field_stats';
 import { DiscoverFieldDetails } from './deprecated_stats/discover_field_details';
 import { useDiscoverServices } from '../../../../hooks/use_discover_services';
@@ -180,6 +180,11 @@ export interface DiscoverFieldProps {
   contextualFields: string[];
 
   /**
+   * Currently selected fields
+   */
+  selectedFields: DataViewField[];
+
+  /**
    * Search by field name
    */
   highlight?: string;
@@ -198,6 +203,11 @@ export interface DiscoverFieldProps {
    * Item index in the field list
    */
   itemIndex: number;
+
+  /**
+   * Drag & drop context state
+   */
+  reorderContextState?: ReorderContextState;
 }
 
 function DiscoverFieldComponent({
@@ -217,9 +227,11 @@ function DiscoverFieldComponent({
   onDeleteField,
   showFieldStats,
   contextualFields,
+  selectedFields,
   groupName,
   groupIndex,
   itemIndex,
+  reorderContextState,
 }: DiscoverFieldProps) {
   const services = useDiscoverServices();
   const [infoIsOpen, setOpen] = useState(false);
@@ -329,41 +341,60 @@ function DiscoverFieldComponent({
 
   const value = useMemo(
     () => ({
-      id: field.name,
+      id: `${groupIndex}:${field.name}`,
+      groupIndex,
       humanData: {
         label: field.displayName,
         position: itemIndex + 1,
       },
     }),
-    [field, itemIndex]
+    [field, itemIndex, groupIndex]
   );
   const order = useMemo(() => [0, groupIndex, itemIndex], [groupIndex, itemIndex]);
+  const { dragging } = useContext(DragContext);
+
+  const button = (
+    <DragDrop
+      draggable
+      withDragHandle
+      order={order}
+      value={value}
+      onDragStart={closePopover}
+      isDisabled={alwaysShowActionButton}
+      dataTestSubj={`dscFieldListPanelField-${field.name}`}
+      {...(groupName === FieldsGroupNames.SelectedFields
+        ? {
+            dragType: dragging && dragging.groupIndex === groupIndex ? 'move' : 'copy',
+            dropTypes: dragging && dragging.groupIndex === groupIndex ? ['reorder'] : [],
+            reorderableGroup: selectedFields.map((f) => ({ id: `${groupIndex}:${f.name}` })),
+            // eslint-disable-next-line no-console
+            onDrop: (...params) => console.log(params),
+          }
+        : {})}
+    >
+      <FieldItemButton
+        size="xs"
+        fieldSearchHighlight={highlight}
+        className="dscSidebarItem"
+        isEmpty={isEmpty}
+        isActive={infoIsOpen}
+        flush={alwaysShowActionButton ? 'both' : undefined}
+        shouldAlwaysShowAction={alwaysShowActionButton}
+        onClick={isDocumentRecord && field.type !== '_source' ? togglePopover : undefined}
+        {...getCommonFieldItemButtonProps({ field, isSelected, toggleDisplay })}
+      />
+    </DragDrop>
+  );
 
   return (
     <FieldPopover
       isOpen={infoIsOpen}
       button={
-        <DragDrop
-          draggable
-          withDragHandle
-          order={order}
-          value={value}
-          onDragStart={closePopover}
-          isDisabled={alwaysShowActionButton || groupName === FieldsGroupNames.SelectedFields}
-          dataTestSubj={`dscFieldListPanelField-${field.name}`}
-        >
-          <FieldItemButton
-            size="xs"
-            fieldSearchHighlight={highlight}
-            className="dscSidebarItem"
-            isEmpty={isEmpty}
-            isActive={infoIsOpen}
-            flush={alwaysShowActionButton ? 'both' : undefined}
-            shouldAlwaysShowAction={alwaysShowActionButton}
-            onClick={isDocumentRecord && field.type !== '_source' ? togglePopover : undefined}
-            {...getCommonFieldItemButtonProps({ field, isSelected, toggleDisplay })}
-          />
-        </DragDrop>
+        reorderContextState ? (
+          <ReorderContext.Provider value={reorderContextState}>{button}</ReorderContext.Provider>
+        ) : (
+          button
+        )
       }
       closePopover={closePopover}
       data-test-subj="discoverFieldListPanelPopover"

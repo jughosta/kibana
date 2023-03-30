@@ -12,7 +12,7 @@ import { DragDrop } from './drag_drop';
 import {
   ChildDragDropProvider,
   DragContextState,
-  ReorderProvider,
+  GroupReorderProvider,
   DragDropIdentifier,
   DraggingIdentifier,
   DropIdentifier,
@@ -1016,7 +1016,7 @@ describe('DragDrop', () => {
 
       return mount(
         <ChildDragDropProvider {...baseContext} {...dragContext}>
-          <ReorderProvider id="groupId" dataTestSubj="testDragDrop">
+          <GroupReorderProvider id="groupId" dataTestSubj="testDragDrop">
             <DragDrop
               {...dragDropSharedProps}
               value={items[0]}
@@ -1041,7 +1041,7 @@ describe('DragDrop', () => {
             >
               <span>3</span>
             </DragDrop>
-          </ReorderProvider>
+          </GroupReorderProvider>
         </ChildDragDropProvider>
       );
     };
@@ -1304,7 +1304,7 @@ describe('DragDrop', () => {
           setActiveDropTarget={setActiveDropTarget}
           setA11yMessage={setA11yMessage}
         >
-          <ReorderProvider id="groupId" dataTestSubj="testDragDrop">
+          <GroupReorderProvider id="groupId" dataTestSubj="testDragDrop">
             <DragDrop
               draggable
               dragType="move"
@@ -1324,7 +1324,7 @@ describe('DragDrop', () => {
             >
               <span>2</span>
             </DragDrop>
-          </ReorderProvider>
+          </GroupReorderProvider>
         </ChildDragDropProvider>
       );
       const keyboardHandler = component

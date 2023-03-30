@@ -55,6 +55,7 @@ export interface FieldsGroupDetails {
   hideDetails?: boolean;
   defaultNoFieldsMessage?: string;
   hideIfEmpty?: boolean;
+  canReorderItems?: boolean;
 }
 
 export interface FieldsGroup<T extends FieldListItem> extends FieldsGroupDetails {
