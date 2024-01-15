@@ -8,7 +8,7 @@
     "server": true,
     "browser": true,
     "requiredPlugins": ["data", "contentManagement", "embeddable", "expressions"],
-    "optionalPlugins": ["spaces", "savedObjectsTaggingOss"],
+    "optionalPlugins": ["spaces", "savedObjectsTaggingOss", "lens"],
     "requiredBundles": [],
     "extraPublicDirs": ["common"]
   }

@@ -12,6 +12,7 @@ import type {
   PluginSetup as DataPluginSetup,
   PluginStart as DataPluginStart,
 } from '@kbn/data-plugin/server';
+import type { LensServerPluginSetup } from '@kbn/lens-plugin/server';
 import type { ContentManagementServerSetup } from '@kbn/content-management-plugin/server';
 import { ExpressionsServerSetup } from '@kbn/expressions-plugin/server';
 import { getSavedSearchObjectType } from './saved_objects';
@@ -28,6 +29,7 @@ export interface SavedSearchPublicSetupDependencies {
   data: DataPluginSetup;
   contentManagement: ContentManagementServerSetup;
   expressions: ExpressionsServerSetup;
+  lens: LensServerPluginSetup;
 }
 
 export interface SavedSearchServerStartDeps {
@@ -41,7 +43,7 @@ export class SavedSearchServerPlugin
 
   public setup(
     core: CoreSetup,
-    { data, contentManagement, expressions }: SavedSearchPublicSetupDependencies
+    { data, contentManagement, expressions, lens }: SavedSearchPublicSetupDependencies
   ) {
     contentManagement.register({
       id: SavedSearchType,
@@ -57,7 +59,12 @@ export class SavedSearchServerPlugin
     const searchSource = data.search.searchSource;
 
     const getSearchSourceMigrations = searchSource.getAllMigrations.bind(searchSource);
-    core.savedObjects.registerType(getSavedSearchObjectType(getSearchSourceMigrations));
+    core.savedObjects.registerType(
+      getSavedSearchObjectType({
+        getSearchSourceMigrations,
+        lensEmbeddableFactory: lens.lensEmbeddableFactory,
+      })
+    );
 
     expressions.registerType(kibanaContext);
     expressions.registerFunction(
