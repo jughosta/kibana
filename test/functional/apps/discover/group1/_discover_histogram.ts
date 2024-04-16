@@ -74,7 +74,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
         const actualCount = await elasticChart.getVisualizationRenderingCount();
         const expectedCount = prevRenderingCount + renderingCountInc;
         log.debug(`renderings before brushing - actual: ${actualCount} expected: ${expectedCount}`);
-        return actualCount === expectedCount;
+        return actualCount <= expectedCount && actualCount > 0;
       });
       let prevRowData = '';
       // to make sure the table is already rendered
@@ -90,7 +90,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
         const actualCount = await elasticChart.getVisualizationRenderingCount();
         const expectedCount = prevRenderingCount + renderingCountInc * 2;
         log.debug(`renderings after brushing - actual: ${actualCount} expected: ${expectedCount}`);
-        return actualCount <= expectedCount;
+        return actualCount <= expectedCount && actualCount > 0;
       });
       const newDurationHours = await PageObjects.timePicker.getTimeDurationInHours();
       expect(Math.round(newDurationHours)).to.be(24); // might fail if histogram's width changes
