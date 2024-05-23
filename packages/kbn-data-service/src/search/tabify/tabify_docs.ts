@@ -87,6 +87,58 @@ function flattenAccum(
   }
 }
 
+function getValidDataViewMetaFieldNames(dataView?: DataView): string[] {
+  if (!dataView?.metaFields) {
+    return [];
+  }
+
+  const fieldNames: string[] = [];
+
+  for (let i = 0; i < dataView.metaFields.length; i++) {
+    const fieldName = dataView.metaFields[i];
+    const isExcludedMetaField =
+      EXCLUDED_META_FIELDS.includes(fieldName) || fieldName.charAt(0) !== '_';
+    if (!isExcludedMetaField) {
+      fieldNames.push(fieldName);
+    }
+  }
+
+  return fieldNames;
+}
+
+export function getHitFieldNamesSet(hit: Hit, dataView?: DataView): Set<string> {
+  const fieldsSet = new Set<string>();
+
+  if (hit.fields) {
+    for (const key in hit.fields) {
+      if (hit.fields.hasOwnProperty(key)) {
+        fieldsSet.add(key);
+      }
+    }
+  } else if (hit._source) {
+    for (const key in hit._source) {
+      if (hit._source.hasOwnProperty(key)) {
+        fieldsSet.add(key);
+      }
+    }
+  }
+
+  if (hit.ignored_field_values) {
+    for (const key in hit.ignored_field_values) {
+      if (hit.ignored_field_values.hasOwnProperty(key)) {
+        fieldsSet.add(key);
+      }
+    }
+  }
+
+  const metaFieldNames = getValidDataViewMetaFieldNames(dataView);
+  metaFieldNames.forEach((fieldName) => {
+    fieldsSet.add(fieldName);
+  });
+
+  return fieldsSet;
+}
+
 /**
  * Flattens an individual hit (from an ES response) into an object. This will
  * create flattened field names, like `user.name`.
@@ -131,15 +183,9 @@ export function flattenHit(hit: Hit, indexPattern?: DataView, params?: TabifyDoc
   }
 
   // Merge all valid meta fields into the flattened object
-  if (indexPattern?.metaFields) {
-    for (let i = 0; i < indexPattern?.metaFields.length; i++) {
-      const fieldName = indexPattern?.metaFields[i];
-      const isExcludedMetaField =
-        EXCLUDED_META_FIELDS.includes(fieldName) || fieldName.charAt(0) !== '_';
-      if (!isExcludedMetaField) {
-        flat[fieldName] = hit[fieldName as keyof estypes.SearchHit];
-      }
-    }
+  const metaFieldNames = getValidDataViewMetaFieldNames(indexPattern);
+  for (const fieldName of metaFieldNames) {
+    flat[fieldName] = hit[fieldName as keyof estypes.SearchHit];
   }
 
   // Use a proxy to make sure that keys are always returned in a specific order,

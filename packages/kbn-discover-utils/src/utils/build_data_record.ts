@@ -7,9 +7,8 @@
  */
 
 import type { DataView } from '@kbn/data-views-plugin/common';
-import { flattenHit } from '@kbn/data-service';
-import type { DataTableRecord, EsHitRecord } from '../types';
-import { getDocId } from './get_doc_id';
+import type { EsHitRecord } from '../types';
+import { DataTableRecord } from '../data_types/data_table_record';
 
 /**
  * Build a record for data table, explorer + classic one
@@ -22,12 +21,7 @@ export function buildDataTableRecord(
   dataView?: DataView,
   isAnchor?: boolean
 ): DataTableRecord {
-  return {
-    id: getDocId(doc),
-    raw: doc,
-    flattened: flattenHit(doc, dataView, { includeIgnoredValues: true }),
-    isAnchor,
-  };
+  return new DataTableRecord({ raw: doc, isAnchor, dataView });
 }
 
 /**

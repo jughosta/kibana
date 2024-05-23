@@ -6,6 +6,7 @@
  * Side Public License, v 1.
  */
 import type { DataTableRecord } from '@kbn/discover-utils/types';
+import { getHitFieldNamesSet } from '@kbn/data-service/src/search/tabify/tabify_docs';
 
 /**
  * This function is calculating stats of the available fields, for usage in sidebar and sharing
@@ -18,8 +19,8 @@ export function calcFieldCounts(rows?: DataTableRecord[]) {
   }
 
   rows.forEach((hit) => {
-    const fields = Object.keys(hit.flattened);
-    fields.forEach((fieldName) => {
+    const fieldNamesSet = getHitFieldNamesSet(hit.raw);
+    fieldNamesSet.forEach((fieldName) => {
       counts[fieldName] = (counts[fieldName] || 0) + 1;
     });
   });
