@@ -21,7 +21,7 @@ export function buildDataTableRecord(
   dataView?: DataView,
   isAnchor?: boolean
 ): DataTableRecord {
-  return new DataTableRecord({ raw: doc, isAnchor, dataView });
+  return new DataTableRecord({ raw: doc, isAnchor, dataView, lazy: true });
 }
 
 /**
@@ -33,5 +33,8 @@ export function buildDataTableRecordList(
   docs: EsHitRecord[],
   dataView?: DataView
 ): DataTableRecord[] {
-  return docs.map((doc) => buildDataTableRecord(doc, dataView));
+  // const startTime = window.performance.now();
+  const result = docs.map((doc) => buildDataTableRecord(doc, dataView));
+  // console.log('duration', window.performance.now() - startTime);
+  return result;
 }

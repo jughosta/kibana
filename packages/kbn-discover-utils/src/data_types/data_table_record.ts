@@ -31,6 +31,9 @@ export interface DataTableRecordSpec {
    * Data view
    */
   dataView?: DataView;
+
+  // TODO: remove
+  lazy?: boolean;
 }
 
 // let created = 0;
@@ -60,13 +63,19 @@ export class DataTableRecord {
     this.#dataView = spec.dataView;
 
     // console.log('created', ++created);
+
+    if (spec.lazy) {
+      return;
+    }
+
+    this.#flattened = flattenHit(this.raw, this.#dataView, { includeIgnoredValues: true });
+    // console.log('flattened', ++flattened);
   }
 
   public get flattened() {
     if (!this.#flattened) {
       this.#flattened = flattenHit(this.raw, this.#dataView, { includeIgnoredValues: true });
-
-      // console.log('flattened', ++flattened);
+      // console.log('lazy flattened', ++flattened);
     }
     return this.#flattened;
   }
