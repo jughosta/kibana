@@ -95,6 +95,8 @@ export const useNavigationProps = ({
     [columns, filters, isEmbeddableView, savedSearchId, services.data, services.filterManager]
   );
 
+  console.log('buildParams', buildParams());
+
   useEffect(() => {
     if (!rowIndex || !rowId) {
       return;

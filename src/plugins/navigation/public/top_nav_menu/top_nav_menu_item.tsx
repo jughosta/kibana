@@ -43,8 +43,11 @@ export function TopNavMenuItem(props: TopNavMenuData & { isMobileMenu?: boolean 
     }
   }
 
-  function handleClick(e: MouseEvent<HTMLButtonElement>) {
+  function handleClick(e: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
     if (isDisabled()) return;
+    if (props.href) {
+      e.preventDefault();
+    }
     props.run(e.currentTarget);
   }
 
@@ -52,6 +55,7 @@ export function TopNavMenuItem(props: TopNavMenuData & { isMobileMenu?: boolean 
     isDisabled: isDisabled(),
     onClick: handleClick,
     isLoading: props.isLoading,
+    href: props.href,
     iconType: props.iconType,
     iconSide: props.iconSide,
     'data-test-subj': props.testId,

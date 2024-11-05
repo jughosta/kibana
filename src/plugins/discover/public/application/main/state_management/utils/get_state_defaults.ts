@@ -58,6 +58,8 @@ export function getStateDefaults({
     ? createDataViewDataSource({ dataViewId: dataView.id })
     : undefined;
 
+  console.error(new Error(dataView?.timeFieldName ?? 'unknown'));
+
   const defaultState: DiscoverAppState = {
     query,
     sort: !sort.length
@@ -118,6 +120,9 @@ export function getStateDefaults({
   if (savedSearch.density) {
     defaultState.density = savedSearch.density;
   }
+
+  console.log('defaultState', defaultState.sort);
+  console.log('saved search', sort);
 
   return defaultState;
 }

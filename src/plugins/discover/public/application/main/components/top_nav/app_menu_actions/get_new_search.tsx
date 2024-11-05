@@ -11,10 +11,13 @@ import { AppMenuActionId, AppMenuActionType, AppMenuActionPrimary } from '@kbn/d
 import { i18n } from '@kbn/i18n';
 
 export const getNewSearchAppMenuItem = ({
+  newSearchUrl,
   onNewSearch,
 }: {
+  newSearchUrl: string | undefined;
   onNewSearch: () => void;
 }): AppMenuActionPrimary => {
+  console.log(newSearchUrl);
   return {
     id: AppMenuActionId.new,
     type: AppMenuActionType.primary,
@@ -27,7 +30,8 @@ export const getNewSearchAppMenuItem = ({
       }),
       iconType: 'plus',
       testId: 'discoverNewButton',
-      onClick: () => {
+      href: newSearchUrl,
+      onClick: ({}) => {
         onNewSearch();
       },
     },
