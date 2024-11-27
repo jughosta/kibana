@@ -218,10 +218,6 @@ export interface UnifiedDataTableProps {
    */
   sort: SortOrder[];
   /**
-   * How the data is fetched
-   */
-  useNewFieldsApi: boolean;
-  /**
    * Manage pagination control
    */
   isPaginationEnabled?: boolean;
@@ -448,7 +444,6 @@ export const UnifiedDataTable = ({
   showTimeCol,
   showFullScreenButton = true,
   sort,
-  useNewFieldsApi,
   isSortEnabled = true,
   isPaginationEnabled = true,
   cellActionsTriggerId,
@@ -701,7 +696,6 @@ export const UnifiedDataTable = ({
       getRenderCellValueFn({
         dataView,
         rows: displayedRows,
-        useNewFieldsApi,
         shouldShowFieldHandler,
         closePopover: () => dataGridRef.current?.closeCellPopover(),
         fieldFormats,
@@ -713,7 +707,6 @@ export const UnifiedDataTable = ({
     [
       dataView,
       displayedRows,
-      useNewFieldsApi,
       shouldShowFieldHandler,
       maxDocFieldsDisplayed,
       fieldFormats,

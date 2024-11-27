@@ -248,7 +248,6 @@ const UnifiedTimelineComponent: React.FC<Props> = ({
     dataView: dataView!,
     dataViews,
     setAppState,
-    useNewFieldsApi: true,
     columns: columnIds,
     sort: sortingColumns,
   });

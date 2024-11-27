@@ -41,7 +41,6 @@ export interface FetchDeps {
   savedSearch: SavedSearch;
   searchSessionId: string;
   services: DiscoverServices;
-  useNewFieldsApi: boolean;
 }
 
 /**
