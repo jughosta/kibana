@@ -10,10 +10,13 @@
 import React, { MouseEvent, useCallback } from 'react';
 import { i18n } from '@kbn/i18n';
 import { css } from '@emotion/react';
+import classnames from 'classnames';
+import type { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import {
   EuiButtonIcon,
   EuiFlexGroup,
   EuiFlexItem,
+  EuiIcon,
   EuiText,
   EuiThemeComputed,
   useEuiTheme,
@@ -23,13 +26,25 @@ import type { TabItem } from '../../types';
 
 export interface TabProps {
   item: TabItem;
+  isDragging?: boolean;
+  isDraggedOver?: boolean;
   isSelected: boolean;
   tabContentId: string;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
   onSelect: (item: TabItem) => void;
   onClose: (item: TabItem) => void;
 }
 
-export const Tab: React.FC<TabProps> = ({ item, isSelected, tabContentId, onSelect, onClose }) => {
+export const Tab: React.FC<TabProps> = ({
+  item,
+  isDragging,
+  isDraggedOver,
+  isSelected,
+  dragHandleProps,
+  tabContentId,
+  onSelect,
+  onClose,
+}) => {
   const { euiTheme } = useEuiTheme();
 
   const tabContainerDataTestSubj = `unifiedTabs_tab_${item.id}`;
@@ -70,11 +85,25 @@ export const Tab: React.FC<TabProps> = ({ item, isSelected, tabContentId, onSele
     <EuiFlexGroup
       alignItems="center"
       css={getTabContainerCss(euiTheme, isSelected)}
+      className={classnames('unifiedTabs__tab', {
+        'unifiedTabs__tab--isDragging': isDragging,
+        'unifiedTabs__tab--noDragging': !isDraggedOver,
+      })}
       data-test-subj={tabContainerDataTestSubj}
       responsive={false}
       gutterSize="none"
       onClick={onClickEvent}
     >
+      <EuiFlexItem
+        grow={false}
+        className="unifiedTabs__tabDragHandle"
+        {...dragHandleProps}
+        aria-label={i18n.translate('unifiedTabs.dragHandleAriaLabel', {
+          defaultMessage: 'Drag to reorder',
+        })}
+      >
+        <EuiIcon type="grabOmnidirectional" size="s" />
+      </EuiFlexItem>
       <button
         {...getTabAttributes(item, tabContentId)}
         aria-selected={isSelected}
@@ -117,11 +146,28 @@ function getTabContainerCss(euiTheme: EuiThemeComputed, isSelected: boolean) {
 
     background-color: ${isSelected ? euiTheme.colors.emptyShade : euiTheme.colors.lightestShade};
     color: ${isSelected ? euiTheme.colors.text : euiTheme.colors.subduedText};
-    transition: background-color ${euiTheme.animation.normal};
+    transition: background-color ${euiTheme.animation.normal}, padding ${euiTheme.animation.normal};
 
     .unifiedTabs__closeTabBtn {
+      flex-shrink: 0;
       opacity: ${isSelected ? 1 : 0};
       transition: opacity ${euiTheme.animation.normal};
+    }
+
+    .unifiedTabs__tabDragHandle {
+      flex-shrink: 0;
+      width: 0;
+      overflow: hidden;
+      transition: width ${euiTheme.animation.normal};
+    }
+
+    &.unifiedTabs__tab--isDragging,
+    &.unifiedTabs__tab--noDragging:hover {
+      padding-left: ${euiTheme.size.xs};
+
+      .unifiedTabs__tabDragHandle {
+        width: ${euiTheme.size.m};
+      }
     }
 
     ${isSelected
