@@ -8,6 +8,7 @@
  */
 
 export type { TabItem } from './src/types';
+export { ChromeTabs } from './src/components/chrome_tabs';
 export {
   TabbedContent as UnifiedTabs,
   type TabbedContentProps as UnifiedTabsProps,
