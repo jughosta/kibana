@@ -7,8 +7,4 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-export interface TabItem {
-  id: string;
-  label: string;
-  href?: string;
-}
+export { ChromeTabs, type ChromeTabsProps } from './chrome_tabs';

@@ -21,6 +21,7 @@ import type { UserProfileService } from '@kbn/core-user-profile-browser';
 import { KibanaRootContextProvider } from '@kbn/react-kibana-context-root';
 import { APP_FIXED_VIEWPORT_ID } from '@kbn/core-rendering-browser';
 import { GlobalAppStyle } from '@kbn/core-application-common';
+import { ChromeTabs } from '@kbn/unified-tabs';
 import { AppWrapper } from './app_containers';
 
 interface StartServices {
@@ -65,6 +66,9 @@ export class RenderingService {
         <>
           {/* Global Styles that apply across the entire app */}
           <GlobalAppStyle />
+
+          {/* Experimental tabs */}
+          <ChromeTabs chrome={chrome} />
 
           {/* Fixed headers */}
           {chromeHeader}
