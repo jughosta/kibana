@@ -19,8 +19,6 @@ export interface UnifiedDataTableRestorableState {
   pageIndex: number;
   scrollTop: number;
   scrollLeft: number;
-  visibleRowIndex: number;
-  visibleColumnIndex: number;
   inTableSearch?: InTableSearchRestorableState;
 
   // comparison mode
