@@ -53,38 +53,28 @@ export const useVirtualization = ({
   const virtualizationOptions: EuiDataGridProps['virtualizationOptions'] = useMemo(() => {
     const initialScroll =
       !isInitialScrollAppliedRef.current && (scrollTopRef.current || scrollLeftRef.current)
-        ? { top: scrollTopRef.current, left: scrollLeftRef.current, remainingAttempts: 10 }
+        ? { top: scrollTopRef.current, left: scrollLeftRef.current }
         : undefined;
 
     const options: EuiDataGridProps['virtualizationOptions'] = {
       initialScrollTop: isAutoRowHeightEnabled ? undefined : initialScroll?.top,
       initialScrollLeft: isAutoRowHeightEnabled ? undefined : initialScroll?.left,
       onScroll: throttle((event: { scrollTop: number; scrollLeft: number }) => {
-        if (
-          !isInitialScrollAppliedRef.current &&
-          initialScroll &&
-          ((initialScroll.top === event.scrollTop && initialScroll.left === event.scrollLeft) ||
-            initialScroll.remainingAttempts === 0)
-        ) {
-          // The initial scroll has been applied or the attempt limit has been reached
-          isInitialScrollAppliedRef.current = true;
-        }
-
         if (isInitialScrollAppliedRef.current) {
           scrollTopRef.current = event.scrollTop;
           scrollLeftRef.current = event.scrollLeft;
-        } else if (initialScroll) {
-          // keep trying to apply the initial scroll
+        } else if (event.scrollTop === 0 && event.scrollLeft === 0) {
+          // onScroll is called right after the first render
           const rendered = Boolean(getVirtualizedElement(containerRef));
 
           if (rendered) {
             requestAnimationFrame(() => {
-              initialScroll.remainingAttempts -= 1;
               getVirtualizedElement(containerRef)?.scrollTo?.({
                 ...initialScroll,
                 behavior: 'instant',
               });
             });
+            isInitialScrollAppliedRef.current = true;
           }
         }
 
