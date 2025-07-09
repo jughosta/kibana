@@ -8,7 +8,7 @@
  */
 
 import { useMemo, useRef, useState, RefObject, useEffect } from 'react';
-import { type EuiDataGridProps } from '@elastic/eui';
+import { type EuiDataGridProps, EuiDataGridRefProps } from '@elastic/eui';
 import { throttle } from 'lodash';
 import { DataLoadingState, DataGridPaginationMode } from '../types';
 import { useRestorableRef } from '../restorable_state';
@@ -20,11 +20,11 @@ const VIRTUALIZATION_OPTIONS: EuiDataGridProps['virtualizationOptions'] = {
 };
 
 export interface UseVirtualizationProps {
+  dataGridRef: RefObject<EuiDataGridRefProps>;
   containerRef: RefObject<HTMLSpanElement>;
   loadingState: DataLoadingState;
   paginationMode: DataGridPaginationMode;
   defaultColumns: boolean;
-  isAutoRowHeightEnabled: boolean;
 }
 
 export interface UseVirtualizationReturn {
@@ -33,51 +33,47 @@ export interface UseVirtualizationReturn {
 }
 
 export const useVirtualization = ({
+  dataGridRef,
   containerRef,
   loadingState,
   paginationMode,
   defaultColumns,
-  isAutoRowHeightEnabled,
 }: UseVirtualizationProps): UseVirtualizationReturn => {
   const loadingStateRef = useRef<DataLoadingState>(loadingState);
   loadingStateRef.current = loadingState;
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const hasScrolledToBottomRef = useRef<boolean>(hasScrolledToBottom);
   hasScrolledToBottomRef.current = hasScrolledToBottom;
-  const scrollTopRef = useRestorableRef('scrollTop', 0);
-  const scrollLeftRef = useRestorableRef('scrollLeft', 0);
+  const visibleRowIndexRef = useRestorableRef('visibleRowIndex', 0);
+  const visibleColumnIndexRef = useRestorableRef('visibleColumnIndex', 0);
   const isInitialScrollAppliedRef = useRef<boolean>(
-    !scrollTopRef.current && !scrollLeftRef.current
+    !visibleRowIndexRef.current && !visibleColumnIndexRef.current
   );
 
   const virtualizationOptions: EuiDataGridProps['virtualizationOptions'] = useMemo(() => {
-    const initialScroll =
-      !isInitialScrollAppliedRef.current && (scrollTopRef.current || scrollLeftRef.current)
-        ? { top: scrollTopRef.current, left: scrollLeftRef.current }
-        : undefined;
-
     const options: EuiDataGridProps['virtualizationOptions'] = {
-      initialScrollTop: isAutoRowHeightEnabled ? undefined : initialScroll?.top,
-      initialScrollLeft: isAutoRowHeightEnabled ? undefined : initialScroll?.left,
-      onScroll: throttle((event: { scrollTop: number; scrollLeft: number }) => {
+      onItemsRendered: throttle(({ visibleRowStartIndex, visibleColumnStartIndex }) => {
         if (isInitialScrollAppliedRef.current) {
-          scrollTopRef.current = event.scrollTop;
-          scrollLeftRef.current = event.scrollLeft;
-        } else if (event.scrollTop === 0 && event.scrollLeft === 0) {
-          // onScroll is called right after the first render
-          const rendered = Boolean(getVirtualizedElement(containerRef));
+          visibleRowIndexRef.current = visibleRowStartIndex;
+          visibleColumnIndexRef.current = visibleColumnStartIndex;
+        } else if (visibleRowStartIndex === 0 && visibleColumnStartIndex === 0) {
+          // onItemsRendered is called right after the first render
+          const rendered = Boolean(dataGridRef.current);
+          const scroll = () =>
+            dataGridRef.current?.scrollToItem?.({
+              rowIndex: visibleRowIndexRef.current,
+              columnIndex: visibleColumnIndexRef.current,
+              align: 'start',
+            });
 
           if (rendered) {
-            requestAnimationFrame(() => {
-              getVirtualizedElement(containerRef)?.scrollTo?.({
-                ...initialScroll,
-                behavior: 'instant',
-              });
-            });
+            requestAnimationFrame(scroll);
+            setTimeout(scroll, 500); // verify that scroll is applied after the first render
             isInitialScrollAppliedRef.current = true;
           }
         }
-
+      }, 200),
+      onScroll: throttle((event: { scrollTop: number; scrollLeft: number }) => {
         if (loadingStateRef.current !== DataLoadingState.loaded) {
           return;
         }
@@ -120,11 +116,11 @@ export const useVirtualization = ({
     };
   }, [
     defaultColumns,
-    isAutoRowHeightEnabled,
     loadingStateRef,
     paginationMode,
-    scrollTopRef,
-    scrollLeftRef,
+    visibleRowIndexRef,
+    visibleColumnIndexRef,
+    dataGridRef,
     containerRef,
   ]);
 
