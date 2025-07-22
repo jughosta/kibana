@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import { i18n } from '@kbn/i18n';
 import { EuiFormRow, EuiSwitch } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
+import type { UnifiedSearchDraft } from '@kbn/unified-search-plugin/public';
 import type { OnSaveProps } from '@kbn/saved-objects-plugin/public';
 import { SavedObjectSaveModal, showSaveModal } from '@kbn/saved-objects-plugin/public';
 import type { SavedSearch, SaveSavedSearchOptions } from '@kbn/saved-search-plugin/public';
@@ -25,12 +26,14 @@ async function saveDataSource({
   services,
   state,
   navigateOrReloadSavedSearch,
+  searchDraft,
 }: {
   savedSearch: SavedSearch;
   saveOptions: SaveSavedSearchOptions;
   services: DiscoverServices;
   state: DiscoverStateContainer;
   navigateOrReloadSavedSearch: boolean;
+  searchDraft: UnifiedSearchDraft | undefined;
 }) {
   const prevSavedSearchId = savedSearch.id;
   function onSuccess(id: string) {
@@ -68,7 +71,9 @@ async function saveDataSource({
   }
 
   try {
-    const response = await state.savedSearchState.persist(savedSearch, saveOptions);
+    const response = await state.savedSearchState.persist(savedSearch, saveOptions, {
+      searchDraft,
+    });
     if (response?.id) {
       onSuccess(response.id!);
     }
@@ -162,6 +167,7 @@ export async function onSaveSearch({
       savedSearch,
       state,
       navigateOrReloadSavedSearch,
+      searchDraft: currentTab.uiState.searchDraft,
     });
 
     // If the save wasn't successful, put the original values back.

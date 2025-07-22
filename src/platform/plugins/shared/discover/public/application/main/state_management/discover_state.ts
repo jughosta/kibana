@@ -381,7 +381,13 @@ export function getDiscoverStateContainer({
   const transitionFromDataViewToESQL = (dataView: DataView) => {
     const appState = appStateContainer.get();
     const { query } = appState;
-    const filterQuery = query && isOfQueryType(query) ? query : undefined;
+
+    let filterQuery = query && isOfQueryType(query) ? query : undefined;
+    const draftQuery = getCurrentTab().uiState.searchDraft?.query; // was not executed yet
+    if (draftQuery && isOfQueryType(draftQuery)) {
+      filterQuery = draftQuery;
+    }
+
     const queryString = getInitialESQLQuery(dataView, filterQuery);
 
     appStateContainer.update({

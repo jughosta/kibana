@@ -20,6 +20,7 @@ import { canImportVisContext } from '@kbn/unified-histogram';
 import type { SavedObjectSaveOpts } from '@kbn/saved-objects-plugin/public';
 import { isEqual, isFunction } from 'lodash';
 import { i18n } from '@kbn/i18n';
+import type { UnifiedSearchDraft } from '@kbn/unified-search-plugin/public';
 import { VIEW_MODE } from '../../../../common/constants';
 import { updateSavedSearch } from './utils/update_saved_search';
 import { addLog } from '../../../utils/add_log';
@@ -95,7 +96,8 @@ export interface DiscoverSavedSearchContainer {
    */
   persist: (
     savedSearch: SavedSearch,
-    saveOptions?: SavedObjectSaveOpts
+    saveOptions?: SavedObjectSaveOpts,
+    options?: { searchDraft?: UnifiedSearchDraft }
   ) => Promise<{ id: string | undefined } | undefined>;
   /**
    * Set the persisted & current state of the saved search
@@ -178,7 +180,66 @@ export function getSavedSearchContainer({
     };
   };
 
-  const persist = async (nextSavedSearch: SavedSearch, saveOptions?: SavedObjectSaveOpts) => {
+  const applySearchDraftChanges = (
+    savedSearch: SavedSearch,
+    searchDraft: UnifiedSearchDraft | undefined
+  ): SavedSearch => {
+    if (!searchDraft?.query && !searchDraft?.dateRangeFrom && !searchDraft?.dateRangeTo) {
+      addLog('[savedSearch] applySearchDraftChanges: no search draft changes to apply');
+      return savedSearch;
+    }
+
+    // If there are unsubmitted changes to the query or time range, we apply them here
+    const nextSavedSearchModified = {
+      ...savedSearch,
+    };
+
+    const activeQuery = savedSearch.searchSource.getField('query');
+    const draftQuery = searchDraft?.query;
+    if (draftQuery && !isEqual(activeQuery, draftQuery)) {
+      if (isOfAggregateQueryType(draftQuery) !== isOfAggregateQueryType(activeQuery)) {
+        addLog('[savedSearch] applySearchDraftChanges: query type changed', {
+          activeQuery,
+          searchDraftQuery: draftQuery,
+        });
+        return savedSearch; // Do not apply changes if the query type has changed
+      }
+
+      addLog('[savedSearch] applySearchDraftChanges: updating query from search draft', {
+        activeQuery,
+        searchDraftQuery: draftQuery,
+      });
+      nextSavedSearchModified.searchSource = nextSavedSearchModified.searchSource.createCopy();
+      nextSavedSearchModified.searchSource.setField('query', draftQuery);
+    }
+
+    if (!searchDraft?.dateRangeFrom && !searchDraft?.dateRangeTo) {
+      return nextSavedSearchModified;
+    }
+
+    if (nextSavedSearchModified.timeRestore && nextSavedSearchModified.timeRange) {
+      addLog('[savedSearch] applySearchDraftChanges: updating time range from search draft', {
+        activeTimeRange: nextSavedSearchModified.timeRange,
+        searchDraftTimeRange: {
+          from: searchDraft?.dateRangeFrom,
+          to: searchDraft?.dateRangeTo,
+        },
+      });
+      nextSavedSearchModified.timeRange = { ...nextSavedSearchModified.timeRange };
+      nextSavedSearchModified.timeRange.from =
+        searchDraft?.dateRangeFrom || nextSavedSearchModified.timeRange.from;
+      nextSavedSearchModified.timeRange.to =
+        searchDraft?.dateRangeTo || nextSavedSearchModified.timeRange.to;
+    }
+
+    return nextSavedSearchModified;
+  };
+
+  const persist: DiscoverSavedSearchContainer['persist'] = async (
+    nextSavedSearch,
+    saveOptions,
+    options
+  ) => {
     addLog('[savedSearch] persist', { nextSavedSearch, saveOptions });
 
     const dataView = nextSavedSearch.searchSource.getField('index');
@@ -222,10 +283,12 @@ export function getSavedSearchContainer({
       );
     }
 
-    const id = await services.savedSearch.save(nextSavedSearch, saveOptions || {});
+    const nextSavedSearchModified = applySearchDraftChanges(nextSavedSearch, options?.searchDraft);
+
+    const id = await services.savedSearch.save(nextSavedSearchModified, saveOptions || {});
 
     if (id) {
-      set(nextSavedSearch);
+      set(nextSavedSearchModified);
     }
 
     return { id };
