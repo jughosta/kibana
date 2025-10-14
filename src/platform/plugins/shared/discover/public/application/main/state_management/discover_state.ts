@@ -300,17 +300,13 @@ export function getDiscoverStateContainer({
       id: uuidv4(),
     });
 
-    services.dataViews.clearInstanceCache(prevDataView.id);
-
     await updateFiltersReferences({
       prevDataView,
       nextDataView,
       services,
     });
 
-    internalState.dispatch(
-      internalStateActions.replaceAdHocDataViewWithId(prevDataView.id!, nextDataView)
-    );
+    internalState.dispatch(internalStateActions.appendAdHocDataViews(nextDataView));
 
     if (isDataSourceType(appStateContainer.get().dataSource, DataSourceType.DataView)) {
       await appStateContainer.replaceUrlState({
