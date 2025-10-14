@@ -283,7 +283,7 @@ export function DiscoverLayout({ stateContainer }: DiscoverLayoutProps) {
         onRemoveColumn(removedFieldName);
       }
       if (!dataView.isPersisted()) {
-        await stateContainer.actions.updateAdHocDataViewId();
+        await stateContainer.actions.updateAdHocDataView();
       }
       stateContainer.dataState.refetch$.next('reset');
     },
