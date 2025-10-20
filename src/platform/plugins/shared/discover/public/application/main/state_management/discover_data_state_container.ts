@@ -280,6 +280,7 @@ export function getDataStateContainer({
 
           abortController?.abort();
           abortControllerFetchMore?.abort();
+          abortController = new AbortController();
 
           if (options.fetchMore) {
             abortControllerFetchMore = new AbortController();
@@ -331,10 +332,9 @@ export function getDataStateContainer({
             disableNextFetchOnStateChange$.next(false);
           }
 
-          abortController = new AbortController();
-
           // Trigger chart fetching after the pre fetch state has been updated
           // to ensure state values that would affect data fetching are set
+          console.log('before fetchChart$.next()', abortController?.signal.aborted);
           fetchChart$.next();
 
           const prevAutoRefreshDone = autoRefreshDone;

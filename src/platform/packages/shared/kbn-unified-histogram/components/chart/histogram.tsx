@@ -24,7 +24,7 @@ import { useTimeRange } from './hooks/use_time_range';
 import type { LensProps } from './hooks/use_lens_props';
 
 export interface HistogramProps {
-  abortController?: AbortController;
+  abortController: AbortController | undefined;
   services: UnifiedHistogramServices;
   dataView: DataView;
   chart: UnifiedHistogramChartContext;
@@ -101,6 +101,7 @@ export function Histogram({
       transform: translate(-50%, -50%);
     }
   `;
+
   return (
     <>
       <div

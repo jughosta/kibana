@@ -63,7 +63,7 @@ import { buildBucketInterval } from './utils/build_bucket_interval';
 import { ChartSectionTemplate } from './chart_section_template';
 
 export interface UnifiedHistogramChartProps {
-  abortController?: AbortController;
+  getAbortController?: () => AbortController;
   isChartAvailable: boolean;
   hiddenPanel?: boolean;
   services: UnifiedHistogramServices;
@@ -153,21 +153,6 @@ export function UnifiedHistogramChart({
     beforeFetch: updateTimeRange,
   });
 
-  useTotalHits({
-    services,
-    dataView,
-    request,
-    hits,
-    chartVisible,
-    filters,
-    query,
-    getTimeRange,
-    fetch$,
-    onTotalHitsChange,
-    isPlainRecord,
-    abortController: histogramProps.abortController,
-  });
-
   const [bucketInterval, setBucketInterval] = useState<UnifiedHistogramBucketInterval>();
   const onLoad = useStableCallback(
     (
@@ -227,6 +212,22 @@ export function UnifiedHistogramChart({
     fetch$,
     visContext,
     onLoad,
+    getAbortController: histogramProps.getAbortController,
+  });
+
+  useTotalHits({
+    services,
+    dataView,
+    request,
+    hits,
+    chartVisible,
+    filters,
+    query,
+    getTimeRange,
+    fetch$,
+    onTotalHitsChange,
+    isPlainRecord,
+    abortController: lensPropsContext?.abortController,
   });
 
   const { chartToolbarCss, histogramCss } = useChartStyles(chartVisible);

@@ -207,7 +207,7 @@ export interface ChartSectionProps {
   /**
    * The abort controller to use for requests
    */
-  abortController?: AbortController;
+  getAbortController?: () => AbortController;
   /**
    * The current query
    */

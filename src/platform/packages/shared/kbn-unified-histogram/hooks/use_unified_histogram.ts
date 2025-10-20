@@ -58,7 +58,7 @@ export type UseUnifiedHistogramProps = Omit<UnifiedHistogramStateOptions, 'servi
   /**
    * The abort controller to use for requests
    */
-  abortController?: AbortController;
+  getAbortController?: () => AbortController;
   /**
    * The current data view
    */

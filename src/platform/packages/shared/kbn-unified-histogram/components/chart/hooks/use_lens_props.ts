@@ -37,12 +37,14 @@ export const useLensProps = ({
   fetch$,
   visContext,
   onLoad,
+  getAbortController,
 }: {
   request?: UnifiedHistogramRequestContext;
   getTimeRange: () => TimeRange;
   fetch$: Observable<UnifiedHistogramInputMessage>;
   visContext?: UnifiedHistogramVisContext;
   onLoad: (isLoading: boolean, adapters: Partial<DefaultInspectorAdapters> | undefined) => void;
+  getAbortController?: () => AbortController;
 }) => {
   const buildLensProps = useCallback(() => {
     if (!visContext) {
@@ -59,8 +61,9 @@ export const useLensProps = ({
         attributes,
         onLoad,
       }),
+      abortController: getAbortController?.(),
     };
-  }, [visContext, getTimeRange, onLoad, request?.searchSessionId]);
+  }, [visContext, getTimeRange, onLoad, request?.searchSessionId, getAbortController]);
 
   // Initialize with undefined to avoid rendering Lens until a fetch has been triggered
   const [lensPropsContext, setLensPropsContext] = useState<ReturnType<typeof buildLensProps>>();

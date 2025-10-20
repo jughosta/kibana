@@ -280,9 +280,7 @@ export const useDiscoverHistogram = (
         esqlFetchComplete$.pipe(map(() => 'discover'))
       ).pipe(debounceTime(50));
     } else {
-      fetchChart$ = stateContainer.dataState.fetchChart$
-        .pipe(map(() => 'discover'))
-        .pipe(debounceTime(50)); // wait until new props are applied to the unified histogram including the new abort controller
+      fetchChart$ = stateContainer.dataState.fetchChart$.pipe(map(() => 'discover'));
     }
 
     const subscription = fetchChart$.subscribe((source) => {
@@ -395,7 +393,7 @@ export const useDiscoverHistogram = (
     services,
     localStorageKeyPrefix: 'discover',
     requestAdapter: inspectorAdapters.requests,
-    abortController: getAbortController(),
+    getAbortController,
     initialState: {
       chartHidden,
       timeInterval,
