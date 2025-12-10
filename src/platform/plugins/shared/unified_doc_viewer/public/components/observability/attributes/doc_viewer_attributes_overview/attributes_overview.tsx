@@ -59,7 +59,9 @@ export function AttributesOverview({
 
   const shouldShowFieldHandler = useMemo(
     () =>
-      getShouldShowFieldHandler(Object.keys(flattened), dataView, isEsqlMode || showMultiFields),
+      isEsqlMode || showMultiFields
+        ? () => true
+        : getShouldShowFieldHandler(Object.keys(flattened), dataView, showMultiFields),
     [flattened, dataView, isEsqlMode, showMultiFields]
   );
 

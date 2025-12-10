@@ -759,6 +759,9 @@ const InternalUnifiedDataTable = React.forwardRef<
     );
 
     const shouldShowFieldHandler = useMemo(() => {
+      if (showMultiFields) {
+        return () => true;
+      }
       const dataViewFields = dataView.fields.getAll().map((fld) => fld.name);
       return getShouldShowFieldHandler(dataViewFields, dataView, showMultiFields);
     }, [dataView, showMultiFields]);

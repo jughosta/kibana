@@ -8,8 +8,6 @@
  */
 
 import React from 'react';
-import { getShouldShowFieldHandler } from '@kbn/discover-utils';
-import type { DataView } from '@kbn/data-views-plugin/common';
 import type {
   AllSummaryColumnProps,
   SummaryColumnProps,
@@ -26,8 +24,8 @@ const SummaryColumn = (props: Omit<AllSummaryColumnProps, 'core' | 'share'>) => 
 };
 
 export const getTracesSummaryColumn = (params: SummaryColumnGetterDeps) => {
-  const { actions, dataView, density, rowHeight } = params;
-  const shouldShowFieldHandler = createGetShouldShowFieldHandler(dataView);
+  const { actions, density, rowHeight } = params;
+  const shouldShowFieldHandler = createGetShouldShowFieldHandler();
 
   return (props: Omit<SummaryColumnProps, 'core' | 'share'>) => (
     <SummaryColumn
@@ -41,7 +39,6 @@ export const getTracesSummaryColumn = (params: SummaryColumnGetterDeps) => {
   );
 };
 
-const createGetShouldShowFieldHandler = (dataView: DataView) => {
-  const dataViewFields = dataView.fields.getAll().map((fld) => fld.name);
-  return getShouldShowFieldHandler(dataViewFields, dataView, true);
+const createGetShouldShowFieldHandler = () => {
+  return () => true;
 };

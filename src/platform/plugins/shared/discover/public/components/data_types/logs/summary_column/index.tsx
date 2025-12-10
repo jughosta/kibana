@@ -8,8 +8,6 @@
  */
 
 import React from 'react';
-import { getShouldShowFieldHandler } from '@kbn/discover-utils';
-import type { DataView } from '@kbn/data-views-plugin/common';
 import type { SummaryColumnProps } from '@kbn/discover-contextual-components';
 import type { CellRenderersExtensionParams } from '../../../../context_awareness';
 import { SummaryColumn } from './summary_column';
@@ -17,8 +15,8 @@ import { SummaryColumn } from './summary_column';
 export type SummaryColumnGetterDeps = CellRenderersExtensionParams;
 
 export const getSummaryColumn = (params: SummaryColumnGetterDeps) => {
-  const { actions, dataView, density, rowHeight } = params;
-  const shouldShowFieldHandler = createGetShouldShowFieldHandler(dataView);
+  const { actions, density, rowHeight } = params;
+  const shouldShowFieldHandler = createGetShouldShowFieldHandler();
 
   return (props: Omit<SummaryColumnProps, 'core' | 'share'>) => (
     <SummaryColumn
@@ -31,7 +29,6 @@ export const getSummaryColumn = (params: SummaryColumnGetterDeps) => {
   );
 };
 
-const createGetShouldShowFieldHandler = (dataView: DataView) => {
-  const dataViewFields = dataView.fields.getAll().map((fld) => fld.name);
-  return getShouldShowFieldHandler(dataViewFields, dataView, true);
+const createGetShouldShowFieldHandler = () => {
+  return () => true;
 };
