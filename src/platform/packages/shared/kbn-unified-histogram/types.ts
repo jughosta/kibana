@@ -262,7 +262,6 @@ export type UnifiedHistogramFetchParams = Omit<
   lastReloadRequestTime: number;
   isESQLQuery: boolean;
   isTimeBased: boolean;
-  columnsMap: Record<string, DatatableColumn> | undefined;
   breakdown:
     | {
         field: DataViewField | undefined;

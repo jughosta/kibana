@@ -119,7 +119,6 @@ export const useServicesBootstrap = (
             timeRange: nextFetchParams.timeRange,
             isPlainRecord: nextFetchParams.isESQLQuery,
             columns: nextFetchParams.columns,
-            columnsMap: nextFetchParams.columnsMap,
           },
           timeInterval:
             !nextFetchParams.isTimeBased && !nextFetchParams.isESQLQuery

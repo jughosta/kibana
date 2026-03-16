@@ -217,11 +217,15 @@ export const useDiscoverHistogram = (
     [getModifiedVisAttributesAccessor]
   );
 
+  // Use enriched esqlDataView when available in ES|QL mode, otherwise use base dataView
+  const effectiveDataView =
+    isEsqlMode && documentsState?.esqlDataView ? documentsState.esqlDataView : dataView;
+
   const collectedFetchParams: UnifiedHistogramFetchParamsExternal | undefined = useMemo(() => {
     return {
       searchSessionId,
       requestAdapter: inspectorAdapters.requests,
-      dataView,
+      dataView: effectiveDataView,
       query,
       filters,
       timeRange,
@@ -237,8 +241,8 @@ export const useDiscoverHistogram = (
   }, [
     breakdownField,
     timeInterval,
+    effectiveDataView,
     currentTabControlState,
-    dataView,
     esqlVariables,
     filters,
     inspectorAdapters.requests,

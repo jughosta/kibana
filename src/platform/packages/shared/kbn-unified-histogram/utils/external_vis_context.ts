@@ -30,7 +30,6 @@ export interface QueryParams {
   filters: Filter[] | undefined;
   isPlainRecord?: boolean;
   columns?: DatatableColumn[];
-  columnsMap?: Record<string, DatatableColumn>;
   timeRange?: TimeRange;
 }
 
@@ -202,7 +201,7 @@ export function deriveLensSuggestionFromLensAttributes({
               isEqual(layer.query, queryParams.query) &&
               layer.columns?.some(
                 // unknown column
-                (c: { fieldName: string }) => !queryParams.columnsMap?.[c.fieldName]
+                (c: { fieldName: string }) => !queryParams.dataView.getFieldByName(c.fieldName)
               )
           ))
       ) {

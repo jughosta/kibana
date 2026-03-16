@@ -10,7 +10,6 @@
 import { omit } from 'lodash';
 import { type Filter, isOfAggregateQueryType } from '@kbn/es-query';
 import type { ESQLControlVariable } from '@kbn/esql-types';
-import type { DatatableColumn } from '@kbn/expressions-plugin/common';
 import { DataViewField, DataViewType, getAbsoluteTimeRange } from '@kbn/data-plugin/common';
 import { hasTransformationalCommand } from '@kbn/esql-utils';
 import { convertDatatableColumnToDataViewFieldSpec } from '@kbn/data-view-utils';
@@ -53,10 +52,6 @@ export const processFetchParams = ({
     lastReloadRequestTime: Date.now(),
     isTimeBased,
     isESQLQuery,
-    columnsMap: params.columns?.reduce<Record<string, DatatableColumn>>((acc, column) => {
-      acc[column.id] = column;
-      return acc;
-    }, {}),
     breakdown: getProcessedBreakdownField({
       dataView,
       query,

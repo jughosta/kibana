@@ -93,25 +93,6 @@ describe('processFetchParams', () => {
     ).toBe(true);
   });
 
-  it('assigns columnsMap from columns', () => {
-    const params: UnifiedHistogramFetchParamsExternal = {
-      ...commonParams,
-      columns: [
-        { id: 'a', name: 'colA' },
-        { id: 'b', name: 'colB' },
-      ] as any,
-    };
-    const result = processFetchParams({
-      params,
-      services,
-      initialBreakdownField: undefined,
-    });
-    expect(result.columnsMap).toEqual({
-      a: { id: 'a', name: 'colA' },
-      b: { id: 'b', name: 'colB' },
-    });
-  });
-
   it('assigns breakdown using initialBreakdownField if not in params', () => {
     const result = processFetchParams({
       params: commonParams,
