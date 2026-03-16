@@ -8,20 +8,35 @@
  */
 
 import { escape, isFunction } from 'lodash';
+import { EMPTY_LABEL, MISSING_TOKEN, NULL_LABEL } from '@kbn/field-formats-common';
 import type { IFieldFormat, HtmlContextTypeConvert, FieldFormatsContentType } from '../types';
 import { getHighlightHtml } from '../utils';
 
 export const HTML_CONTEXT_TYPE: FieldFormatsContentType = 'html';
+
+const checkForMissingValueHtml = (val: unknown): string | undefined => {
+  if (val === '') {
+    return `<span class="ffString__emptyValue">${EMPTY_LABEL}</span>`;
+  }
+  if (val == null || val === MISSING_TOKEN) {
+    return `<span class="ffString__emptyValue">${NULL_LABEL}</span>`;
+  }
+};
 
 const getConvertFn = (
   format: IFieldFormat,
   convert?: HtmlContextTypeConvert
 ): HtmlContextTypeConvert => {
   const fallbackHtml: HtmlContextTypeConvert = (value, options = {}) => {
+    const missing = checkForMissingValueHtml(value);
+    if (missing) {
+      return missing;
+    }
+
     const { field, hit } = options;
     const formatted = escape(format.convert(value, 'text'));
 
-    return !field || !hit || !hit.highlight || !hit.highlight[field.name]
+    return !field || !hit?.highlight?.[field.name]
       ? formatted
       : getHighlightHtml(formatted, hit.highlight[field.name]);
   };

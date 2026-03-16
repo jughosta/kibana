@@ -31,4 +31,9 @@ describe('IP Address Format', () => {
       '<span class="ffString__emptyValue">(null)</span>'
     );
   });
+
+  test('escapes HTML characters in html context for non-finite values', () => {
+    expect(ip.convert(Infinity, HTML_CONTEXT_TYPE)).toBe('Infinity');
+    expect(ip.convert(NaN, HTML_CONTEXT_TYPE)).toBe('NaN');
+  });
 });
