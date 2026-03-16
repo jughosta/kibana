@@ -226,7 +226,7 @@ export abstract class FieldFormat {
     }
   }
 
-  protected checkForMissingValueHtml(val: unknown): string | void {
+  public checkForMissingValueHtml(val: unknown): string | void {
     if (val === '') {
       return `<span class="ffString__emptyValue">${EMPTY_LABEL}</span>`;
     }
