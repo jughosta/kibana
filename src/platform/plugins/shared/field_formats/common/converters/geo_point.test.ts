@@ -114,9 +114,9 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(
-        geoPointFormat.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)
-      ).toBe('&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;');
+      expect(geoPointFormat.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
+        '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
+      );
     });
   });
 });
