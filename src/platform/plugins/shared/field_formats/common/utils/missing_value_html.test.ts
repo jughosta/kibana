@@ -7,30 +7,50 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import { EMPTY_LABEL, MISSING_TOKEN, NULL_LABEL } from '@kbn/field-formats-common';
 import { checkForMissingValueHtml } from './missing_value_html';
 
 describe('checkForMissingValueHtml', () => {
-  test('returns HTML for empty string', () => {
-    expect(checkForMissingValueHtml('')).toBe('<span class="ffString__emptyValue">(blank)</span>');
+  describe('missing values', () => {
+    test('returns HTML for empty string', () => {
+      expect(checkForMissingValueHtml('')).toBe(
+        `<span class="ffString__emptyValue">${EMPTY_LABEL}</span>`
+      );
+    });
+
+    test('returns HTML for null', () => {
+      expect(checkForMissingValueHtml(null)).toBe(
+        `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
+      );
+    });
+
+    test('returns HTML for undefined', () => {
+      expect(checkForMissingValueHtml(undefined)).toBe(
+        `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
+      );
+    });
+
+    test('returns HTML for missing token', () => {
+      expect(checkForMissingValueHtml(MISSING_TOKEN)).toBe(
+        `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
+      );
+    });
   });
 
-  test('returns HTML for null', () => {
-    expect(checkForMissingValueHtml(null)).toBe('<span class="ffString__emptyValue">(null)</span>');
-  });
+  describe('present values', () => {
+    test('returns undefined for valid values', () => {
+      expect(checkForMissingValueHtml('valid value')).toBeUndefined();
+      expect(checkForMissingValueHtml('0')).toBeUndefined();
+      expect(checkForMissingValueHtml(0)).toBeUndefined();
+      expect(checkForMissingValueHtml(false)).toBeUndefined();
+      expect(checkForMissingValueHtml([])).toBeUndefined();
+      expect(checkForMissingValueHtml({})).toBeUndefined();
+    });
 
-  test('returns HTML for undefined', () => {
-    expect(checkForMissingValueHtml(undefined)).toBe('<span class="ffString__emptyValue">(null)</span>');
-  });
-
-  test('returns HTML for missing token', () => {
-    expect(checkForMissingValueHtml('__missing__')).toBe('<span class="ffString__emptyValue">(null)</span>');
-  });
-
-  test('returns void for valid values', () => {
-    expect(checkForMissingValueHtml('valid value')).toBeUndefined();
-    expect(checkForMissingValueHtml(0)).toBeUndefined();
-    expect(checkForMissingValueHtml(false)).toBeUndefined();
-    expect(checkForMissingValueHtml([])).toBeUndefined();
-    expect(checkForMissingValueHtml({})).toBeUndefined();
+    test('returns undefined for whitespace-only strings', () => {
+      expect(checkForMissingValueHtml(' ')).toBeUndefined();
+      expect(checkForMissingValueHtml('\t')).toBeUndefined();
+      expect(checkForMissingValueHtml('\n')).toBeUndefined();
+    });
   });
 });
