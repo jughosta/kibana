@@ -16,6 +16,8 @@ import {
 } from '@kbn/esql-types';
 import { getIndexPatternFromESQLQuery } from './get_index_pattern_from_query';
 
+const timeFieldCache = new Map<string, [string, string]>();
+
 // uses browser sha256 method with fallback if unavailable
 async function sha256(str: string) {
   if (crypto.subtle) {
@@ -74,22 +76,41 @@ export async function getESQLAdHocDataview({
   // optional http service to use to fetch the time field, if needed
   http?: HttpStart;
 }) {
-  const encodedQuery = encodeURIComponent(query);
-  const response = (await http?.get(`${TIMEFIELD_ROUTE}${encodedQuery}`).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch the timefield', error);
-    return undefined;
-  })) as { timeField?: string; timeFieldType?: 'date' | 'date_nanos' } | undefined;
-  const timeField = response?.timeField;
-  const timeFieldType = response?.timeFieldType ?? 'date';
+  if (options?.createNewInstanceEvenIfCachedOneAvailable) {
+    timeFieldCache.delete(query);
+  }
+
+  let timeField: string | undefined;
+  let timeFieldType: string | undefined;
+  if (timeFieldCache.has(query)) {
+    const cached = timeFieldCache.get(query);
+    timeField = cached?.[0];
+    timeFieldType = cached?.[1];
+  } else if (http) {
+    const encodedQuery = encodeURIComponent(query);
+    const response = (await http.get(`${TIMEFIELD_ROUTE}${encodedQuery}`).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch the timefield', error);
+      return undefined;
+    })) as { timeField?: string; timeFieldType?: 'date' | 'date_nanos' } | undefined;
+    timeField = response?.timeField;
+    timeFieldType = response?.timeFieldType ?? 'date';
+    if (timeField && timeFieldType) {
+      timeFieldCache.set(query, [timeField, timeFieldType]);
+    }
+  }
+
   const indexPattern = getIndexPatternFromESQLQuery(query);
   const prefix = options?.idPrefix ?? 'esql';
-  const dataViewId = await sha256(`${prefix}-${indexPattern}`);
+  const dataViewId = await sha256(
+    timeField ? `${prefix}-${indexPattern}-${timeField}` : `${prefix}-${indexPattern}`
+  );
 
   if (options?.createNewInstanceEvenIfCachedOneAvailable) {
     // overwise it might return a cached data view with a different time field
     dataViewsService.clearInstanceCache(dataViewId);
   }
+
   const skipFetchFields = options?.skipFetchFields ?? false;
 
   const dataView = await dataViewsService.create(
@@ -100,7 +121,7 @@ export async function getESQLAdHocDataview({
       allowNoIndex: options?.allowNoIndex,
       timeFieldName: timeField || undefined,
       fields:
-        skipFetchFields && timeField
+        skipFetchFields && timeField && timeFieldType
           ? {
               [timeField]: {
                 name: timeField,

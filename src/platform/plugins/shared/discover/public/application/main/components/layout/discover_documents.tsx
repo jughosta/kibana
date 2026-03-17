@@ -59,7 +59,6 @@ import {
 } from '../../state_management/redux';
 import { useDiscoverServices } from '../../../../hooks/use_discover_services';
 import { FetchStatus } from '../../../types';
-import type { DiscoverStateContainer } from '../../state_management/discover_state';
 import { useDataState } from '../../hooks/use_data_state';
 import {
   getMaxAllowedSampleSize,
@@ -79,6 +78,7 @@ import {
   internalStateActions,
   useCurrentTabAction,
   useCurrentTabSelector,
+  useCurrentTabDataStateContainer,
   useInternalStateDispatch,
   useInternalStateSelector,
 } from '../../state_management/redux';
@@ -103,13 +103,11 @@ function DiscoverDocumentsComponent({
   viewModeToggle,
   dataView,
   onAddFilter,
-  stateContainer,
   onFieldEdited,
 }: {
   viewModeToggle: React.ReactElement | undefined;
   dataView: DataView;
   onAddFilter?: DocViewFilterFn;
-  stateContainer: DiscoverStateContainer;
   onFieldEdited?: (options: { editedDataView: DataView }) => void;
 }) {
   const [isDataGridFullScreen, setIsDataGridFullScreen] = useState(false);
@@ -151,7 +149,8 @@ function DiscoverDocumentsComponent({
   const expandedDoc = useCurrentTabSelector((state) => state.expandedDoc);
   const initialDocViewerTabId = useCurrentTabSelector((state) => state.initialDocViewerTabId);
   const isEsqlMode = useIsEsqlMode();
-  const documentState = useDataState(stateContainer.dataState.data$.documents$);
+  const dataStateContainer = useCurrentTabDataStateContainer();
+  const documentState = useDataState(dataStateContainer.data$.documents$);
   const isDataLoading =
     documentState.fetchStatus === FetchStatus.LOADING ||
     documentState.fetchStatus === FetchStatus.PARTIAL;
@@ -170,9 +169,7 @@ function DiscoverDocumentsComponent({
   const isEmptyDataResult = !documentState.result || documentState.result.length === 0;
   const rows = useMemo(() => documentState.result || [], [documentState.result]);
 
-  const { isMoreDataLoading, totalHits, onFetchMoreRecords } = useFetchMoreRecords({
-    stateContainer,
-  });
+  const { isMoreDataLoading, totalHits, onFetchMoreRecords } = useFetchMoreRecords();
 
   const setAppState = useCallback<UseColumnsProps['setAppState']>(
     ({ settings, ...rest }) => {
@@ -475,7 +472,6 @@ function DiscoverDocumentsComponent({
   );
 
   const cascadedDocumentsFetcher = useCurrentTabRuntimeState(
-    stateContainer.runtimeStateManager,
     (runtimeState) => runtimeState.cascadedDocumentsFetcher$
   );
   const { availableCascadeGroups, selectedCascadeGroups } = useCurrentTabSelector(
