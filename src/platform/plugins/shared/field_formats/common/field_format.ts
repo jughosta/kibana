@@ -94,9 +94,14 @@ export abstract class FieldFormat {
    * https://github.com/Microsoft/TypeScript/issues/17293
    */
   reactConvert: ReactContextTypeConvert = (val, options) => {
-    const missing = this.checkForMissingValueReact(val);
-    if (missing) return missing;
-    return this.textConvert ? this.textConvert(val, options) : String(val ?? '');
+    if (this.textConvert) {
+      const missing = this.checkForMissingValueReact(val);
+      if (missing) return missing;
+      return this.textConvert(val, options);
+    }
+    // Formatter overrides convert() directly without defining textConvert.
+    // Delegate via the text path so custom label logic (e.g. otherBucketLabel) is preserved.
+    return this.convert(val, 'text', options);
   };
 
   /**
