@@ -229,6 +229,59 @@ describe('FieldFormat class', () => {
       });
     });
 
+    describe('default reactConvert array support', () => {
+      test('returns empty string for an empty array', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        expect(f.reactConvert([])).toBe('');
+      });
+
+      test('returns the single element without brackets for a one-element array', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        expect(f.reactConvert(['hello'])).toBe('hello');
+      });
+
+      test('wraps multi-element arrays with styled brackets and comma separators', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        expect(renderReact(f.reactConvert([1, 2, 3]))).toBe(
+          '<span class="ffArray__highlight">[</span>' +
+            '1<span class="ffArray__highlight">,</span> ' +
+            '2<span class="ffArray__highlight">,</span> ' +
+            '3<span class="ffArray__highlight">]</span>'
+        );
+      });
+
+      test('uses newline separator and indentation when values contain newlines', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        expect(renderReact(f.reactConvert(['{\n  "x": 1\n}', '{\n  "y": 2\n}']))).toBe(
+          '<span class="ffArray__highlight">[</span>\n' +
+            '  {\n    "x": 1\n  }' +
+            '<span class="ffArray__highlight">,</span>\n' +
+            '  {\n    "y": 2\n  }\n' +
+            '<span class="ffArray__highlight">]</span>'
+        );
+      });
+
+      test('HTML-escapes special characters inside array elements', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        expect(renderReact(f.reactConvert(['<a>', '<b>']))).toBe(
+          '<span class="ffArray__highlight">[</span>' +
+            '&lt;a&gt;<span class="ffArray__highlight">,</span> ' +
+            '&lt;b&gt;<span class="ffArray__highlight">]</span>'
+        );
+      });
+
+      test('reactConvert and convert(html) produce identical array output', () => {
+        const f = getTestFormat(undefined, (v) => String(v));
+        const expected =
+          '<span class="ffArray__highlight">[</span>' +
+          '1<span class="ffArray__highlight">,</span> ' +
+          '2<span class="ffArray__highlight">,</span> ' +
+          '3<span class="ffArray__highlight">]</span>';
+        expect(renderReact(f.reactConvert([1, 2, 3]))).toBe(expected);
+        expect(f.convert([1, 2, 3], 'html')).toBe(expected);
+      });
+    });
+
     describe('default reactConvert highlight support', () => {
       const makeOptions = (fieldName: string, highlights: string[]): HtmlContextTypeOptions => ({
         field: { name: fieldName },

@@ -95,6 +95,38 @@ export abstract class FieldFormat {
    * https://github.com/Microsoft/TypeScript/issues/17293
    */
   reactConvert: ReactContextTypeConvert = (val, options) => {
+    // Arrays: mirror the html_content_type bracket/comma rendering but with React nodes.
+    // Single-element arrays and empty arrays are passed through without brackets.
+    if (Array.isArray(val)) {
+      if (val.length === 0) return '';
+      const subNodes = val.map((v) => this.reactConvert(v, options));
+      if (val.length === 1) return subNodes[0] ?? '';
+
+      const arraySpan = (text: string) => (
+        <span className="ffArray__highlight">{text}</span>
+      );
+
+      // Multiline detection: sub-values that are plain strings (e.g. stringified JSON objects)
+      // may contain newlines. Indent them by 2 extra spaces, matching html_content_type behaviour.
+      const useMultiLine = subNodes.some((n) => typeof n === 'string' && n.includes('\n'));
+
+      const nodes: ReactNode[] = [arraySpan('[')];
+      if (useMultiLine) nodes.push('\n  ');
+      subNodes.forEach((node, i) => {
+        nodes.push(
+          useMultiLine && typeof node === 'string' ? node.replaceAll('\n', '\n  ') : node
+        );
+        if (i < subNodes.length - 1) {
+          nodes.push(arraySpan(','));
+          nodes.push(useMultiLine ? '\n  ' : ' ');
+        }
+      });
+      if (useMultiLine) nodes.push('\n');
+      nodes.push(arraySpan(']'));
+
+      return <>{nodes}</>;
+    }
+
     if (this.textConvert) {
       const missing = this.checkForMissingValueReact(val);
       if (missing) return missing;
@@ -284,10 +316,10 @@ export abstract class FieldFormat {
 
   protected checkForMissingValueReact(val: unknown): ReactNode | void {
     if (val === '') {
-      return React.createElement('span', { className: 'ffString__emptyValue' }, EMPTY_LABEL);
+      return <span className="ffString__emptyValue">{EMPTY_LABEL}</span>;
     }
     if (val == null || val === MISSING_TOKEN) {
-      return React.createElement('span', { className: 'ffString__emptyValue' }, NULL_LABEL);
+      return <span className="ffString__emptyValue">{NULL_LABEL}</span>;
     }
   }
 }
