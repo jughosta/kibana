@@ -198,6 +198,14 @@ describe('FieldFormat class', () => {
           <span class=\\"ffArray__highlight\\">]</span>"
         `);
       });
+
+      test('escapes HTML in array values', () => {
+        const f = getTestFormat(undefined, (val) => String(val));
+        const result = f.convert(['<script>alert("test")</script>'], 'html');
+        expect(result).toContain('&lt;script&gt;');
+        expect(result).toContain('alert(&quot;test&quot;)');
+        expect(result).not.toContain('<script>');
+      });
     });
   });
 });
