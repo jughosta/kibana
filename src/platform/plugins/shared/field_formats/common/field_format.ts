@@ -7,7 +7,10 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import { transform, size, cloneDeep, get, defaults } from 'lodash';
+import type { ReactNode, ReactElement } from 'react';
+import React from 'react';
+import ReactDOM from 'react-dom/server';
+import { escape, transform, size, cloneDeep, get, defaults } from 'lodash';
 import { EMPTY_LABEL, MISSING_TOKEN, NULL_LABEL } from '@kbn/field-formats-common';
 import { createCustomFieldFormat } from './converters/custom';
 import { checkForMissingValueHtml } from './utils';
@@ -23,7 +26,11 @@ import type {
   FieldFormatParams,
 } from './types';
 import { htmlContentTypeSetup, textContentTypeSetup, TEXT_CONTEXT_TYPE } from './content_types';
-import type { HtmlContextTypeConvert, TextContextTypeConvert } from './types';
+import type {
+  HtmlContextTypeConvert,
+  ReactContextTypeConvert,
+  TextContextTypeConvert,
+} from './types';
 
 const DEFAULT_CONTEXT_TYPE = TEXT_CONTEXT_TYPE;
 
@@ -72,8 +79,19 @@ export abstract class FieldFormat {
    * @protected
    * have to remove the protected because of
    * https://github.com/Microsoft/TypeScript/issues/17293
+   * @deprecated Use reactConvert instead
    */
   htmlConvert: HtmlContextTypeConvert | undefined;
+
+  /**
+   * React-based converter. Prefer this over htmlConvert for new formatters.
+   * When defined, FieldFormatValue will render the result natively without dangerouslySetInnerHTML.
+   * @property {reactConvert}
+   * @protected
+   * have to remove the protected because of
+   * https://github.com/Microsoft/TypeScript/issues/17293
+   */
+  reactConvert: ReactContextTypeConvert | undefined;
 
   /**
    * @property {textConvert}
@@ -208,9 +226,27 @@ export abstract class FieldFormat {
   }
 
   setupContentType(): FieldFormatConvert {
+    // Bridge: if reactConvert is defined but htmlConvert is not, derive the HTML converter
+    // from reactConvert via renderToStaticMarkup so legacy consumers keep working unchanged.
+    let htmlConverter = this.htmlConvert;
+    if (!htmlConverter && this.reactConvert) {
+      const reactConvert = this.reactConvert.bind(this);
+      htmlConverter = (value, options) => {
+        const missing = checkForMissingValueHtml(value);
+        if (missing) return missing;
+        const node = reactConvert(value, options);
+        if (node == null) return '';
+        if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
+          // Plain scalars must be HTML-escaped since the result is injected as raw HTML
+          return escape(String(node));
+        }
+        return ReactDOM.renderToStaticMarkup(node as ReactElement);
+      };
+    }
+
     return {
       text: textContentTypeSetup(this, this.textConvert),
-      html: htmlContentTypeSetup(this, this.htmlConvert),
+      html: htmlContentTypeSetup(this, htmlConverter),
     };
   }
 
@@ -229,5 +265,14 @@ export abstract class FieldFormat {
 
   protected checkForMissingValueHtml(val: unknown): string | void {
     return checkForMissingValueHtml(val);
+  }
+
+  protected checkForMissingValueReact(val: unknown): ReactNode | void {
+    if (val === '') {
+      return React.createElement('span', { className: 'ffString__emptyValue' }, EMPTY_LABEL);
+    }
+    if (val == null || val === MISSING_TOKEN) {
+      return React.createElement('span', { className: 'ffString__emptyValue' }, NULL_LABEL);
+    }
   }
 }
