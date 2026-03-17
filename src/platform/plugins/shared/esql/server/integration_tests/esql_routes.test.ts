@@ -108,15 +108,57 @@ describe('ESQL routes', () => {
   });
 
   describe('get timefield route', () => {
-    it('should return the time field when specified in the query', async () => {
-      const query = 'FROM lookup_index1 | WHERE my_time_field >= ?_tstart';
+    it('should return the time field and timeFieldType: date when specified in the query', async () => {
+      const indexName = 'test_extracted_date_index';
+      const client = testbed.esClient();
+
+      await client.indices.create({
+        index: indexName,
+        mappings: {
+          properties: {
+            my_time_field: { type: 'date' },
+            message: { type: 'text' },
+          },
+        },
+      });
+
+      const query = `FROM ${indexName} | WHERE my_time_field >= ?_tstart`;
       const url = `/internal/esql/get_timefield/${encodeURIComponent(query)}`;
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('my_time_field');
+      expect(result.body.timeFieldType).toBe('date');
+
+      // Cleanup
+      await client.indices.delete({ index: indexName });
     });
 
-    it('should return @timestamp when no time field in query but index has @timestamp', async () => {
+    it('should return the time field and timeFieldType: date_nanos when specified in the query and the field is date_nanos', async () => {
+      const indexName = 'test_extracted_date_nanos_index';
+      const client = testbed.esClient();
+
+      await client.indices.create({
+        index: indexName,
+        mappings: {
+          properties: {
+            my_time_field: { type: 'date_nanos' },
+            message: { type: 'text' },
+          },
+        },
+      });
+
+      const query = `FROM ${indexName} | WHERE my_time_field >= ?_tstart`;
+      const url = `/internal/esql/get_timefield/${encodeURIComponent(query)}`;
+      const result = await testbed.GET(url).send().expect(200);
+
+      expect(result.body.timeField).toBe('my_time_field');
+      expect(result.body.timeFieldType).toBe('date_nanos');
+
+      // Cleanup
+      await client.indices.delete({ index: indexName });
+    });
+
+    it('should return @timestamp and timeFieldType: date when no time field in query but index has @timestamp', async () => {
       const indexName = 'test_timefield_index';
       const client = testbed.esClient();
 
@@ -135,9 +177,62 @@ describe('ESQL routes', () => {
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date');
 
       // Cleanup
       await client.indices.delete({ index: indexName });
+    });
+
+    it('should return @timestamp and timeFieldType: date_nanos when no time field in query but index has @timestamp as date_nanos', async () => {
+      const indexName = 'test_fieldcaps_date_nanos_index';
+      const client = testbed.esClient();
+
+      await client.indices.create({
+        index: indexName,
+        mappings: {
+          properties: {
+            '@timestamp': { type: 'date_nanos' },
+            message: { type: 'text' },
+          },
+        },
+      });
+
+      const query = `FROM ${indexName}`;
+      const url = `/internal/esql/get_timefield/${encodeURIComponent(query)}`;
+      const result = await testbed.GET(url).send().expect(200);
+
+      expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date_nanos');
+
+      // Cleanup
+      await client.indices.delete({ index: indexName });
+    });
+
+    it('should prefer timeFieldType: date_nanos when @timestamp is date_nanos in any of the matched indices', async () => {
+      const index1 = 'test_fieldcaps_mixed_date_index';
+      const index2 = 'test_fieldcaps_mixed_date_nanos_index';
+      const client = testbed.esClient();
+
+      await client.indices.create({
+        index: index1,
+        mappings: { properties: { '@timestamp': { type: 'date' } } },
+      });
+
+      await client.indices.create({
+        index: index2,
+        mappings: { properties: { '@timestamp': { type: 'date_nanos' } } },
+      });
+
+      const query = `FROM ${index1}, ${index2}`;
+      const url = `/internal/esql/get_timefield/${encodeURIComponent(query)}`;
+      const result = await testbed.GET(url).send().expect(200);
+
+      expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date_nanos');
+
+      // Cleanup
+      await client.indices.delete({ index: index1 });
+      await client.indices.delete({ index: index2 });
     });
 
     it('should return undefined when no time field in query and index has no @timestamp', async () => {
@@ -179,6 +274,7 @@ describe('ESQL routes', () => {
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date');
 
       // Cleanup
       await client.indices.delete({ index: index1 });
@@ -251,6 +347,7 @@ describe('ESQL routes', () => {
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date');
 
       // Cleanup
       await client.indices.delete({ index: index1 });
@@ -287,13 +384,14 @@ describe('ESQL routes', () => {
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date');
 
       // Cleanup
       await client.indices.delete({ index: index1 });
       await client.indices.delete({ index: index2 });
     });
 
-    it('should return @timestamp when ES|QL source is a view that returns @timestamp', async () => {
+    it('should return @timestamp and timeFieldType: date when ES|QL source is a view that returns @timestamp', async () => {
       const indexName = 'test_timefield_view_index';
       const viewName = 'test-timefield-view';
       const client = testbed.esClient();
@@ -321,6 +419,45 @@ describe('ESQL routes', () => {
       const result = await testbed.GET(url).send().expect(200);
 
       expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date');
+
+      // Cleanup
+      await client.transport.request({
+        method: 'DELETE',
+        path: `/_query/view/${encodeURIComponent(viewName)}`,
+      });
+      await client.indices.delete({ index: indexName });
+    });
+
+    it('should return @timestamp and timeFieldType: date_nanos when ES|QL source is a view that returns @timestamp as date_nanos', async () => {
+      const indexName = 'test_timefield_view_date_nanos_index';
+      const viewName = 'test-timefield-view-date-nanos';
+      const client = testbed.esClient();
+
+      await client.indices.create({
+        index: indexName,
+        mappings: {
+          properties: {
+            '@timestamp': { type: 'date_nanos' },
+            message: { type: 'text' },
+          },
+        },
+      });
+
+      await client.transport.request({
+        method: 'PUT',
+        path: `/_query/view/${encodeURIComponent(viewName)}`,
+        body: {
+          query: `FROM ${indexName}`,
+        },
+      });
+
+      const query = `FROM ${viewName}`;
+      const url = `/internal/esql/get_timefield/${encodeURIComponent(query)}`;
+      const result = await testbed.GET(url).send().expect(200);
+
+      expect(result.body.timeField).toBe('@timestamp');
+      expect(result.body.timeFieldType).toBe('date_nanos');
 
       // Cleanup
       await client.transport.request({

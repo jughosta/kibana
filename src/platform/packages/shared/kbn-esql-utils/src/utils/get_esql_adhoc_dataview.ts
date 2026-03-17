@@ -125,7 +125,8 @@ export async function getESQLAdHocDataview({
           ? {
               [timeField]: {
                 name: timeField,
-                type: timeFieldType,
+                type: 'date',
+                esTypes: [timeFieldType],
                 searchable: true,
                 aggregatable: true,
               },
