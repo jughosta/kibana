@@ -26,6 +26,7 @@ import type {
   FieldFormatParams,
 } from './types';
 import { htmlContentTypeSetup, textContentTypeSetup, TEXT_CONTEXT_TYPE } from './content_types';
+import { getHighlightReact } from './utils/highlight';
 import type {
   HtmlContextTypeConvert,
   ReactContextTypeConvert,
@@ -97,11 +98,18 @@ export abstract class FieldFormat {
     if (this.textConvert) {
       const missing = this.checkForMissingValueReact(val);
       if (missing) return missing;
-      return this.textConvert(val, options);
     }
-    // Formatter overrides convert() directly without defining textConvert.
-    // Delegate via the text path so custom label logic (e.g. otherBucketLabel) is preserved.
-    return this.convert(val, 'text', options);
+    const formatted = this.textConvert
+      ? this.textConvert(val, options)
+      : // Some formatters (e.g. AggsTermsFieldFormat, AggsMultiTermsFieldFormat) override
+        // convert() directly instead of textConvert, to intercept special bucket values such as
+        // __other__ and __missing__ and replace them with user-configured labels before delegating
+        // to an underlying field format. Calling this.convert('text') respects that logic.
+        // Note: checkForMissingValueReact is intentionally skipped here so those formatters can
+        // apply their own missing-bucket label instead of the generic null placeholder.
+        this.convert(val, 'text', options);
+    const highlights = options?.hit?.highlight?.[options?.field?.name!];
+    return highlights ? getHighlightReact(formatted, highlights) : formatted;
   };
 
   /**
