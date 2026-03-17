@@ -102,9 +102,7 @@ export abstract class FieldFormat {
       const subNodes = val.map((v) => this.reactConvert(v, options));
       if (val.length === 1) return subNodes[0] ?? '';
 
-      const arraySpan = (text: string) => (
-        <span className="ffArray__highlight">{text}</span>
-      );
+      const arraySpan = (text: string) => <span className="ffArray__highlight">{text}</span>;
 
       // Multiline detection: sub-values that are plain strings (e.g. stringified JSON objects)
       // may contain newlines. Indent them by 2 extra spaces, matching html_content_type behaviour.
@@ -113,9 +111,7 @@ export abstract class FieldFormat {
       const nodes: ReactNode[] = [arraySpan('[')];
       if (useMultiLine) nodes.push('\n  ');
       subNodes.forEach((node, i) => {
-        nodes.push(
-          useMultiLine && typeof node === 'string' ? node.replaceAll('\n', '\n  ') : node
-        );
+        nodes.push(useMultiLine && typeof node === 'string' ? node.replaceAll('\n', '\n  ') : node);
         if (i < subNodes.length - 1) {
           nodes.push(arraySpan(','));
           nodes.push(useMultiLine ? '\n  ' : ' ');
