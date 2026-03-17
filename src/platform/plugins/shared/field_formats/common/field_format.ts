@@ -85,13 +85,19 @@ export abstract class FieldFormat {
 
   /**
    * React-based converter. Prefer this over htmlConvert for new formatters.
-   * When defined, FieldFormatValue will render the result natively without dangerouslySetInnerHTML.
+   * FieldFormatValue renders the result natively without dangerouslySetInnerHTML.
+   * The default implementation delegates to textConvert, so plain-text formatters
+   * get correct React rendering for free without overriding this method.
    * @property {reactConvert}
    * @protected
    * have to remove the protected because of
    * https://github.com/Microsoft/TypeScript/issues/17293
    */
-  reactConvert: ReactContextTypeConvert | undefined;
+  reactConvert: ReactContextTypeConvert = (val, options) => {
+    const missing = this.checkForMissingValueReact(val);
+    if (missing) return missing;
+    return this.textConvert ? this.textConvert(val, options) : String(val ?? '');
+  };
 
   /**
    * @property {textConvert}
@@ -226,10 +232,10 @@ export abstract class FieldFormat {
   }
 
   setupContentType(): FieldFormatConvert {
-    // Bridge: if reactConvert is defined but htmlConvert is not, derive the HTML converter
-    // from reactConvert via renderToStaticMarkup so legacy consumers keep working unchanged.
+    // Bridge: if no explicit htmlConvert, derive the HTML converter from reactConvert via
+    // renderToStaticMarkup so legacy consumers keep working unchanged.
     let htmlConverter = this.htmlConvert;
-    if (!htmlConverter && this.reactConvert) {
+    if (!htmlConverter) {
       const reactConvert = this.reactConvert.bind(this);
       htmlConverter = (value, options) => {
         const missing = checkForMissingValueHtml(value);
@@ -261,10 +267,6 @@ export abstract class FieldFormat {
     if (val == null || val === MISSING_TOKEN) {
       return NULL_LABEL;
     }
-  }
-
-  protected checkForMissingValueHtml(val: unknown): string | void {
-    return checkForMissingValueHtml(val);
   }
 
   protected checkForMissingValueReact(val: unknown): ReactNode | void {
