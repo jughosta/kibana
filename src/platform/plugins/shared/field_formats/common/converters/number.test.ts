@@ -68,10 +68,11 @@ describe('NumberFormat', () => {
     );
   });
 
-  test('escapes HTML characters in object input for html context', () => {
+  test('escapes HTML characters in html context', () => {
     const formatter = new NumberFormat({}, getConfig);
     const objWithHtml = { value: '<script>alert("test")</script>' };
-    expect(formatter.convert(objWithHtml, 'html')).toContain('&lt;script&gt;');
-    expect(formatter.convert(objWithHtml, 'html')).not.toContain('<script>');
+    expect(formatter.convert(objWithHtml, 'html')).toBe(
+      '{\n  &quot;value&quot;: &quot;&lt;script&gt;alert(\\&quot;test\\&quot;)&lt;/script&gt;&quot;\n}'
+    );
   });
 });

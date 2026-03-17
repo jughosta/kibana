@@ -39,7 +39,7 @@ describe('Relative Date Format', () => {
     expect(convert(val)).toBe(moment(val).fromNow());
   });
 
-  test('escapes HTML characters in html context for invalid dates', () => {
+  test('escapes HTML characters in html context via fallback', () => {
     expect(convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );

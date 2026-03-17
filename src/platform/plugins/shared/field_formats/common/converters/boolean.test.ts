@@ -77,7 +77,7 @@ describe('Boolean Format', () => {
     );
   });
 
-  test('escapes HTML characters in html context for non-boolean values', () => {
+  test('escapes HTML characters in html context via fallback', () => {
     expect(boolean.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );

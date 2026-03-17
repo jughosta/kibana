@@ -107,7 +107,7 @@ describe('GeoPoint Format', () => {
       );
     });
 
-    test('escapes HTML characters in html context for non-geopoint values', () => {
+    test('escapes HTML characters in html context via fallback', () => {
       const geoPointFormat = new GeoPointFormat(
         {
           transform: 'lat_lon_string',

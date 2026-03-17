@@ -32,8 +32,9 @@ describe('IP Address Format', () => {
     );
   });
 
-  test('escapes HTML characters in html context for non-finite values', () => {
-    expect(ip.convert(Infinity, HTML_CONTEXT_TYPE)).toBe('Infinity');
-    expect(ip.convert(NaN, HTML_CONTEXT_TYPE)).toBe('NaN');
+  test('escapes HTML characters in html context via fallback', () => {
+    expect(ip.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
+      '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
+    );
   });
 });
