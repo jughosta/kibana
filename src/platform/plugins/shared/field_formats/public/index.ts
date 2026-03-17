@@ -9,6 +9,7 @@
 
 import { FieldFormatsPlugin } from './plugin';
 export { DateFormat, DateNanosFormat } from './lib/converters';
+export { FieldFormatValue } from './components/field_format_value';
 
 export function plugin() {
   return new FieldFormatsPlugin();

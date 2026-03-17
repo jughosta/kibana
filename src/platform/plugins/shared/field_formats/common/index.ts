@@ -63,6 +63,7 @@ export type {
   FieldFormatConvertFunction,
   HtmlContextTypeConvert,
   HtmlContextTypeOptions,
+  ReactContextTypeConvert,
   TextContextTypeConvert,
   TextContextTypeOptions,
 } from './types';

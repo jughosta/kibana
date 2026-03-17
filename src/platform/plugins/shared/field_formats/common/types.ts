@@ -7,6 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import type { ReactNode } from 'react';
 import type { Serializable, SerializableRecord } from '@kbn/utility-types';
 import type { FieldFormat } from './field_format';
 import type { FieldFormatsRegistry } from './field_formats_registry';
@@ -28,6 +29,12 @@ export interface HtmlContextTypeOptions {
  * @public
  */
 export type HtmlContextTypeConvert = (value: any, options?: HtmlContextTypeOptions) => string;
+
+/**
+ * To React node converter function. Use this instead of HtmlContextTypeConvert for new formatters.
+ * @public
+ */
+export type ReactContextTypeConvert = (value: any, options?: HtmlContextTypeOptions) => ReactNode;
 
 /**
  * Plain text converter options
