@@ -7,11 +7,22 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+// eslint-disable-next-line max-classes-per-file
+import React from 'react';
+import ReactDOM from 'react-dom/server';
 import { constant, trimEnd, trimStart, get } from 'lodash';
 import { FieldFormat } from './field_format';
 import { asPrettyString } from './utils';
-import type { FieldFormatParams, TextContextTypeOptions } from './types';
+import { highlightTags } from './utils/highlight/highlight_tags';
+import type { FieldFormatParams, HtmlContextTypeOptions, TextContextTypeOptions } from './types';
 import { NULL_LABEL } from '@kbn/field-formats-common';
+
+const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
+const renderReact = (node: React.ReactNode) =>
+  ReactDOM.renderToStaticMarkup(React.createElement(React.Fragment, null, node)).replace(
+    /&quot;/g,
+    '"'
+  );
 
 const getTestFormat = (
   _params?: FieldFormatParams,
@@ -25,6 +36,16 @@ const getTestFormat = (
     textConvert = textConvert;
     htmlConvert = htmlConvert;
   })(_params, jest.fn());
+
+/** Formatter that overrides convert() directly (no textConvert), like AggsTermsFieldFormat. */
+const getConvertOverrideFormat = () =>
+  new (class ConvertOverrideFormat extends FieldFormat {
+    static id = 'convert-override-format';
+    static title = 'Convert Override Format';
+
+    convert = (val: unknown) => `formatted:${val}`;
+    getConverterFor = () => this.convert;
+  })(undefined, jest.fn());
 
 describe('FieldFormat class', () => {
   describe('params', () => {
@@ -205,6 +226,73 @@ describe('FieldFormat class', () => {
         expect(result).toContain('&lt;script&gt;');
         expect(result).toContain('alert(&quot;test&quot;)');
         expect(result).not.toContain('<script>');
+      });
+    });
+
+    describe('default reactConvert highlight support', () => {
+      const makeOptions = (fieldName: string, highlights: string[]): HtmlContextTypeOptions => ({
+        field: { name: fieldName },
+        hit: { highlight: { [fieldName]: highlights } },
+      });
+
+      test('wraps matched text in <mark> via reactConvert when highlights are present', () => {
+        const f = getTestFormat(undefined, constant('lorem ipsum dolor'));
+        const result = renderReact(
+          f.reactConvert(
+            'lorem ipsum dolor',
+            makeOptions('myField', [`lorem ${hl('ipsum')} dolor`])
+          )
+        );
+        expect(result).toBe('lorem <mark class="ffSearch__highlight">ipsum</mark> dolor');
+      });
+
+      test('returns plain text from reactConvert when no highlights are present', () => {
+        const f = getTestFormat(undefined, constant('lorem ipsum'));
+        const result = f.reactConvert('lorem ipsum', { field: { name: 'myField' }, hit: {} });
+        expect(result).toBe('lorem ipsum');
+      });
+
+      test('returns plain text from reactConvert when highlight is for a different field', () => {
+        const f = getTestFormat(undefined, constant('lorem ipsum'));
+        const result = f.reactConvert('lorem ipsum', {
+          field: { name: 'myField' },
+          hit: { highlight: { otherField: [`lorem ${hl('ipsum')}`] } },
+        });
+        expect(result).toBe('lorem ipsum');
+      });
+
+      test('produces <mark> in HTML output via bridge when highlights are present', () => {
+        const f = getTestFormat(undefined, constant('lorem ipsum dolor'));
+        const result = f.convert(
+          'lorem ipsum dolor',
+          'html',
+          makeOptions('myField', [`lorem ${hl('ipsum')} dolor`])
+        );
+        expect(result).toBe('lorem <mark class="ffSearch__highlight">ipsum</mark> dolor');
+      });
+
+      test('wraps matched text in <mark> for formatters that override convert() directly', () => {
+        const f = getConvertOverrideFormat();
+        const result = renderReact(
+          f.reactConvert('ipsum', makeOptions('myField', [`${hl('formatted:ipsum')}`]))
+        );
+        expect(result).toBe('<mark class="ffSearch__highlight">formatted:ipsum</mark>');
+      });
+
+      test('returns plain text for convert() override formatters when no highlights present', () => {
+        const f = getConvertOverrideFormat();
+        expect(f.reactConvert('ipsum', { field: { name: 'myField' }, hit: {} })).toBe(
+          'formatted:ipsum'
+        );
+      });
+
+      test('HTML-escapes special characters in highlighted output', () => {
+        const f = getTestFormat(undefined, constant('<em>lorem</em>'));
+        const result = renderReact(
+          f.reactConvert('<em>lorem</em>', makeOptions('myField', [`${hl('<em>lorem</em>')}`]))
+        );
+        expect(result).toBe('<mark class="ffSearch__highlight">&lt;em&gt;lorem&lt;/em&gt;</mark>');
+        expect(result).not.toContain('<em>');
       });
     });
   });
