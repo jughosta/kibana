@@ -85,10 +85,24 @@ export abstract class FieldFormat {
   htmlConvert: HtmlContextTypeConvert | undefined;
 
   /**
-   * React-based converter. Prefer this over htmlConvert for new formatters.
-   * FieldFormatValue renders the result natively without dangerouslySetInnerHTML.
-   * The default implementation delegates to textConvert, so plain-text formatters
-   * get correct React rendering for free without overriding this method.
+   * Single-value React converter. Override this in subclasses to customize React rendering
+   * for individual (non-array) values. The public `reactConvert` method handles array
+   * wrapping automatically and delegates here for scalar values.
+   *
+   * @property {reactConvertSingle}
+   * @protected
+   * have to remove the protected because of
+   * https://github.com/Microsoft/TypeScript/issues/17293
+   */
+  reactConvertSingle: ReactContextTypeConvert | undefined;
+
+  /**
+   * React-based converter. Handles arrays and delegates single values to `reactConvertSingle`
+   * (if overridden) or the default text/highlight logic.
+   *
+   * Do NOT override this method in subclasses — override `reactConvertSingle` instead so that
+   * array handling is always applied correctly.
+   *
    * @property {reactConvert}
    * @protected
    * have to remove the protected because of
@@ -99,6 +113,10 @@ export abstract class FieldFormat {
     // Single-element arrays and empty arrays are passed through without brackets.
     if (Array.isArray(val)) {
       return wrapReactArray(val, (v) => this.reactConvert(v, options));
+    }
+
+    if (this.reactConvertSingle) {
+      return this.reactConvertSingle(val, options);
     }
 
     if (this.textConvert) {

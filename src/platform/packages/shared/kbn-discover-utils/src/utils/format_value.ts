@@ -17,7 +17,6 @@ import type {
   ReactContextTypeOptions,
   TextContextTypeOptions,
 } from '@kbn/field-formats-plugin/common/types';
-import { wrapReactArray } from '@kbn/field-formats-plugin/common';
 import type { EsHitRecord } from '../types';
 
 /**
@@ -87,10 +86,6 @@ export function formatFieldValueReact(
     !dataView || !field
       ? fieldFormats.getDefaultInstance(KBN_FIELD_TYPES.STRING)
       : dataView.getFormatterForField(field);
-
-  if (Array.isArray(value)) {
-    return wrapReactArray(value, (v) => formatter.reactConvert(v, converterOptions));
-  }
 
   return formatter.reactConvert(value, converterOptions);
 }

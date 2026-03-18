@@ -133,7 +133,7 @@ export class UrlFormat extends FieldFormat {
     return this.formatLabel(value);
   };
 
-  reactConvert: ReactContextTypeConvert = (rawValue: string, options = {}) => {
+  reactConvertSingle: ReactContextTypeConvert = (rawValue: string, options = {}) => {
     const missing = this.checkForMissingValueReact(rawValue);
     if (missing) return missing;
 
