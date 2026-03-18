@@ -12,21 +12,35 @@ import type { Serializable, SerializableRecord } from '@kbn/utility-types';
 import type { FieldFormat } from './field_format';
 import type { FieldFormatsRegistry } from './field_formats_registry';
 
-/** @public **/
+/**
+ * Content type for string-based field format converters.
+ * @public
+ * @deprecated The 'html' content type is deprecated. Prefer using `FieldFormat.reactConvert()` directly
+ * for React-based rendering, which returns `ReactNode` and avoids `dangerouslySetInnerHTML`.
+ * The 'text' content type remains valid for plain text output.
+ */
 export type FieldFormatsContentType = 'html' | 'text';
 
 /**
- * Html converter options
+ * React converter options
  */
-export interface HtmlContextTypeOptions {
+export interface ReactContextTypeOptions {
   field?: { name: string };
   hit?: { highlight?: Record<string, string[]> };
   skipFormattingInStringifiedJSON?: boolean;
 }
 
 /**
+ * @deprecated Use {@link ReactContextTypeOptions} instead. This type alias exists only for
+ * backward compatibility with code using the deprecated `htmlConvert` method.
+ */
+export type HtmlContextTypeOptions = ReactContextTypeOptions;
+
+/**
  * To html converter function
  * @public
+ * @deprecated Use {@link ReactContextTypeConvert} instead. The HTML content type is being phased out
+ * in favor of React-based rendering via `FieldFormat.reactConvert()`.
  */
 export type HtmlContextTypeConvert = (value: any, options?: HtmlContextTypeOptions) => string;
 
@@ -34,7 +48,7 @@ export type HtmlContextTypeConvert = (value: any, options?: HtmlContextTypeOptio
  * To React node converter function. Use this instead of HtmlContextTypeConvert for new formatters.
  * @public
  */
-export type ReactContextTypeConvert = (value: any, options?: HtmlContextTypeOptions) => ReactNode;
+export type ReactContextTypeConvert = (value: any, options?: ReactContextTypeOptions) => ReactNode;
 
 /**
  * Plain text converter options
