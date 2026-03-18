@@ -51,6 +51,44 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithoutUnknown.convert('unknown', 'text')).toBe('unknown');
     });
+
+    test('falls back to empty string for null/undefined when no unknownKeyValue is set', () => {
+      const formatterWithoutUnknown = new StaticLookupFormat({
+        lookupEntries: [{ key: 'test', value: 'Test Value' }],
+        unknownKeyValue: null,
+      });
+      expect(formatterWithoutUnknown.convert(null, 'text')).toBe('');
+      expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe('');
+    });
+  });
+
+  describe('falsy mapped values', () => {
+    test('correctly maps to empty string value (does not fall back to unknownKeyValue)', () => {
+      const formatterWithEmptyStringValue = new StaticLookupFormat({
+        lookupEntries: [{ key: 'empty', value: '' }],
+        unknownKeyValue: 'Should Not Use',
+      });
+      expect(formatterWithEmptyStringValue.convert('empty', 'text')).toBe('');
+      expect(formatterWithEmptyStringValue.convert('empty', 'html')).toBe('');
+    });
+
+    test('correctly maps to 0 value (does not fall back to unknownKeyValue)', () => {
+      const formatterWithZeroValue = new StaticLookupFormat({
+        lookupEntries: [{ key: 'zero', value: 0 }],
+        unknownKeyValue: 'Should Not Use',
+      });
+      expect(formatterWithZeroValue.convert('zero', 'text')).toBe('0');
+      expect(formatterWithZeroValue.convert('zero', 'html')).toBe('0');
+    });
+
+    test('correctly maps to false value (does not fall back to unknownKeyValue)', () => {
+      const formatterWithFalseValue = new StaticLookupFormat({
+        lookupEntries: [{ key: 'falsy', value: false }],
+        unknownKeyValue: 'Should Not Use',
+      });
+      expect(formatterWithFalseValue.convert('falsy', 'text')).toBe('false');
+      expect(formatterWithFalseValue.convert('falsy', 'html')).toBe('false');
+    });
   });
 
   describe('htmlConvert', () => {
@@ -176,7 +214,7 @@ describe('StaticLookupFormat', () => {
       // This simulates the case where the user adds a lookup entry
       // but doesn't explicitly set the key (leaving it undefined)
       const formatterWithUndefinedKey = new StaticLookupFormat({
-        lookupEntries: [{ key: undefined as unknown as string, value: 'Empty String Mapped' }],
+        lookupEntries: [{ key: undefined, value: 'Empty String Mapped' }],
         unknownKeyValue: null,
       });
       // Empty string should map to the value with undefined key
@@ -186,7 +224,7 @@ describe('StaticLookupFormat', () => {
 
     test('treats null key as empty string key when value is provided', () => {
       const formatterWithNullKey = new StaticLookupFormat({
-        lookupEntries: [{ key: null as unknown as string, value: 'Empty String Mapped' }],
+        lookupEntries: [{ key: null, value: 'Empty String Mapped' }],
         unknownKeyValue: null,
       });
       expect(formatterWithNullKey.convert('', 'text')).toBe('Empty String Mapped');
@@ -195,10 +233,7 @@ describe('StaticLookupFormat', () => {
 
     test('does not treat undefined key as empty string key when value is not provided', () => {
       const formatterWithEmptyEntry = new StaticLookupFormat({
-        lookupEntries: [{ key: undefined, value: undefined }] as unknown as Array<{
-          key: string;
-          value: string;
-        }>,
+        lookupEntries: [{ key: undefined, value: undefined }],
         unknownKeyValue: 'Unknown',
       });
       // Empty string should not be mapped, should fall back to unknownKeyValue

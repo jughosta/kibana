@@ -16,10 +16,10 @@ import { FIELD_FORMAT_IDS } from '../types';
 import { getHighlightHtml, checkForMissingValueHtml } from '../utils';
 
 function convertLookupEntriesToMap(
-  lookupEntries: Array<{ key: string; value: unknown }>
+  lookupEntries: Array<{ key?: string | null; value: unknown }>
 ): Record<string, unknown> {
   return lookupEntries.reduce(
-    (lookupMap: Record<string, unknown>, lookupEntry: { key: string; value: unknown }) => {
+    (lookupMap: Record<string, unknown>, lookupEntry: { key?: string | null; value: unknown }) => {
       // Treat undefined/null keys as empty string keys only when a value is provided
       const key = lookupEntry.key ?? (lookupEntry.value != null ? '' : undefined);
       if (key != null) {
@@ -69,11 +69,11 @@ export class StaticLookupFormat extends FieldFormat {
     const unknownKeyValue = this.param('unknownKeyValue');
     const lookupMap = convertLookupEntriesToMap(lookupEntries);
 
-    // Guard against null/undefined before using 'in' operator, and normalize to string key
+    // Guard against null/undefined before checking key, and normalize to string key
     if (val != null) {
       const key = String(val);
-      // Use 'in' operator to check key existence (handles falsy mapped values like '')
-      if (key in lookupMap) {
+      // Use Object.hasOwn to check key existence (handles falsy mapped values like '' and avoids prototype chain)
+      if (Object.hasOwn(lookupMap, key)) {
         return { result: lookupMap[key], wasMapped: true };
       }
     }
@@ -88,7 +88,7 @@ export class StaticLookupFormat extends FieldFormat {
 
   textConvert: TextContextTypeConvert = (val: string) => {
     const { result } = this.lookup(val);
-    return String(result);
+    return String(result ?? '');
   };
 
   htmlConvert: HtmlContextTypeConvert = (value, options = {}) => {
@@ -104,7 +104,7 @@ export class StaticLookupFormat extends FieldFormat {
 
     // Escape the result and handle highlights
     const { field, hit } = options;
-    const formatted = escape(String(result));
+    const formatted = escape(String(result ?? ''));
 
     return !field || !hit || !hit.highlight || !hit.highlight[field.name]
       ? formatted
