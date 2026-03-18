@@ -79,25 +79,27 @@ export class UrlFormat extends FieldFormat {
     };
   }
 
-  private formatLabel(value: string, url?: string): string {
+  private formatLabel(value: string | number, url?: string): string {
+    const strValue = String(value);
     const template = this.param('labelTemplate');
-    if (url == null) url = this.formatUrl(value);
+    if (url == null) url = this.formatUrl(strValue);
     if (!template) return url;
 
     return this.compileTemplate(template)({
-      value,
+      value: strValue,
       url,
-      rawValue: value,
+      rawValue: strValue,
     });
   }
 
-  private formatUrl(value: string): string {
+  private formatUrl(value: string | number): string {
+    const strValue = String(value);
     const template = this.param('urlTemplate');
-    if (!template) return value;
+    if (!template) return strValue;
 
     return this.compileTemplate(template)({
-      value: encodeURIComponent(value),
-      rawValue: value,
+      value: encodeURIComponent(strValue),
+      rawValue: strValue,
     });
   }
 
@@ -124,7 +126,7 @@ export class UrlFormat extends FieldFormat {
     };
   }
 
-  textConvert: TextContextTypeConvert = (value: string) => {
+  textConvert: TextContextTypeConvert = (value: string | number) => {
     const missing = this.checkForMissingValueText(value);
     if (missing) {
       return missing;
@@ -133,7 +135,7 @@ export class UrlFormat extends FieldFormat {
     return this.formatLabel(value);
   };
 
-  reactConvertSingle: ReactContextTypeConvert = (rawValue: string, options = {}) => {
+  reactConvertSingle: ReactContextTypeConvert = (rawValue: string | number, options = {}) => {
     const missing = this.checkForMissingValueReact(rawValue);
     if (missing) return missing;
 
