@@ -69,24 +69,19 @@ export class StaticLookupFormat extends FieldFormat {
   };
 
   htmlConvert: HtmlContextTypeConvert = (value, options = {}) => {
-    const lookupEntries = this.param('lookupEntries');
-    const unknownKeyValue = this.param('unknownKeyValue');
-    const lookupMap = convertLookupEntriesToMap(lookupEntries);
+    // Apply the same lookup logic as textConvert
+    const textResult = this.textConvert(value);
 
-    // Check if we have a custom mapping for this value
-    const hasCustomMapping =
-      Object.prototype.hasOwnProperty.call(lookupMap, value) || unknownKeyValue != null;
-
-    if (!hasCustomMapping) {
-      // No custom mapping, check if it's a missing value that should get special treatment
-      const missingHtml = checkForMissingValueHtml(value);
+    // Only apply missing value handling if the final result is null/empty
+    // and it's the same as the original value (meaning no custom mapping was applied)
+    if (textResult === value) {
+      const missingHtml = checkForMissingValueHtml(textResult);
       if (missingHtml) {
         return missingHtml;
       }
     }
 
-    // Apply the lookup logic and escape the result
-    const textResult = this.textConvert(value);
+    // Escape the result and handle highlights
     const { field, hit } = options;
     const formatted = escape(String(textResult));
 

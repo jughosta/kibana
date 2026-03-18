@@ -95,23 +95,23 @@ describe('StaticLookupFormat', () => {
       );
     });
 
-    test('falls back to missing value handling when no custom mapping exists', () => {
+    test('falls back to missing value handling when textConvert returns original null/empty values', () => {
       const formatterWithoutCustomMapping = new StaticLookupFormat({
         lookupEntries: [{ key: 'test', value: 'Test Value' }],
         unknownKeyValue: null, // No custom unknown value
       });
 
-      // Empty string should show (blank) since no custom mapping exists
+      // Empty string should show (blank) since textConvert returns the original empty string
       expect(formatterWithoutCustomMapping.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
 
-      // Null should show (null) since no custom mapping exists
+      // Null should show (null) since textConvert returns the original null
       expect(formatterWithoutCustomMapping.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
 
-      // Undefined should show (null) since no custom mapping exists
+      // Undefined should show (null) since textConvert returns the original undefined
       expect(formatterWithoutCustomMapping.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
