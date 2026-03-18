@@ -8,10 +8,12 @@
  */
 
 import { i18n } from '@kbn/i18n';
+import { escape } from 'lodash';
 import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { FieldFormat } from '../field_format';
-import type { TextContextTypeConvert } from '../types';
+import type { TextContextTypeConvert, HtmlContextTypeConvert } from '../types';
 import { FIELD_FORMAT_IDS } from '../types';
+import { getHighlightHtml, checkForMissingValueHtml } from '../utils';
 
 function convertLookupEntriesToMap(
   lookupEntries: Array<{ key: string; value: unknown }>
@@ -64,5 +66,32 @@ export class StaticLookupFormat extends FieldFormat {
 
     const lookupMap = convertLookupEntriesToMap(lookupEntries);
     return lookupMap[val] || unknownKeyValue || val;
+  };
+
+  htmlConvert: HtmlContextTypeConvert = (value, options = {}) => {
+    const lookupEntries = this.param('lookupEntries');
+    const unknownKeyValue = this.param('unknownKeyValue');
+    const lookupMap = convertLookupEntriesToMap(lookupEntries);
+
+    // Check if we have a custom mapping for this value
+    const hasCustomMapping =
+      Object.prototype.hasOwnProperty.call(lookupMap, value) || unknownKeyValue != null;
+
+    if (!hasCustomMapping) {
+      // No custom mapping, check if it's a missing value that should get special treatment
+      const missingHtml = checkForMissingValueHtml(value);
+      if (missingHtml) {
+        return missingHtml;
+      }
+    }
+
+    // Apply the lookup logic and escape the result
+    const textResult = this.textConvert(value);
+    const { field, hit } = options;
+    const formatted = escape(String(textResult));
+
+    return !field || !hit || !hit.highlight || !hit.highlight[field.name]
+      ? formatted
+      : getHighlightHtml(formatted, hit.highlight[field.name]);
   };
 }
