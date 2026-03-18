@@ -37,6 +37,7 @@ export {
   createStacktraceControl,
   fieldConstants,
   formatFieldValue,
+  formatFieldValueReact,
   formatHit,
   getDocId,
   getLogDocumentOverview,

@@ -7,12 +7,14 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import type { ReactNode } from 'react';
 import type { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import type { DataView, DataViewField } from '@kbn/data-views-plugin/public';
 import type {
   FieldFormatsContentType,
   HtmlContextTypeOptions,
+  ReactContextTypeOptions,
   TextContextTypeOptions,
 } from '@kbn/field-formats-plugin/common/types';
 import type { EsHitRecord } from '../types';
@@ -56,4 +58,34 @@ export function formatFieldValue(
 
   // If we have a data view and field we use that fields field formatter
   return dataView.getFormatterForField(field).convert(value, usedContentType, converterOptions);
+}
+
+/**
+ * React equivalent of formatFieldValue. Returns a ReactNode rendered via reactConvert,
+ * which is safe to render directly without dangerouslySetInnerHTML.
+ *
+ * @param value The value to format
+ * @param hit The actual search hit (for highlight information)
+ * @param fieldFormats Field formatters
+ * @param dataView The data view if available
+ * @param field The field that value was from if available
+ * @param options Options for the converter
+ * @returns A ReactNode that can be rendered directly
+ */
+export function formatFieldValueReact(
+  value: unknown,
+  hit: EsHitRecord,
+  fieldFormats: FieldFormatsStart,
+  dataView?: DataView,
+  field?: DataViewField,
+  options?: ReactContextTypeOptions
+): ReactNode {
+  const converterOptions: ReactContextTypeOptions = { hit, field, ...options };
+
+  const formatter =
+    !dataView || !field
+      ? fieldFormats.getDefaultInstance(KBN_FIELD_TYPES.STRING)
+      : dataView.getFormatterForField(field);
+
+  return formatter.reactConvert(value, converterOptions);
 }
