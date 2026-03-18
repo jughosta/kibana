@@ -43,3 +43,55 @@ describe('PercentFormat', () => {
     );
   });
 });
+
+describe('PercentFormat — reactConvert', () => {
+  const getConfig = (key: string) =>
+    ({ [FORMATS_UI_SETTINGS.FORMAT_PERCENT_DEFAULT_PATTERN]: '0,0.[000]%' }[key] as string);
+
+  test('returns a plain string for a percent value', () => {
+    const formatter = new PercentFormat({}, getConfig);
+    expect(formatter.reactConvert(0.99999)).toMatchInlineSnapshot(`"99.999%"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new PercentFormat({}, getConfig);
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new PercentFormat({}, getConfig);
+    expect(formatter.reactConvert([0.5, 0.75])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        50%
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        75%
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new PercentFormat({}, getConfig);
+    expect(formatter.reactConvert([0.5])).toMatchInlineSnapshot(`"50%"`);
+  });
+});

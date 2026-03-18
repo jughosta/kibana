@@ -44,3 +44,55 @@ describe('CurrencyFormat', () => {
     );
   });
 });
+
+describe('CurrencyFormat — reactConvert', () => {
+  const getConfig: FieldFormatsGetConfigFn = (key: string) =>
+    ({ [FORMATS_UI_SETTINGS.FORMAT_CURRENCY_DEFAULT_PATTERN]: '($0,0.[00])' }[key] as string);
+
+  test('returns a plain string for a currency value', () => {
+    const formatter = new CurrencyFormat({}, getConfig);
+    expect(formatter.reactConvert(12000.23)).toMatchInlineSnapshot(`"$12,000.23"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new CurrencyFormat({}, getConfig);
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new CurrencyFormat({}, getConfig);
+    expect(formatter.reactConvert([100, 200])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        $100
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        $200
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new CurrencyFormat({}, getConfig);
+    expect(formatter.reactConvert([100])).toMatchInlineSnapshot(`"$100"`);
+  });
+});

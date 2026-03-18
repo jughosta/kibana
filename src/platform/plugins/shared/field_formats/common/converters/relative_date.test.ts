@@ -7,6 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import React from 'react';
 import moment from 'moment-timezone';
 import { RelativeDateFormat } from './relative_date';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
@@ -43,5 +44,38 @@ describe('Relative Date Format', () => {
     expect(convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );
+  });
+});
+
+describe('Relative Date Format — reactConvert', () => {
+  // Use a fixed date to avoid time-dependent output
+  const fixedDate = '2019-01-01T00:00:00.000Z';
+
+  test('returns a plain string for a valid date', () => {
+    const formatter = new RelativeDateFormat({}, jest.fn());
+    expect(formatter.reactConvert(fixedDate)).toBe(moment(fixedDate).fromNow());
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new RelativeDateFormat({}, jest.fn());
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new RelativeDateFormat({}, jest.fn());
+    // Use React.isValidElement to verify a React element is returned without
+    // capturing the time-relative string value in the snapshot
+    expect(React.isValidElement(formatter.reactConvert([fixedDate, fixedDate]))).toBe(true);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new RelativeDateFormat({}, jest.fn());
+    expect(formatter.reactConvert([fixedDate])).toBe(moment(fixedDate).fromNow());
   });
 });

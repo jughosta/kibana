@@ -602,3 +602,55 @@ describe('Duration Format', () => {
     });
   }
 });
+
+describe('Duration Format — reactConvert', () => {
+  const makeFormatter = () =>
+    new DurationFormat({ inputFormat: 'seconds', outputFormat: 'humanize' }, jest.fn());
+
+  test('returns a plain string for a numeric duration', () => {
+    const formatter = makeFormatter();
+    expect(formatter.reactConvert(60)).toMatchInlineSnapshot(`"a minute"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = makeFormatter();
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = makeFormatter();
+    expect(formatter.reactConvert([60, 3600])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        a minute
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        an hour
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = makeFormatter();
+    expect(formatter.reactConvert([60])).toMatchInlineSnapshot(`"a minute"`);
+  });
+});

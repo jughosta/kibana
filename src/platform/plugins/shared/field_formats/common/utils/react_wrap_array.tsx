@@ -10,7 +10,18 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-const arraySpan = (text: string) => <span className="ffArray__highlight">{text}</span>;
+const arraySpan = (text: string, key: string) => (
+  <span key={key} className="ffArray__highlight">
+    {text}
+  </span>
+);
+
+const withKey = (node: ReactNode, key: string | number): ReactNode => {
+  if (React.isValidElement(node)) {
+    return React.cloneElement(node as React.ReactElement, { key });
+  }
+  return node;
+};
 
 /**
  * Wraps an array value into React nodes with bracket/comma notation,
@@ -36,17 +47,19 @@ export function wrapReactArray(
 
   const useMultiLine = subNodes.some((n) => typeof n === 'string' && n.includes('\n'));
 
-  const nodes: ReactNode[] = [arraySpan('[')];
+  const nodes: ReactNode[] = [arraySpan('[', '$$open')];
   if (useMultiLine) nodes.push('\n  ');
   subNodes.forEach((node, i) => {
-    nodes.push(useMultiLine && typeof node === 'string' ? node.replaceAll('\n', '\n  ') : node);
+    const rendered =
+      useMultiLine && typeof node === 'string' ? node.replaceAll('\n', '\n  ') : node;
+    nodes.push(withKey(rendered, i));
     if (i < subNodes.length - 1) {
-      nodes.push(arraySpan(','));
+      nodes.push(arraySpan(',', `$$sep-${i}`));
       nodes.push(useMultiLine ? '\n  ' : ' ');
     }
   });
   if (useMultiLine) nodes.push('\n');
-  nodes.push(arraySpan(']'));
+  nodes.push(arraySpan(']', '$$close'));
 
   return <>{nodes}</>;
 }

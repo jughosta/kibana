@@ -9,6 +9,7 @@
 
 import { EMPTY_LABEL, NULL_LABEL } from '@kbn/field-formats-common';
 import { HTML_CONTEXT_TYPE } from '../content_types';
+import { highlightTags } from '../utils/highlight/highlight_tags';
 import { StringFormat } from './string';
 
 /**
@@ -146,5 +147,102 @@ describe('String Format', () => {
     expect(string.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );
+  });
+});
+
+describe('String Format — reactConvert', () => {
+  const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
+
+  test('returns the transformed string value', () => {
+    const string = new StringFormat({ transform: 'upper' }, jest.fn());
+    expect(string.reactConvert('kibana')).toMatchInlineSnapshot(`"KIBANA"`);
+  });
+
+  test('returns empty value placeholder for empty string', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert('')).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (blank)
+      </span>
+    `);
+  });
+
+  test('returns null placeholder for null and undefined', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(string.reactConvert(undefined)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps highlighted text in <mark>', () => {
+    const string = new StringFormat();
+    expect(
+      string.reactConvert('<img />', {
+        field: { name: 'foo' },
+        hit: { highlight: { foo: [`${hl('<img />')}`] } },
+      })
+    ).toMatchInlineSnapshot(`
+      <mark
+        className="ffSearch__highlight"
+      >
+        &lt;img /&gt;
+      </mark>
+    `);
+  });
+
+  test('escapes HTML characters in values without XSS risk', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert('<script>alert("xss")</script>')).toMatchInlineSnapshot(
+      `"<script>alert(\\"xss\\")</script>"`
+    );
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert(['foo', 'bar'])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        foo
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        bar
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert(['hello'])).toMatchInlineSnapshot(`"hello"`);
+  });
+
+  test('returns empty string for an empty array', () => {
+    const string = new StringFormat();
+    expect(string.reactConvert([])).toMatchInlineSnapshot(`""`);
   });
 });

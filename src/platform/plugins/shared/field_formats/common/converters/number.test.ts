@@ -62,9 +62,9 @@ describe('NumberFormat', () => {
 
   test('null input', () => {
     const formatter = new NumberFormat({}, getConfig);
-    expect(formatter.convert(null)).toMatchInlineSnapshot(`"${NULL_LABEL}"`);
-    expect(formatter.convert(null, 'html')).toMatchInlineSnapshot(
-      `"<span class=\\"ffString__emptyValue\\">${NULL_LABEL}</span>"`
+    expect(formatter.convert(null)).toBe(NULL_LABEL);
+    expect(formatter.convert(null, 'html')).toBe(
+      `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
     );
   });
 
@@ -74,5 +74,72 @@ describe('NumberFormat', () => {
     expect(formatter.convert(objWithHtml, 'html')).toBe(
       '{\n  &quot;value&quot;: &quot;&lt;script&gt;alert(\\&quot;test\\&quot;)&lt;/script&gt;&quot;\n}'
     );
+  });
+});
+
+describe('NumberFormat — reactConvert', () => {
+  const getConfig = (key: string) =>
+    ({ [FORMATS_UI_SETTINGS.FORMAT_NUMBER_DEFAULT_PATTERN]: '0,0.[000]' }[key]);
+
+  test('formats a number value', () => {
+    const formatter = new NumberFormat({}, getConfig);
+    expect(formatter.reactConvert(12.345678)).toMatchInlineSnapshot(`"12.346"`);
+  });
+
+  test('formats a string that parses as a number', () => {
+    const formatter = new NumberFormat({ pattern: '0,0' }, getConfig);
+    expect(formatter.reactConvert('12.345678')).toMatchInlineSnapshot(`"12"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new NumberFormat({}, getConfig);
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('pretty-prints object input as JSON', () => {
+    const formatter = new NumberFormat({}, getConfig);
+    expect(formatter.reactConvert({ min: 150, max: 1000 })).toMatchInlineSnapshot(`
+      "{
+        \\"min\\": 150,
+        \\"max\\": 1000
+      }"
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new NumberFormat({ pattern: '0,0' }, getConfig);
+    expect(formatter.reactConvert([1000, 2000])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        1,000
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        2,000
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new NumberFormat({ pattern: '0,0' }, getConfig);
+    expect(formatter.reactConvert([1000])).toMatchInlineSnapshot(`"1,000"`);
   });
 });
