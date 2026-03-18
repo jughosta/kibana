@@ -86,3 +86,52 @@ describe('String TruncateFormat', () => {
     );
   });
 });
+
+describe('String TruncateFormat — reactConvert', () => {
+  test('returns a plain truncated string', () => {
+    const formatter = new TruncateFormat({ fieldLength: 4 }, jest.fn());
+    expect(formatter.reactConvert('This is some text')).toMatchInlineSnapshot(`"This..."`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new TruncateFormat({ fieldLength: 4 }, jest.fn());
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new TruncateFormat({ fieldLength: 4 }, jest.fn());
+    expect(formatter.reactConvert(['hello world', 'foo bar'])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        hell...
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        foo bar
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new TruncateFormat({ fieldLength: 4 }, jest.fn());
+    expect(formatter.reactConvert(['hello world'])).toMatchInlineSnapshot(`"hell..."`);
+  });
+});

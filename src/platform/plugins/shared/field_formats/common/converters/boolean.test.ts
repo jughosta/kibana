@@ -83,3 +83,53 @@ describe('Boolean Format', () => {
     );
   });
 });
+
+describe('Boolean Format — reactConvert', () => {
+  test('returns a plain string for a boolean value', () => {
+    const formatter = new BoolFormat({}, jest.fn());
+    expect(formatter.reactConvert(true)).toMatchInlineSnapshot(`"true"`);
+    expect(formatter.reactConvert(false)).toMatchInlineSnapshot(`"false"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new BoolFormat({}, jest.fn());
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new BoolFormat({}, jest.fn());
+    expect(formatter.reactConvert([true, false])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        true
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        false
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new BoolFormat({}, jest.fn());
+    expect(formatter.reactConvert([true])).toMatchInlineSnapshot(`"true"`);
+  });
+});

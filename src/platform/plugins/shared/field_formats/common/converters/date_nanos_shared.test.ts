@@ -121,13 +121,13 @@ describe('analysePatternForFract', () => {
 
   test('analysePatternForFract using timestamp format without fractional seconds', () => {
     expect(analysePatternForFract('MMM, YYYY @ HH:mm:ss')).toMatchInlineSnapshot(`
-    Object {
-      "length": 0,
-      "pattern": "MMM, YYYY @ HH:mm:ss",
-      "patternEscaped": "",
-      "patternNanos": "",
-    }
-  `);
+          Object {
+            "length": 0,
+            "pattern": "MMM, YYYY @ HH:mm:ss",
+            "patternEscaped": "",
+            "patternNanos": "",
+          }
+      `);
   });
 
   test('escapes HTML characters in html context via fallback', () => {
@@ -140,6 +140,67 @@ describe('analysePatternForFract', () => {
     );
     expect(dateNanos.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
+    );
+  });
+});
+
+describe('Date Nanos Format — reactConvert', () => {
+  const getConfig: FieldFormatsGetConfigFn = (key: string) =>
+    ({
+      dateNanosFormat: 'MMM D, YYYY @ HH:mm:ss.SSSSSSSSS',
+      'dateFormat:tz': 'UTC',
+    }[key] as string);
+
+  test('returns a plain string for a valid date', () => {
+    const formatter = new DateNanosFormat({}, getConfig);
+    expect(formatter.reactConvert('2019-05-20T14:04:56.357001234Z')).toMatchInlineSnapshot(
+      `"May 20, 2019 @ 07:04:56.357001234"`
+    );
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new DateNanosFormat({}, getConfig);
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new DateNanosFormat({}, getConfig);
+    expect(
+      formatter.reactConvert(['2019-05-20T14:04:56.357001234Z', '2020-01-01T00:00:00.000000000Z'])
+    ).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        May 20, 2019 @ 07:04:56.357001234
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        Dec 31, 2019 @ 17:00:00.000000000
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new DateNanosFormat({}, getConfig);
+    expect(formatter.reactConvert(['2019-05-20T14:04:56.357001234Z'])).toMatchInlineSnapshot(
+      `"May 20, 2019 @ 07:04:56.357001234"`
     );
   });
 });

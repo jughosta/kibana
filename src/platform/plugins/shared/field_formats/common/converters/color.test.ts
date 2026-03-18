@@ -167,3 +167,171 @@ describe('Color Format', () => {
     });
   });
 });
+
+describe('Color Format — reactConvert', () => {
+  test('wraps a matched number value in a colored span', () => {
+    const colorer = new ColorFormat(
+      { fieldType: 'number', colors: [{ range: '100:150', text: 'blue', background: 'yellow' }] },
+      jest.fn()
+    );
+    expect(colorer.reactConvert(100)).toMatchInlineSnapshot(`
+      <span
+        style={
+          Object {
+            "backgroundColor": "yellow",
+            "borderRadius": "3px",
+            "color": "blue",
+            "display": "inline-block",
+            "padding": "0 8px",
+          }
+        }
+      >
+        100
+      </span>
+    `);
+    expect(colorer.reactConvert(150)).toMatchInlineSnapshot(`
+      <span
+        style={
+          Object {
+            "backgroundColor": "yellow",
+            "borderRadius": "3px",
+            "color": "blue",
+            "display": "inline-block",
+            "padding": "0 8px",
+          }
+        }
+      >
+        150
+      </span>
+    `);
+  });
+
+  test('returns a plain string value when no rule matches', () => {
+    const colorer = new ColorFormat(
+      { fieldType: 'number', colors: [{ range: '100:150', text: 'blue', background: 'yellow' }] },
+      jest.fn()
+    );
+    expect(colorer.reactConvert(99)).toMatchInlineSnapshot(`"99"`);
+    expect(colorer.reactConvert(151)).toMatchInlineSnapshot(`"151"`);
+  });
+
+  test('wraps a matched string value using a regex rule', () => {
+    const colorer = new ColorFormat(
+      { fieldType: 'string', colors: [{ regex: 'A.*', text: 'white', background: 'red' }] },
+      jest.fn()
+    );
+    expect(colorer.reactConvert('AAA')).toMatchInlineSnapshot(`
+      <span
+        style={
+          Object {
+            "backgroundColor": "red",
+            "borderRadius": "3px",
+            "color": "white",
+            "display": "inline-block",
+            "padding": "0 8px",
+          }
+        }
+      >
+        AAA
+      </span>
+    `);
+    expect(colorer.reactConvert('B')).toMatchInlineSnapshot(`"B"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const colorer = new ColorFormat({}, jest.fn());
+    expect(colorer.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('returns empty value placeholder for empty string', () => {
+    const colorer = new ColorFormat({}, jest.fn());
+    expect(colorer.reactConvert('')).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (blank)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const colorer = new ColorFormat(
+      { fieldType: 'number', colors: [{ range: '0:200', text: 'blue', background: 'yellow' }] },
+      jest.fn()
+    );
+    expect(colorer.reactConvert([100, 200])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        <span
+          style={
+            Object {
+              "backgroundColor": "yellow",
+              "borderRadius": "3px",
+              "color": "blue",
+              "display": "inline-block",
+              "padding": "0 8px",
+            }
+          }
+        >
+          100
+        </span>
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        <span
+          style={
+            Object {
+              "backgroundColor": "yellow",
+              "borderRadius": "3px",
+              "color": "blue",
+              "display": "inline-block",
+              "padding": "0 8px",
+            }
+          }
+        >
+          200
+        </span>
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const colorer = new ColorFormat(
+      { fieldType: 'number', colors: [{ range: '0:200', text: 'blue', background: 'yellow' }] },
+      jest.fn()
+    );
+    expect(colorer.reactConvert([100])).toMatchInlineSnapshot(`
+      <span
+        style={
+          Object {
+            "backgroundColor": "yellow",
+            "borderRadius": "3px",
+            "color": "blue",
+            "display": "inline-block",
+            "padding": "0 8px",
+          }
+        }
+      >
+        100
+      </span>
+    `);
+  });
+});

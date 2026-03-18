@@ -9,6 +9,7 @@
 
 import { UrlFormat } from './url';
 import { TEXT_CONTEXT_TYPE, HTML_CONTEXT_TYPE } from '../content_types';
+import { highlightTags } from '../utils/highlight/highlight_tags';
 
 describe('UrlFormat', () => {
   test('outputs a simple <a> tag by default', () => {
@@ -340,5 +341,146 @@ describe('UrlFormat', () => {
       expect(result).toContain('alert(&quot;test&quot;)');
       expect(result).not.toContain('<script>');
     });
+  });
+});
+
+describe('UrlFormat — reactConvert', () => {
+  const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
+
+  test('renders an <a> tag for http URLs', () => {
+    const url = new UrlFormat({});
+    expect(url.reactConvert('http://elastic.co')).toMatchInlineSnapshot(`
+      <a
+        href="http://elastic.co"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        http://elastic.co
+      </a>
+    `);
+  });
+
+  test('renders an <audio> element', () => {
+    const url = new UrlFormat({ type: 'audio' });
+    expect(url.reactConvert('http://elastic.co')).toMatchInlineSnapshot(`
+      <audio
+        controls={true}
+        preload="none"
+        src="http://elastic.co"
+      />
+    `);
+  });
+
+  test('renders an <img> element', () => {
+    const url = new UrlFormat({ type: 'img' });
+    expect(url.reactConvert('http://elastic.co')).toMatchInlineSnapshot(`
+      <img
+        alt="A dynamically-specified image located at http://elastic.co"
+        src="http://elastic.co"
+        style={
+          Object {
+            "height": "auto",
+            "maxHeight": "none",
+            "maxWidth": "none",
+            "width": "auto",
+          }
+        }
+      />
+    `);
+  });
+
+  test('returns null placeholder for null', () => {
+    const url = new UrlFormat({});
+    expect(url.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('returns empty value placeholder for empty string', () => {
+    const url = new UrlFormat({});
+    expect(url.reactConvert('')).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (blank)
+      </span>
+    `);
+  });
+
+  test('wraps highlighted link text in <mark>', () => {
+    const url = new UrlFormat({});
+    expect(
+      url.reactConvert('http://elastic.co', {
+        field: { name: 'link' },
+        hit: { highlight: { link: [`${hl('http://elastic.co')}`] } },
+      })
+    ).toMatchInlineSnapshot(`
+      <a
+        href="http://elastic.co"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <mark
+          className="ffSearch__highlight"
+        >
+          http://elastic.co
+        </mark>
+      </a>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const url = new UrlFormat({});
+    expect(url.reactConvert(['http://elastic.co', 'http://kibana.io'])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        <a
+          href="http://elastic.co"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          http://elastic.co
+        </a>
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        <a
+          href="http://kibana.io"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          http://kibana.io
+        </a>
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const url = new UrlFormat({});
+    expect(url.reactConvert(['http://elastic.co'])).toMatchInlineSnapshot(`
+      <a
+        href="http://elastic.co"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        http://elastic.co
+      </a>
+    `);
   });
 });

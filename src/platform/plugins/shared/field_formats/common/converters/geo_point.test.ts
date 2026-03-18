@@ -120,3 +120,63 @@ describe('GeoPoint Format', () => {
     });
   });
 });
+
+describe('GeoPoint Format — reactConvert', () => {
+  const makeFormatter = () => new GeoPointFormat({ transform: 'lat_lon_string' }, jest.fn());
+
+  test('returns a plain string for a geo point', () => {
+    const formatter = makeFormatter();
+    expect(
+      formatter.reactConvert({ type: 'Point', coordinates: [125.6, 10.1] })
+    ).toMatchInlineSnapshot(`"10.1,125.6"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = makeFormatter();
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = makeFormatter();
+    expect(
+      formatter.reactConvert([
+        { type: 'Point', coordinates: [125.6, 10.1] },
+        { type: 'Point', coordinates: [0, 51.5] },
+      ])
+    ).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        10.1,125.6
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        51.5,0
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = makeFormatter();
+    expect(
+      formatter.reactConvert([{ type: 'Point', coordinates: [125.6, 10.1] }])
+    ).toMatchInlineSnapshot(`"10.1,125.6"`);
+  });
+});

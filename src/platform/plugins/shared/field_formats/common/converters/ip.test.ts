@@ -38,3 +38,52 @@ describe('IP Address Format', () => {
     );
   });
 });
+
+describe('IP Address Format — reactConvert', () => {
+  test('returns a plain string for an IP address', () => {
+    const formatter = new IpFormat({}, jest.fn());
+    expect(formatter.reactConvert(1186489492)).toMatchInlineSnapshot(`"70.184.100.148"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new IpFormat({}, jest.fn());
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new IpFormat({}, jest.fn());
+    expect(formatter.reactConvert([1186489492, 16777343])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        70.184.100.148
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        1.0.0.127
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new IpFormat({}, jest.fn());
+    expect(formatter.reactConvert([1186489492])).toMatchInlineSnapshot(`"70.184.100.148"`);
+  });
+});

@@ -33,3 +33,56 @@ describe('Source Format', () => {
     );
   });
 });
+
+describe('Source Format — reactConvert', () => {
+  test('returns a plain JSON string for an object', () => {
+    const formatter = new SourceFormat({}, jest.fn());
+    expect(formatter.reactConvert({ foo: 'bar', n: 42 })).toMatchInlineSnapshot(
+      `"{\\"foo\\":\\"bar\\",\\"n\\":42}"`
+    );
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new SourceFormat({}, jest.fn());
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new SourceFormat({}, jest.fn());
+    expect(formatter.reactConvert([{ a: 1 }, { b: 2 }])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        {"a":1}
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        {"b":2}
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new SourceFormat({}, jest.fn());
+    expect(formatter.reactConvert([{ foo: 'bar' }])).toMatchInlineSnapshot(
+      `"{\\"foo\\":\\"bar\\"}"`
+    );
+  });
+});

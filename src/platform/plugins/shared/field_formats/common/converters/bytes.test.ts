@@ -44,3 +44,55 @@ describe('BytesFormat', () => {
     );
   });
 });
+
+describe('BytesFormat — reactConvert', () => {
+  const getConfig: FieldFormatsGetConfigFn = (key: string) =>
+    ({ [FORMATS_UI_SETTINGS.FORMAT_BYTES_DEFAULT_PATTERN]: '0,0.[000]b' }[key] as string);
+
+  test('returns a plain string for a bytes value', () => {
+    const formatter = new BytesFormat({}, getConfig);
+    expect(formatter.reactConvert(5150000)).toMatchInlineSnapshot(`"4.911MB"`);
+  });
+
+  test('returns null placeholder for null', () => {
+    const formatter = new BytesFormat({}, getConfig);
+    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new BytesFormat({}, getConfig);
+    expect(formatter.reactConvert([1024, 2048])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        1KB
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        2KB
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new BytesFormat({}, getConfig);
+    expect(formatter.reactConvert([1024])).toMatchInlineSnapshot(`"1KB"`);
+  });
+});
