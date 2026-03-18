@@ -9,6 +9,7 @@
 
 import React from 'react';
 import type { IFieldFormat, HtmlContextTypeOptions } from '../../common';
+import { wrapReactArray } from '../../common';
 
 interface Props {
   value: unknown;
@@ -25,5 +26,8 @@ interface Props {
  * @public
  */
 export const FieldFormatValue: React.FC<Props> = ({ value, formatter, options, className }) => {
-  return <span className={className}>{formatter.reactConvert(value, options)}</span>;
+  const formatted = Array.isArray(value)
+    ? wrapReactArray(value, (v) => formatter.reactConvert(v, options))
+    : formatter.reactConvert(value, options);
+  return <span className={className}>{formatted}</span>;
 };
