@@ -8,7 +8,7 @@
  */
 
 import { i18n } from '@kbn/i18n';
-import { escape } from 'lodash';
+import escape from 'lodash/escape';
 import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { FieldFormat } from '../field_format';
 import type { TextContextTypeConvert, HtmlContextTypeConvert } from '../types';
@@ -40,7 +40,7 @@ function convertLookupEntriesToMap(
 
       return lookupMap;
     },
-    {} as Record<string, string>
+    {} as Record<string, unknown>
   );
 }
 
@@ -64,14 +64,18 @@ export class StaticLookupFormat extends FieldFormat {
     };
   }
 
-  private lookup(val: string): { result: unknown; wasMapped: boolean } {
+  private lookup(val: unknown): { result: unknown; wasMapped: boolean } {
     const lookupEntries = this.param('lookupEntries');
     const unknownKeyValue = this.param('unknownKeyValue');
     const lookupMap = convertLookupEntriesToMap(lookupEntries);
 
-    // Use 'in' operator to check key existence (handles falsy mapped values like '')
-    if (val in lookupMap) {
-      return { result: lookupMap[val], wasMapped: true };
+    // Guard against null/undefined before using 'in' operator, and normalize to string key
+    if (val != null) {
+      const key = String(val);
+      // Use 'in' operator to check key existence (handles falsy mapped values like '')
+      if (key in lookupMap) {
+        return { result: lookupMap[key], wasMapped: true };
+      }
     }
 
     // Use nullish coalescing to allow falsy unknownKeyValue (e.g., '')
