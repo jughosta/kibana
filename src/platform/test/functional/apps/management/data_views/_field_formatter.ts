@@ -593,14 +593,19 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
             fieldType: ES_FIELD_TYPES.KEYWORD,
             fieldValue: 'html_test',
             applyFormatterType: FIELD_FORMAT_IDS.STATIC_LOOKUP,
-            expectFormattedValue: '&lt;script&gt;alert("xss")&lt;/script&gt;',
+            expectFormattedValue: '<script>alert("test")</script>',
             beforeSave: async () => {
               await testSubjects.click('staticLookupEditorAddEntry');
               await testSubjects.setValue('~staticLookupEditorKey', 'html_test');
               await testSubjects.setValue(
                 '~staticLookupEditorValue',
-                '<script>alert("xss")</script>'
+                '<script>alert("test")</script>'
               );
+            },
+            expect: async (renderedValueContainer) => {
+              // Verify no script element exists (XSS safety)
+              const scripts = await renderedValueContainer.findAllByTagName('script');
+              expect(scripts).to.have.length(0);
             },
           },
         ]);

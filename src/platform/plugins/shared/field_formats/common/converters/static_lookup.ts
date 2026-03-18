@@ -40,7 +40,7 @@ function convertLookupEntriesToMap(
 
       return lookupMap;
     },
-    {} as Record<string, unknown>
+    {} as Record<string, string>
   );
 }
 
@@ -64,22 +64,35 @@ export class StaticLookupFormat extends FieldFormat {
     };
   }
 
-  textConvert: TextContextTypeConvert = (val: string) => {
+  private lookup(val: string): { result: unknown; wasMapped: boolean } {
     const lookupEntries = this.param('lookupEntries');
     const unknownKeyValue = this.param('unknownKeyValue');
-
     const lookupMap = convertLookupEntriesToMap(lookupEntries);
-    return lookupMap[val] || unknownKeyValue || val;
+
+    // Use 'in' operator to check key existence (handles falsy mapped values like '')
+    if (val in lookupMap) {
+      return { result: lookupMap[val], wasMapped: true };
+    }
+
+    // Use nullish coalescing to allow falsy unknownKeyValue (e.g., '')
+    if (unknownKeyValue != null) {
+      return { result: unknownKeyValue, wasMapped: true };
+    }
+
+    return { result: val, wasMapped: false };
+  }
+
+  textConvert: TextContextTypeConvert = (val: string) => {
+    const { result } = this.lookup(val);
+    return String(result);
   };
 
   htmlConvert: HtmlContextTypeConvert = (value, options = {}) => {
-    // Apply the same lookup logic as textConvert
-    const textResult = this.textConvert(value);
+    const { result, wasMapped } = this.lookup(value);
 
-    // Only apply missing value handling if the final result is null/empty
-    // and it's the same as the original value (meaning no custom mapping was applied)
-    if (textResult === value) {
-      const missingHtml = checkForMissingValueHtml(textResult);
+    // Only apply missing value handling if no custom mapping was applied
+    if (!wasMapped) {
+      const missingHtml = checkForMissingValueHtml(result);
       if (missingHtml) {
         return missingHtml;
       }
@@ -87,7 +100,7 @@ export class StaticLookupFormat extends FieldFormat {
 
     // Escape the result and handle highlights
     const { field, hit } = options;
-    const formatted = escape(String(textResult));
+    const formatted = escape(String(result));
 
     return !field || !hit || !hit.highlight || !hit.highlight[field.name]
       ? formatted
