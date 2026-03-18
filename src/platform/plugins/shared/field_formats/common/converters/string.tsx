@@ -130,7 +130,7 @@ export class StringFormat extends FieldFormat {
     }
   };
 
-  reactConvert: ReactContextTypeConvert = (val, { hit, field } = {}) => {
+  reactConvertSingle: ReactContextTypeConvert = (val, { hit, field } = {}) => {
     const missing = this.checkForMissingValueReact(val);
     if (missing) return missing;
 

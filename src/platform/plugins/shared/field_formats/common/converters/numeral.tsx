@@ -76,11 +76,11 @@ export abstract class NumeralFormat extends FieldFormat {
     return formatted;
   }
 
-  reactConvert: ReactContextTypeConvert = (val) => {
+  reactConvertSingle: ReactContextTypeConvert = (val) => {
     if (val == null || val === MISSING_TOKEN) {
       return <span className="ffString__emptyValue">{NULL_LABEL}</span>;
     }
-    if (typeof val === 'object' && !Array.isArray(val)) {
+    if (typeof val === 'object') {
       return asPrettyString(val);
     }
     return this.getConvertedValue(val);

@@ -70,7 +70,7 @@ export class ColorFormat extends FieldFormat {
     return asPrettyString(val, options);
   };
 
-  reactConvert: ReactContextTypeConvert = (val: string | number, options) => {
+  reactConvertSingle: ReactContextTypeConvert = (val: string | number, options) => {
     const missing = this.checkForMissingValueReact(val);
     if (missing) {
       return missing;
