@@ -483,4 +483,23 @@ describe('UrlFormat — reactConvert', () => {
       </a>
     `);
   });
+
+  test('renders numeric value as text when no URL template is set', () => {
+    const url = new UrlFormat({});
+    // numeric value without template should stringify to '1234' and render as plain text (not a link)
+    expect(url.reactConvert(1234)).toBe('1234');
+  });
+
+  test('renders numeric value as a link when URL template is set', () => {
+    const url = new UrlFormat({ urlTemplate: 'https://elastic.co/?value={{value}}' });
+    expect(url.reactConvert(1234)).toMatchInlineSnapshot(`
+      <a
+        href="https://elastic.co/?value=1234"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        https://elastic.co/?value=1234
+      </a>
+    `);
+  });
 });
