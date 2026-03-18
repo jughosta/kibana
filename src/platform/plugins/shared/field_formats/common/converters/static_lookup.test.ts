@@ -7,6 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import { NULL_LABEL, EMPTY_LABEL } from '@kbn/field-formats-common';
 import { StaticLookupFormat } from './static_lookup';
 
 describe('StaticLookupFormat', () => {
@@ -17,7 +18,7 @@ describe('StaticLookupFormat', () => {
       lookupEntries: [
         { key: '', value: 'Empty String Mapped' },
         { key: 'test', value: 'Test Value' },
-        { key: 'html', value: '<script>alert("xss")</script>' },
+        { key: 'html', value: '<script>alert("test")</script>' },
       ],
       unknownKeyValue: 'Custom Unknown',
     });
@@ -52,13 +53,21 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithoutUnknown.convert('unknown', 'text')).toBe('unknown');
     });
 
-    test('falls back to empty string for null/undefined when no unknownKeyValue is set', () => {
+    test('falls back to null label for null/undefined when no unknownKeyValue is set', () => {
       const formatterWithoutUnknown = new StaticLookupFormat({
         lookupEntries: [{ key: 'test', value: 'Test Value' }],
         unknownKeyValue: null,
       });
-      expect(formatterWithoutUnknown.convert(null, 'text')).toBe('');
-      expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe('');
+      expect(formatterWithoutUnknown.convert(null, 'text')).toBe(NULL_LABEL);
+      expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe(NULL_LABEL);
+    });
+
+    test('falls back to empty label for an empty string when no unknownKeyValue is set', () => {
+      const formatterWithoutUnknown = new StaticLookupFormat({
+        lookupEntries: [{ key: 'test', value: 'Test Value' }],
+        unknownKeyValue: null,
+      });
+      expect(formatterWithoutUnknown.convert('', 'text')).toBe(EMPTY_LABEL);
     });
   });
 
@@ -114,7 +123,7 @@ describe('StaticLookupFormat', () => {
 
     test('escapes HTML in mapped values', () => {
       expect(formatter.convert('html', 'html')).toBe(
-        '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+        '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
       );
     });
 

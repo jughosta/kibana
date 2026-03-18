@@ -87,7 +87,16 @@ export class StaticLookupFormat extends FieldFormat {
   }
 
   textConvert: TextContextTypeConvert = (val: string) => {
-    const { result } = this.lookup(val);
+    const { result, wasMapped } = this.lookup(val);
+
+    // Only apply missing value handling if no custom mapping was applied
+    if (!wasMapped) {
+      const missingText = this.checkForMissingValueText(result);
+      if (missingText) {
+        return missingText;
+      }
+    }
+
     return String(result ?? '');
   };
 
