@@ -29,7 +29,7 @@ const withKey = (node: ReactNode, key: string | number): ReactNode => {
  *
  * Single-element and empty arrays are passed through without brackets.
  *
- * This should be applied at the call site (e.g. formatFieldValueReact, FieldFormatValue)
+ * This should be applied at the call site (e.g. formatFieldValueReact)
  * rather than inside individual formatter's reactConvert, so that formatters which
  * override reactConvert get correct array rendering for free.
  */
