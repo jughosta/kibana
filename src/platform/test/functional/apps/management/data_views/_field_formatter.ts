@@ -581,12 +581,22 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
             fieldType: ES_FIELD_TYPES.KEYWORD,
             fieldValue: null,
             applyFormatterType: FIELD_FORMAT_IDS.STATIC_LOOKUP,
-            expectFormattedValue: 'Custom Null Value',
+            expectFormattedValue: '(null)',
             beforeSave: async () => {
               await testSubjects.click('staticLookupEditorAddEntry');
               await testSubjects.setValue('~staticLookupEditorKey', 'some key');
               await testSubjects.setValue('~staticLookupEditorValue', 'some value');
-              await testSubjects.setValue('staticLookupEditorUnknownValue', 'Custom Null Value');
+              await testSubjects.setValue('staticLookupEditorUnknownValue', 'Custom Unknown');
+            },
+          },
+          {
+            fieldType: ES_FIELD_TYPES.KEYWORD,
+            fieldValue: '',
+            applyFormatterType: FIELD_FORMAT_IDS.STATIC_LOOKUP,
+            expectFormattedValue: 'Custom Unknown',
+            beforeSave: async () => {
+              await testSubjects.click('staticLookupEditorAddEntry');
+              await testSubjects.setValue('staticLookupEditorUnknownValue', 'Custom Unknown');
             },
           },
           {

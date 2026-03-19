@@ -20,22 +20,28 @@ function convertLookupEntriesToMap(
 ): Record<string, unknown> {
   return lookupEntries.reduce(
     (lookupMap: Record<string, unknown>, lookupEntry: { key?: string | null; value: unknown }) => {
-      // Treat undefined/null keys as empty string keys only when a value is provided
-      const key = lookupEntry.key ?? (lookupEntry.value != null ? '' : undefined);
-      if (key != null) {
-        lookupMap[key] = lookupEntry.value;
+      const { key, value } = lookupEntry;
+      // Skip entries where both key and value are not defined
+      const hasKey = key != null && key !== '';
+      const hasValue = value != null && value !== '';
+      if (!hasKey && !hasValue) {
+        return lookupMap;
       }
+
+      // Normalize undefined/null keys to empty string when value is defined
+      const normalizedKey = key ?? '';
+      lookupMap[normalizedKey] = value;
 
       /**
        * Do some key translations because Elasticsearch returns
        * boolean-type aggregation results as 0 and 1
        */
-      if (key === 'true') {
-        lookupMap[1] = lookupEntry.value;
+      if (normalizedKey === 'true') {
+        lookupMap[1] = value;
       }
 
-      if (key === 'false') {
-        lookupMap[0] = lookupEntry.value;
+      if (normalizedKey === 'false') {
+        lookupMap[0] = value;
       }
 
       return lookupMap;
@@ -64,33 +70,34 @@ export class StaticLookupFormat extends FieldFormat {
     };
   }
 
-  private lookup(val: unknown): { result: unknown; wasMapped: boolean } {
+  private lookup(val: unknown): { result: unknown; isMissingValue: boolean } {
     const lookupEntries = this.param('lookupEntries');
     const unknownKeyValue = this.param('unknownKeyValue');
     const lookupMap = convertLookupEntriesToMap(lookupEntries);
 
-    // Guard against null/undefined before checking key, and normalize to string key
-    if (val != null) {
-      const key = String(val);
-      // Use Object.hasOwn to check key existence (handles falsy mapped values like '' and avoids prototype chain)
-      if (Object.hasOwn(lookupMap, key)) {
-        return { result: lookupMap[key], wasMapped: true };
-      }
+    // Guard against null/undefined - these should not be mapped, stay as missing values
+    if (val == null) {
+      return { result: val, isMissingValue: true };
     }
 
-    // Use nullish coalescing to allow falsy unknownKeyValue (e.g., '')
+    const key = String(val);
+    // Use Object.hasOwn to check key existence (handles falsy mapped values like '' and avoids prototype chain)
+    if (Object.hasOwn(lookupMap, key)) {
+      return { result: lookupMap[key], isMissingValue: false };
+    }
+
+    // Use unknownKeyValue for unmatched keys (including empty string)
     if (unknownKeyValue != null) {
-      return { result: unknownKeyValue, wasMapped: true };
+      return { result: unknownKeyValue, isMissingValue: false };
     }
 
-    return { result: val, wasMapped: false };
+    return { result: val, isMissingValue: true };
   }
 
   textConvert: TextContextTypeConvert = (val: string) => {
-    const { result, wasMapped } = this.lookup(val);
+    const { result, isMissingValue } = this.lookup(val);
 
-    // Only apply missing value handling if no custom mapping was applied
-    if (!wasMapped) {
+    if (isMissingValue) {
       const missingText = this.checkForMissingValueText(result);
       if (missingText) {
         return missingText;
@@ -101,10 +108,9 @@ export class StaticLookupFormat extends FieldFormat {
   };
 
   htmlConvert: HtmlContextTypeConvert = (value, options = {}) => {
-    const { result, wasMapped } = this.lookup(value);
+    const { result, isMissingValue } = this.lookup(value);
 
-    // Only apply missing value handling if no custom mapping was applied
-    if (!wasMapped) {
+    if (isMissingValue) {
       const missingHtml = checkForMissingValueHtml(result);
       if (missingHtml) {
         return missingHtml;

@@ -29,12 +29,12 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert('', 'text')).toBe('Empty String Mapped');
     });
 
-    test('maps null to unknownKeyValue', () => {
-      expect(formatter.convert(null, 'text')).toBe('Custom Unknown');
+    test('null stays null and shows null label', () => {
+      expect(formatter.convert(null, 'text')).toBe(NULL_LABEL);
     });
 
-    test('maps undefined to unknownKeyValue', () => {
-      expect(formatter.convert(undefined, 'text')).toBe('Custom Unknown');
+    test('undefined stays undefined and shows null label', () => {
+      expect(formatter.convert(undefined, 'text')).toBe(NULL_LABEL);
     });
 
     test('maps known key to configured value', () => {
@@ -62,6 +62,14 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe(NULL_LABEL);
     });
 
+    test('falls back to unknownKeyValue for an empty string when no mapping exists', () => {
+      const formatterWithUnknown = new StaticLookupFormat({
+        lookupEntries: [{ key: 'test', value: 'Test Value' }],
+        unknownKeyValue: 'Unknown',
+      });
+      expect(formatterWithUnknown.convert('', 'text')).toBe('Unknown');
+    });
+
     test('falls back to empty label for an empty string when no unknownKeyValue is set', () => {
       const formatterWithoutUnknown = new StaticLookupFormat({
         lookupEntries: [{ key: 'test', value: 'Test Value' }],
@@ -79,6 +87,26 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithEmptyStringValue.convert('empty', 'text')).toBe('');
       expect(formatterWithEmptyStringValue.convert('empty', 'html')).toBe('');
+    });
+
+    test('skips entry with empty key and empty value, falls back to unknownKeyValue', () => {
+      const formatterWithEmptyKeyAndValue = new StaticLookupFormat({
+        lookupEntries: [{ key: '', value: '' }],
+        unknownKeyValue: 'Unknown',
+      });
+      expect(formatterWithEmptyKeyAndValue.convert('', 'text')).toBe('Unknown');
+      expect(formatterWithEmptyKeyAndValue.convert('', 'html')).toBe('Unknown');
+    });
+
+    test('skips entry with undefined key and empty value, falls back to missing value label', () => {
+      const formatterWithUndefinedKeyEmptyValue = new StaticLookupFormat({
+        lookupEntries: [{ key: undefined, value: '' }],
+        unknownKeyValue: null,
+      });
+      expect(formatterWithUndefinedKeyEmptyValue.convert('', 'text')).toBe(EMPTY_LABEL);
+      expect(formatterWithUndefinedKeyEmptyValue.convert('', 'html')).toBe(
+        '<span class="ffString__emptyValue">(blank)</span>'
+      );
     });
 
     test('correctly maps to 0 value (does not fall back to unknownKeyValue)', () => {
@@ -105,12 +133,16 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert('', 'html')).toBe('Empty String Mapped');
     });
 
-    test('maps null to unknownKeyValue and escapes HTML', () => {
-      expect(formatter.convert(null, 'html')).toBe('Custom Unknown');
+    test('null stays null and shows null label HTML', () => {
+      expect(formatter.convert(null, 'html')).toBe(
+        '<span class="ffString__emptyValue">(null)</span>'
+      );
     });
 
-    test('maps undefined to unknownKeyValue and escapes HTML', () => {
-      expect(formatter.convert(undefined, 'html')).toBe('Custom Unknown');
+    test('undefined stays undefined and shows null label HTML', () => {
+      expect(formatter.convert(undefined, 'html')).toBe(
+        '<span class="ffString__emptyValue">(null)</span>'
+      );
     });
 
     test('maps known key to configured value and escapes HTML', () => {
