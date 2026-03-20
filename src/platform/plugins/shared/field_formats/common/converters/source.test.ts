@@ -9,18 +9,13 @@
 
 import { SourceFormat } from './source';
 import type { HtmlContextTypeConvert } from '../types';
-import { HTML_CONTEXT_TYPE } from '../content_types';
+import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 
 describe('Source Format', () => {
-  let convertHtml: Function;
-
-  beforeEach(() => {
-    const source = new SourceFormat({}, jest.fn());
-
-    convertHtml = source.getConverterFor(HTML_CONTEXT_TYPE) as HtmlContextTypeConvert;
-  });
-
   test('should render stringified object', () => {
+    const source = new SourceFormat({}, jest.fn());
+    const convertHtml = source.getConverterFor(HTML_CONTEXT_TYPE) as HtmlContextTypeConvert;
+
     const hit = {
       foo: 'bar',
       number: 42,
@@ -28,23 +23,38 @@ describe('Source Format', () => {
       also: 'with "quotes" or \'single quotes\'',
     };
 
-    expect(convertHtml(hit, { field: 'field', hit })).toMatchInlineSnapshot(
+    expect(convertHtml(hit)).toMatchInlineSnapshot(
       `"{&quot;foo&quot;:&quot;bar&quot;,&quot;number&quot;:42,&quot;hello&quot;:&quot;&lt;h1&gt;World&lt;/h1&gt;&quot;,&quot;also&quot;:&quot;with \\\\&quot;quotes\\\\&quot; or &#39;single quotes&#39;&quot;}"`
     );
   });
-});
 
-describe('Source Format — reactConvert', () => {
   test('returns a plain JSON string for an object', () => {
-    const formatter = new SourceFormat({}, jest.fn());
-    expect(formatter.reactConvert({ foo: 'bar', n: 42 })).toMatchInlineSnapshot(
-      `"{\\"foo\\":\\"bar\\",\\"n\\":42}"`
+    const source = new SourceFormat({}, jest.fn());
+
+    expect(source.convert({ foo: 'bar', n: 42 })).toBe('{"foo":"bar","n":42}');
+    expect(source.convert({ foo: 'bar', n: 42 }, HTML_CONTEXT_TYPE)).toBe(
+      '{&quot;foo&quot;:&quot;bar&quot;,&quot;n&quot;:42}'
     );
+    expect(source.reactConvert({ foo: 'bar', n: 42 })).toBe('{"foo":"bar","n":42}');
   });
 
-  test('returns null placeholder for null', () => {
-    const formatter = new SourceFormat({}, jest.fn());
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+  test('handles missing values', () => {
+    const source = new SourceFormat({}, jest.fn());
+
+    expect(source.convert(null, HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffString__emptyValue">(null)</span>'
+    );
+    expect(source.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffString__emptyValue">(null)</span>'
+    );
+    expect(source.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(source.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -54,8 +64,15 @@ describe('Source Format — reactConvert', () => {
   });
 
   test('wraps a multi-value array with bracket notation', () => {
-    const formatter = new SourceFormat({}, jest.fn());
-    expect(formatter.reactConvert([{ a: 1 }, { b: 2 }])).toMatchInlineSnapshot(`
+    const source = new SourceFormat({}, jest.fn());
+
+    expect(source.convert([{ a: 1 }, { b: 2 }], TEXT_CONTEXT_TYPE)).toBe(
+      '["{\\"a\\":1}","{\\"b\\":2}"]'
+    );
+    expect(source.convert([{ a: 1 }, { b: 2 }], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>{&quot;a&quot;:1}<span class="ffArray__highlight">,</span> {&quot;b&quot;:2}<span class="ffArray__highlight">]</span>'
+    );
+    expect(source.reactConvert([{ a: 1 }, { b: 2 }])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
           className="ffArray__highlight"
@@ -80,9 +97,12 @@ describe('Source Format — reactConvert', () => {
   });
 
   test('returns the single element without brackets for a one-element array', () => {
-    const formatter = new SourceFormat({}, jest.fn());
-    expect(formatter.reactConvert([{ foo: 'bar' }])).toMatchInlineSnapshot(
-      `"{\\"foo\\":\\"bar\\"}"`
+    const source = new SourceFormat({}, jest.fn());
+
+    expect(source.convert([{ foo: 'bar' }], TEXT_CONTEXT_TYPE)).toBe('["{\\"foo\\":\\"bar\\"}"]');
+    expect(source.convert([{ foo: 'bar' }], HTML_CONTEXT_TYPE)).toBe(
+      '{&quot;foo&quot;:&quot;bar&quot;}'
     );
+    expect(source.reactConvert([{ foo: 'bar' }])).toBe('{"foo":"bar"}');
   });
 });

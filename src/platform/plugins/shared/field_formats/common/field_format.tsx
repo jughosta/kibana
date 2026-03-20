@@ -30,6 +30,7 @@ import { getHighlightReact } from './utils/highlight';
 import type {
   HtmlContextTypeConvert,
   ReactContextTypeConvert,
+  ReactContextTypeSingleConvert,
   TextContextTypeConvert,
 } from './types';
 
@@ -94,7 +95,7 @@ export abstract class FieldFormat {
    * have to remove the protected because of
    * https://github.com/Microsoft/TypeScript/issues/17293
    */
-  reactConvertSingle: ReactContextTypeConvert | undefined;
+  reactConvertSingle: ReactContextTypeSingleConvert | undefined;
 
   /**
    * React-based converter. Handles arrays and delegates single values to `reactConvertSingle`

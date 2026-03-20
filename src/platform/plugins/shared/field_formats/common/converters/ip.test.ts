@@ -17,11 +17,13 @@ describe('IP Address Format', () => {
     ip = new IpFormat({}, jest.fn());
   });
 
-  test('converts a value from a decimal to a string', () => {
+  test('converts a decimal to a dotted IP string', () => {
     expect(ip.convert(1186489492)).toBe('70.184.100.148');
+    expect(ip.convert(1186489492, HTML_CONTEXT_TYPE)).toBe('70.184.100.148');
+    expect(ip.reactConvert(1186489492)).toBe('70.184.100.148');
   });
 
-  test('missing value', () => {
+  test('handles missing values', () => {
     expect(ip.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(ip.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(ip.convert(null, HTML_CONTEXT_TYPE)).toBe(
@@ -30,24 +32,14 @@ describe('IP Address Format', () => {
     expect(ip.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-  });
-
-  test('escapes HTML characters in html context via fallback', () => {
-    expect(ip.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
-      '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
-    );
-  });
-});
-
-describe('IP Address Format — reactConvert', () => {
-  test('returns a plain string for an IP address', () => {
-    const formatter = new IpFormat({}, jest.fn());
-    expect(formatter.reactConvert(1186489492)).toMatchInlineSnapshot(`"70.184.100.148"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = new IpFormat({}, jest.fn());
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+    expect(ip.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(ip.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -56,9 +48,23 @@ describe('IP Address Format — reactConvert', () => {
     `);
   });
 
+  test('escapes HTML characters in html context', () => {
+    expect(ip.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
+      '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
+    );
+    expect(ip.reactConvert('<script>alert("test")</script>')).toBe(
+      '<script>alert("test")</script>'
+    );
+  });
+
   test('wraps a multi-value array with bracket notation', () => {
-    const formatter = new IpFormat({}, jest.fn());
-    expect(formatter.reactConvert([1186489492, 16777343])).toMatchInlineSnapshot(`
+    expect(ip.convert([1186489492, 16777343], TEXT_CONTEXT_TYPE)).toBe(
+      '["70.184.100.148","1.0.0.127"]'
+    );
+    expect(ip.convert([1186489492, 16777343], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>70.184.100.148<span class="ffArray__highlight">,</span> 1.0.0.127<span class="ffArray__highlight">]</span>'
+    );
+    expect(ip.reactConvert([1186489492, 16777343])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
           className="ffArray__highlight"
@@ -83,7 +89,8 @@ describe('IP Address Format — reactConvert', () => {
   });
 
   test('returns the single element without brackets for a one-element array', () => {
-    const formatter = new IpFormat({}, jest.fn());
-    expect(formatter.reactConvert([1186489492])).toMatchInlineSnapshot(`"70.184.100.148"`);
+    expect(ip.convert([1186489492], TEXT_CONTEXT_TYPE)).toBe('["70.184.100.148"]');
+    expect(ip.convert([1186489492], HTML_CONTEXT_TYPE)).toBe('70.184.100.148');
+    expect(ip.reactConvert([1186489492])).toBe('70.184.100.148');
   });
 });

@@ -8,10 +8,10 @@
  */
 
 import { DurationFormat } from './duration';
-import { HTML_CONTEXT_TYPE } from '../content_types';
+import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 
 describe('Duration Format', () => {
-  test('handles missing values in html context', () => {
+  test('handles missing values', () => {
     const duration = new DurationFormat(
       {
         inputFormat: 'seconds',
@@ -19,12 +19,84 @@ describe('Duration Format', () => {
       },
       jest.fn()
     );
+    expect(duration.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
+    expect(duration.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(duration.convert(null, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
     expect(duration.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
+    expect(duration.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(duration.reactConvert(undefined)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+  });
+
+  test('returns a plain string for a numeric duration', () => {
+    const formatter = new DurationFormat(
+      { inputFormat: 'seconds', outputFormat: 'humanize' },
+      jest.fn()
+    );
+
+    expect(formatter.convert(60)).toBe('a minute');
+    expect(formatter.convert(60, HTML_CONTEXT_TYPE)).toBe('a minute');
+    expect(formatter.reactConvert(60)).toBe('a minute');
+  });
+
+  test('wraps a multi-value array with bracket notation', () => {
+    const formatter = new DurationFormat(
+      { inputFormat: 'seconds', outputFormat: 'humanize' },
+      jest.fn()
+    );
+
+    expect(formatter.convert([60, 3600], TEXT_CONTEXT_TYPE)).toBe('["a minute","an hour"]');
+    expect(formatter.convert([60, 3600], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>a minute<span class="ffArray__highlight">,</span> an hour<span class="ffArray__highlight">]</span>'
+    );
+    expect(formatter.reactConvert([60, 3600])).toMatchInlineSnapshot(`
+      <React.Fragment>
+        <span
+          className="ffArray__highlight"
+        >
+          [
+        </span>
+        a minute
+        <span
+          className="ffArray__highlight"
+        >
+          ,
+        </span>
+         
+        an hour
+        <span
+          className="ffArray__highlight"
+        >
+          ]
+        </span>
+      </React.Fragment>
+    `);
+  });
+
+  test('returns the single element without brackets for a one-element array', () => {
+    const formatter = new DurationFormat(
+      { inputFormat: 'seconds', outputFormat: 'humanize' },
+      jest.fn()
+    );
+
+    expect(formatter.convert([60], TEXT_CONTEXT_TYPE)).toBe('["a minute"]');
+    expect(formatter.convert([60], HTML_CONTEXT_TYPE)).toBe('a minute');
+    expect(formatter.reactConvert([60])).toBe('a minute');
   });
 
   testCase({
@@ -601,56 +673,4 @@ describe('Duration Format', () => {
       });
     });
   }
-});
-
-describe('Duration Format — reactConvert', () => {
-  const makeFormatter = () =>
-    new DurationFormat({ inputFormat: 'seconds', outputFormat: 'humanize' }, jest.fn());
-
-  test('returns a plain string for a numeric duration', () => {
-    const formatter = makeFormatter();
-    expect(formatter.reactConvert(60)).toMatchInlineSnapshot(`"a minute"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = makeFormatter();
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-  });
-
-  test('wraps a multi-value array with bracket notation', () => {
-    const formatter = makeFormatter();
-    expect(formatter.reactConvert([60, 3600])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        a minute
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        an hour
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
-  });
-
-  test('returns the single element without brackets for a one-element array', () => {
-    const formatter = makeFormatter();
-    expect(formatter.reactConvert([60])).toMatchInlineSnapshot(`"a minute"`);
-  });
 });

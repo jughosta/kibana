@@ -12,7 +12,7 @@ import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 
 describe('Color Format', () => {
   const checkResult = (text: string | number, color: string, backgroundColor: string) =>
-    `<span style=\"color:${color};background-color:${backgroundColor};display:inline-block;padding:0 8px;border-radius:3px\">${text}</span>`;
+    `<span style="color:${color};background-color:${backgroundColor};display:inline-block;padding:0 8px;border-radius:3px">${text}</span>`;
 
   const checkMissingValues = (colorer: ColorFormat) => {
     expect(colorer.convert(null, HTML_CONTEXT_TYPE)).toBe(
@@ -27,6 +27,27 @@ describe('Color Format', () => {
     expect(colorer.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(colorer.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(colorer.convert('', TEXT_CONTEXT_TYPE)).toBe('(blank)');
+    expect(colorer.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(colorer.reactConvert(undefined)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(colorer.reactConvert('')).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (blank)
+      </span>
+    `);
   };
 
   describe('field is a number', () => {
@@ -50,6 +71,24 @@ describe('Color Format', () => {
       expect(colorer.convert(150, HTML_CONTEXT_TYPE)).toBe(checkResult(150, 'blue', 'yellow'));
       expect(colorer.convert(151, HTML_CONTEXT_TYPE)).toBe('151');
 
+      expect(colorer.reactConvert(99)).toBe('99');
+      expect(colorer.reactConvert(100)).toMatchInlineSnapshot(`
+        <span
+          style={
+            Object {
+              "backgroundColor": "yellow",
+              "borderRadius": "3px",
+              "color": "blue",
+              "display": "inline-block",
+              "padding": "0 8px",
+            }
+          }
+        >
+          100
+        </span>
+      `);
+      expect(colorer.reactConvert(151)).toBe('151');
+
       checkMissingValues(colorer);
     });
 
@@ -69,6 +108,7 @@ describe('Color Format', () => {
       );
 
       expect(colorer.convert(99, HTML_CONTEXT_TYPE)).toBe('99');
+      expect(colorer.reactConvert(99)).toBe('99');
     });
   });
 
@@ -90,6 +130,23 @@ describe('Color Format', () => {
 
       expect(colorer.convert(true, HTML_CONTEXT_TYPE)).toBe(checkResult('true', 'blue', 'yellow'));
       expect(colorer.convert(false, HTML_CONTEXT_TYPE)).toBe('false');
+
+      expect(colorer.reactConvert(true)).toMatchInlineSnapshot(`
+        <span
+          style={
+            Object {
+              "backgroundColor": "yellow",
+              "borderRadius": "3px",
+              "color": "blue",
+              "display": "inline-block",
+              "padding": "0 8px",
+            }
+          }
+        >
+          true
+        </span>
+      `);
+      expect(colorer.reactConvert(false)).toBe('false');
 
       checkMissingValues(colorer);
     });
@@ -123,6 +180,23 @@ describe('Color Format', () => {
       expect(converter('AB <', HTML_CONTEXT_TYPE)).toBe(checkResult('AB &lt;', 'white', 'red'));
       expect(converter('a', HTML_CONTEXT_TYPE)).toBe('a');
 
+      expect(colorer.reactConvert('AAA')).toMatchInlineSnapshot(`
+        <span
+          style={
+            Object {
+              "backgroundColor": "red",
+              "borderRadius": "3px",
+              "color": "white",
+              "display": "inline-block",
+              "padding": "0 8px",
+            }
+          }
+        >
+          AAA
+        </span>
+      `);
+      expect(colorer.reactConvert('B')).toBe('B');
+
       checkMissingValues(colorer);
     });
 
@@ -143,6 +217,7 @@ describe('Color Format', () => {
       const converter = colorer.getConverterFor(HTML_CONTEXT_TYPE) as Function;
 
       expect(converter('<', HTML_CONTEXT_TYPE)).toBe('&lt;');
+      expect(colorer.reactConvert('<')).toBe('<');
 
       checkMissingValues(colorer);
     });
@@ -164,106 +239,27 @@ describe('Color Format', () => {
       const converter = colorer.getConverterFor(HTML_CONTEXT_TYPE) as Function;
 
       expect(converter('<', HTML_CONTEXT_TYPE)).toBe('&lt;');
+      expect(colorer.reactConvert('<')).toBe('<');
     });
-  });
-});
-
-describe('Color Format — reactConvert', () => {
-  test('wraps a matched number value in a colored span', () => {
-    const colorer = new ColorFormat(
-      { fieldType: 'number', colors: [{ range: '100:150', text: 'blue', background: 'yellow' }] },
-      jest.fn()
-    );
-    expect(colorer.reactConvert(100)).toMatchInlineSnapshot(`
-      <span
-        style={
-          Object {
-            "backgroundColor": "yellow",
-            "borderRadius": "3px",
-            "color": "blue",
-            "display": "inline-block",
-            "padding": "0 8px",
-          }
-        }
-      >
-        100
-      </span>
-    `);
-    expect(colorer.reactConvert(150)).toMatchInlineSnapshot(`
-      <span
-        style={
-          Object {
-            "backgroundColor": "yellow",
-            "borderRadius": "3px",
-            "color": "blue",
-            "display": "inline-block",
-            "padding": "0 8px",
-          }
-        }
-      >
-        150
-      </span>
-    `);
-  });
-
-  test('returns a plain string value when no rule matches', () => {
-    const colorer = new ColorFormat(
-      { fieldType: 'number', colors: [{ range: '100:150', text: 'blue', background: 'yellow' }] },
-      jest.fn()
-    );
-    expect(colorer.reactConvert(99)).toMatchInlineSnapshot(`"99"`);
-    expect(colorer.reactConvert(151)).toMatchInlineSnapshot(`"151"`);
-  });
-
-  test('wraps a matched string value using a regex rule', () => {
-    const colorer = new ColorFormat(
-      { fieldType: 'string', colors: [{ regex: 'A.*', text: 'white', background: 'red' }] },
-      jest.fn()
-    );
-    expect(colorer.reactConvert('AAA')).toMatchInlineSnapshot(`
-      <span
-        style={
-          Object {
-            "backgroundColor": "red",
-            "borderRadius": "3px",
-            "color": "white",
-            "display": "inline-block",
-            "padding": "0 8px",
-          }
-        }
-      >
-        AAA
-      </span>
-    `);
-    expect(colorer.reactConvert('B')).toMatchInlineSnapshot(`"B"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const colorer = new ColorFormat({}, jest.fn());
-    expect(colorer.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-  });
-
-  test('returns empty value placeholder for empty string', () => {
-    const colorer = new ColorFormat({}, jest.fn());
-    expect(colorer.reactConvert('')).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (blank)
-      </span>
-    `);
   });
 
   test('wraps a multi-value array with bracket notation', () => {
     const colorer = new ColorFormat(
       { fieldType: 'number', colors: [{ range: '0:200', text: 'blue', background: 'yellow' }] },
       jest.fn()
+    );
+
+    expect(colorer.convert([100, 200], TEXT_CONTEXT_TYPE)).toBe('["100","200"]');
+    expect(colorer.convert([100, 200], HTML_CONTEXT_TYPE)).toBe(
+      `<span class="ffArray__highlight">[</span>${checkResult(
+        100,
+        'blue',
+        'yellow'
+      )}<span class="ffArray__highlight">,</span> ${checkResult(
+        200,
+        'blue',
+        'yellow'
+      )}<span class="ffArray__highlight">]</span>`
     );
     expect(colorer.reactConvert([100, 200])).toMatchInlineSnapshot(`
       <React.Fragment>
@@ -318,6 +314,9 @@ describe('Color Format — reactConvert', () => {
       { fieldType: 'number', colors: [{ range: '0:200', text: 'blue', background: 'yellow' }] },
       jest.fn()
     );
+
+    expect(colorer.convert([100], TEXT_CONTEXT_TYPE)).toBe('["100"]');
+    expect(colorer.convert([100], HTML_CONTEXT_TYPE)).toBe(checkResult(100, 'blue', 'yellow'));
     expect(colorer.reactConvert([100])).toMatchInlineSnapshot(`
       <span
         style={

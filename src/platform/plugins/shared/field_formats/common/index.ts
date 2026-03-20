@@ -64,6 +64,7 @@ export type {
   HtmlContextTypeConvert,
   HtmlContextTypeOptions,
   ReactContextTypeConvert,
+  ReactContextTypeSingleConvert,
   ReactContextTypeOptions,
   TextContextTypeConvert,
   TextContextTypeOptions,

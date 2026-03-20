@@ -23,15 +23,19 @@ describe('BytesFormat', () => {
     const formatter = new BytesFormat({}, getConfig);
 
     expect(formatter.convert(5150000)).toBe('4.911MB');
+    expect(formatter.convert(5150000, HTML_CONTEXT_TYPE)).toBe('4.911MB');
+    expect(formatter.reactConvert(5150000)).toBe('4.911MB');
   });
 
   test('custom pattern', () => {
     const formatter = new BytesFormat({ pattern: '0,0b' }, getConfig);
 
     expect(formatter.convert('5150000')).toBe('5MB');
+    expect(formatter.convert('5150000', HTML_CONTEXT_TYPE)).toBe('5MB');
+    expect(formatter.reactConvert('5150000')).toBe('5MB');
   });
 
-  test('missing value', () => {
+  test('handles missing values', () => {
     const formatter = new BytesFormat({}, getConfig);
 
     expect(formatter.convert(null)).toBe('(null)');
@@ -42,21 +46,14 @@ describe('BytesFormat', () => {
     expect(formatter.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-  });
-});
-
-describe('BytesFormat — reactConvert', () => {
-  const getConfig: FieldFormatsGetConfigFn = (key: string) =>
-    ({ [FORMATS_UI_SETTINGS.FORMAT_BYTES_DEFAULT_PATTERN]: '0,0.[000]b' }[key] as string);
-
-  test('returns a plain string for a bytes value', () => {
-    const formatter = new BytesFormat({}, getConfig);
-    expect(formatter.reactConvert(5150000)).toMatchInlineSnapshot(`"4.911MB"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = new BytesFormat({}, getConfig);
     expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -67,6 +64,11 @@ describe('BytesFormat — reactConvert', () => {
 
   test('wraps a multi-value array with bracket notation', () => {
     const formatter = new BytesFormat({}, getConfig);
+
+    expect(formatter.convert([1024, 2048], 'text')).toBe('["1KB","2KB"]');
+    expect(formatter.convert([1024, 2048], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>1KB<span class="ffArray__highlight">,</span> 2KB<span class="ffArray__highlight">]</span>'
+    );
     expect(formatter.reactConvert([1024, 2048])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
@@ -93,6 +95,9 @@ describe('BytesFormat — reactConvert', () => {
 
   test('returns the single element without brackets for a one-element array', () => {
     const formatter = new BytesFormat({}, getConfig);
-    expect(formatter.reactConvert([1024])).toMatchInlineSnapshot(`"1KB"`);
+
+    expect(formatter.convert([1024], 'text')).toBe('["1KB"]');
+    expect(formatter.convert([1024], HTML_CONTEXT_TYPE)).toBe('1KB');
+    expect(formatter.reactConvert([1024])).toBe('1KB');
   });
 });

@@ -23,15 +23,19 @@ describe('CurrencyFormat', () => {
     const formatter = new CurrencyFormat({}, getConfig);
 
     expect(formatter.convert(12000.23)).toBe('$12,000.23');
+    expect(formatter.convert(12000.23, HTML_CONTEXT_TYPE)).toBe('$12,000.23');
+    expect(formatter.reactConvert(12000.23)).toBe('$12,000.23');
   });
 
   test('custom pattern', () => {
     const formatter = new CurrencyFormat({ pattern: '$0.[0]' }, getConfig);
 
     expect(formatter.convert('12000.23')).toBe('$12000.2');
+    expect(formatter.convert('12000.23', HTML_CONTEXT_TYPE)).toBe('$12000.2');
+    expect(formatter.reactConvert('12000.23')).toBe('$12000.2');
   });
 
-  test('missing value', () => {
+  test('handles missing values', () => {
     const formatter = new CurrencyFormat({ pattern: '$0.[0]' }, getConfig);
 
     expect(formatter.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
@@ -42,21 +46,14 @@ describe('CurrencyFormat', () => {
     expect(formatter.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-  });
-});
-
-describe('CurrencyFormat — reactConvert', () => {
-  const getConfig: FieldFormatsGetConfigFn = (key: string) =>
-    ({ [FORMATS_UI_SETTINGS.FORMAT_CURRENCY_DEFAULT_PATTERN]: '($0,0.[00])' }[key] as string);
-
-  test('returns a plain string for a currency value', () => {
-    const formatter = new CurrencyFormat({}, getConfig);
-    expect(formatter.reactConvert(12000.23)).toMatchInlineSnapshot(`"$12,000.23"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = new CurrencyFormat({}, getConfig);
     expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -67,6 +64,11 @@ describe('CurrencyFormat — reactConvert', () => {
 
   test('wraps a multi-value array with bracket notation', () => {
     const formatter = new CurrencyFormat({}, getConfig);
+
+    expect(formatter.convert([100, 200], TEXT_CONTEXT_TYPE)).toBe('["$100","$200"]');
+    expect(formatter.convert([100, 200], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>$100<span class="ffArray__highlight">,</span> $200<span class="ffArray__highlight">]</span>'
+    );
     expect(formatter.reactConvert([100, 200])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
@@ -93,6 +95,9 @@ describe('CurrencyFormat — reactConvert', () => {
 
   test('returns the single element without brackets for a one-element array', () => {
     const formatter = new CurrencyFormat({}, getConfig);
-    expect(formatter.reactConvert([100])).toMatchInlineSnapshot(`"$100"`);
+
+    expect(formatter.convert([100], TEXT_CONTEXT_TYPE)).toBe('["$100"]');
+    expect(formatter.convert([100], HTML_CONTEXT_TYPE)).toBe('$100');
+    expect(formatter.reactConvert([100])).toBe('$100');
   });
 });

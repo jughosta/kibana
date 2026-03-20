@@ -18,55 +18,30 @@ describe('Boolean Format', () => {
   });
 
   [
-    {
-      input: 0,
-      expected: 'false',
-    },
-    {
-      input: 'no',
-      expected: 'false',
-    },
-    {
-      input: false,
-      expected: 'false',
-    },
-    {
-      input: 'false',
-      expected: 'false',
-    },
-    {
-      input: 1,
-      expected: 'true',
-    },
-    {
-      input: 'yes',
-      expected: 'true',
-    },
-    {
-      input: true,
-      expected: 'true',
-    },
-    {
-      input: 'true',
-      expected: 'true',
-    },
-    {
-      input: ' True  ', // should handle trailing and mixed case
-      expected: 'true',
-    },
+    { input: 0, expected: 'false' },
+    { input: 'no', expected: 'false' },
+    { input: false, expected: 'false' },
+    { input: 'false', expected: 'false' },
+    { input: 1, expected: 'true' },
+    { input: 'yes', expected: 'true' },
+    { input: true, expected: 'true' },
+    { input: 'true', expected: 'true' },
+    { input: ' True  ', expected: 'true' }, // should handle trailing and mixed case
   ].forEach((data) => {
-    test(`convert ${data.input} to boolean`, () => {
+    test(`converts ${data.input} to boolean`, () => {
       expect(boolean.convert(data.input)).toBe(data.expected);
+      expect(boolean.convert(data.input, HTML_CONTEXT_TYPE)).toBe(data.expected);
+      expect(boolean.reactConvert(data.input)).toBe(data.expected);
     });
   });
 
   test('does not convert non-boolean values, instead returning original value', () => {
     const s = 'non-boolean value!!';
-
     expect(boolean.convert(s)).toBe(s);
+    expect(boolean.reactConvert(s)).toBe(s);
   });
 
-  test('handles a missing value', () => {
+  test('handles missing values', () => {
     expect(boolean.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(boolean.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(boolean.convert(null, HTML_CONTEXT_TYPE)).toBe(
@@ -75,25 +50,14 @@ describe('Boolean Format', () => {
     expect(boolean.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-  });
-
-  test('escapes HTML characters in html context via fallback', () => {
-    expect(boolean.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
-      '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
-    );
-  });
-});
-
-describe('Boolean Format — reactConvert', () => {
-  test('returns a plain string for a boolean value', () => {
-    const formatter = new BoolFormat({}, jest.fn());
-    expect(formatter.reactConvert(true)).toMatchInlineSnapshot(`"true"`);
-    expect(formatter.reactConvert(false)).toMatchInlineSnapshot(`"false"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = new BoolFormat({}, jest.fn());
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+    expect(boolean.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(boolean.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -102,9 +66,22 @@ describe('Boolean Format — reactConvert', () => {
     `);
   });
 
+  test('escapes HTML characters in html context', () => {
+    expect(boolean.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
+      '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
+    );
+    // reactConvert returns the same as textConvert - the HTML bridge handles escaping
+    expect(boolean.reactConvert('<script>alert("test")</script>')).toBe(
+      '<script>alert("test")</script>'
+    );
+  });
+
   test('wraps a multi-value array with bracket notation', () => {
-    const formatter = new BoolFormat({}, jest.fn());
-    expect(formatter.reactConvert([true, false])).toMatchInlineSnapshot(`
+    expect(boolean.convert([true, false], TEXT_CONTEXT_TYPE)).toBe('["true","false"]');
+    expect(boolean.convert([true, false], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>true<span class="ffArray__highlight">,</span> false<span class="ffArray__highlight">]</span>'
+    );
+    expect(boolean.reactConvert([true, false])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
           className="ffArray__highlight"
@@ -129,7 +106,8 @@ describe('Boolean Format — reactConvert', () => {
   });
 
   test('returns the single element without brackets for a one-element array', () => {
-    const formatter = new BoolFormat({}, jest.fn());
-    expect(formatter.reactConvert([true])).toMatchInlineSnapshot(`"true"`);
+    expect(boolean.convert([true], TEXT_CONTEXT_TYPE)).toBe('["true"]');
+    expect(boolean.convert([true], HTML_CONTEXT_TYPE)).toBe('true');
+    expect(boolean.reactConvert([true])).toBe('true');
   });
 });

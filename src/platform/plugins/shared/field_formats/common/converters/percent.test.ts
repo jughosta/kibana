@@ -22,15 +22,19 @@ describe('PercentFormat', () => {
     const formatter = new PercentFormat({}, getConfig);
 
     expect(formatter.convert(0.99999)).toBe('99.999%');
+    expect(formatter.convert(0.99999, HTML_CONTEXT_TYPE)).toBe('99.999%');
+    expect(formatter.reactConvert(0.99999)).toBe('99.999%');
   });
 
   test('custom pattern', () => {
     const formatter = new PercentFormat({ pattern: '0,0%' }, getConfig);
 
     expect(formatter.convert('0.99999')).toBe('100%');
+    expect(formatter.convert('0.99999', HTML_CONTEXT_TYPE)).toBe('100%');
+    expect(formatter.reactConvert('0.99999')).toBe('100%');
   });
 
-  test('missing value', () => {
+  test('handles missing values', () => {
     const formatter = new PercentFormat({ pattern: '0,0%' }, getConfig);
 
     expect(formatter.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
@@ -41,21 +45,14 @@ describe('PercentFormat', () => {
     expect(formatter.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-  });
-});
-
-describe('PercentFormat — reactConvert', () => {
-  const getConfig = (key: string) =>
-    ({ [FORMATS_UI_SETTINGS.FORMAT_PERCENT_DEFAULT_PATTERN]: '0,0.[000]%' }[key] as string);
-
-  test('returns a plain string for a percent value', () => {
-    const formatter = new PercentFormat({}, getConfig);
-    expect(formatter.reactConvert(0.99999)).toMatchInlineSnapshot(`"99.999%"`);
-  });
-
-  test('returns null placeholder for null', () => {
-    const formatter = new PercentFormat({}, getConfig);
     expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+      <span
+        className="ffString__emptyValue"
+      >
+        (null)
+      </span>
+    `);
+    expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
       <span
         className="ffString__emptyValue"
       >
@@ -66,6 +63,11 @@ describe('PercentFormat — reactConvert', () => {
 
   test('wraps a multi-value array with bracket notation', () => {
     const formatter = new PercentFormat({}, getConfig);
+
+    expect(formatter.convert([0.5, 0.75], TEXT_CONTEXT_TYPE)).toBe('["50%","75%"]');
+    expect(formatter.convert([0.5, 0.75], HTML_CONTEXT_TYPE)).toBe(
+      '<span class="ffArray__highlight">[</span>50%<span class="ffArray__highlight">,</span> 75%<span class="ffArray__highlight">]</span>'
+    );
     expect(formatter.reactConvert([0.5, 0.75])).toMatchInlineSnapshot(`
       <React.Fragment>
         <span
@@ -92,6 +94,9 @@ describe('PercentFormat — reactConvert', () => {
 
   test('returns the single element without brackets for a one-element array', () => {
     const formatter = new PercentFormat({}, getConfig);
-    expect(formatter.reactConvert([0.5])).toMatchInlineSnapshot(`"50%"`);
+
+    expect(formatter.convert([0.5], TEXT_CONTEXT_TYPE)).toBe('["50%"]');
+    expect(formatter.convert([0.5], HTML_CONTEXT_TYPE)).toBe('50%');
+    expect(formatter.reactConvert([0.5])).toBe('50%');
   });
 });
