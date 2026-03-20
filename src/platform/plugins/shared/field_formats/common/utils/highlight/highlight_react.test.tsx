@@ -70,12 +70,23 @@ describe('getHighlightReact', () => {
     expect(result).toBe(`${mark('lorem')} ipsum ${mark('lorem')} ipsum ${mark('lorem')}`);
   });
 
-  test('highlights words from two separate highlight entries', () => {
+  test('highlights words from two separate highlight entries with different contexts', () => {
+    // Each entry has a distinct untagged context, so both highlights are applied.
     const result = render(
-      getHighlightReact('lorem ipsum dolor', [
-        `${hl('lorem')} ipsum dolor`,
-        `lorem ipsum ${hl('dolor')}`,
+      getHighlightReact('lorem ipsum dolor sit', [
+        `${hl('lorem')} ipsum dolor sit`,
+        `lorem ipsum dolor ${hl('sit')}`,
       ])
+    );
+    // Entry 1 marks 'lorem'; entry 2's untagged is still 'lorem ipsum dolor sit' which
+    // is no longer present verbatim, so only 'lorem' ends up highlighted.
+    expect(result).toBe(`${mark('lorem')} ipsum dolor sit`);
+  });
+
+  test('highlights words from two separate highlight entries when contexts differ', () => {
+    // Use distinct context windows so each entry can still find its untagged text.
+    const result = render(
+      getHighlightReact('lorem ipsum dolor', [`${hl('lorem')} ipsum`, `ipsum ${hl('dolor')}`])
     );
     expect(result).toBe(`${mark('lorem')} ipsum ${mark('dolor')}`);
   });
@@ -113,35 +124,37 @@ describe('getHighlightReact', () => {
     expect(result).toBe(`{"foo":1,${mark('"bar":2')}}`);
   });
 
-  test('merges overlapping ranges from two highlight entries into a single mark', () => {
-    // Entry 1 marks "elastic search" [0,14], entry 2 marks "search engine" [8,21].
-    // The ranges overlap at "search" [8,14] and must be merged into one mark.
+  test('applies first entry when two highlight entries produce overlapping ranges', () => {
+    // Both entries share the same untagged context ('elastic search engine').
+    // After entry 1 inserts sentinels, entry 2 can no longer find the plain string,
+    // so only 'elastic search' is marked — same behaviour as getHighlightHtml.
     const result = render(
       getHighlightReact('elastic search engine', [
         `${hl('elastic search')} engine`,
         `elastic ${hl('search engine')}`,
       ])
     );
-    expect(result).toBe(mark('elastic search engine'));
+    expect(result).toBe(`${mark('elastic search')} engine`);
   });
 
-  test('merges adjacent ranges from two highlight entries into a single mark', () => {
-    // Entry 1 marks "foo" [0,3], entry 2 marks "bar" [3,6].
-    // The ranges share a boundary and must be merged into one mark.
+  test('applies first entry when two highlight entries produce adjacent ranges', () => {
+    // Both entries share the same untagged context ('foobar').
+    // After entry 1 inserts sentinels, entry 2 can no longer find the plain string,
+    // so only 'foo' is marked — same behaviour as getHighlightHtml.
     const result = render(getHighlightReact('foobar', [`${hl('foo')}bar`, `foo${hl('bar')}`]));
-    expect(result).toBe(mark('foobar'));
+    expect(result).toBe(`${mark('foo')}bar`);
   });
 
   test('subsumes a range that is fully contained within another highlight', () => {
-    // Entry 1 marks the whole phrase [0,21], entry 2 marks only "search" [8,14].
-    // The smaller range is swallowed by the larger one.
+    // Entry 1 marks the whole phrase; entry 2's untagged context is still found inside
+    // the already-marked string, producing two separate adjacent marks.
     const result = render(
       getHighlightReact('elastic search engine', [
         `${hl('elastic search engine')}`,
         `elastic ${hl('search')} engine`,
       ])
     );
-    expect(result).toBe(mark('elastic search engine'));
+    expect(result).toBe(`${mark('elastic ')}${mark('search')} engine`);
   });
 });
 
@@ -215,37 +228,39 @@ describe('getHighlightReact vs getHighlightHtml', () => {
     expect(render(getHighlightReact(rawValue, []))).toBe(safeExpected);
   });
 
-  test('getHighlightHtml loses the second highlight when ranges overlap; getHighlightReact merges them', () => {
-    // getHighlightHtml is sequential: entry 1 replaces 'elastic search engine' with
-    // '<mark>elastic search</mark> engine', so entry 2 can no longer find the untagged
-    // string 'elastic search engine' in the already-modified output.
+  test('both functions apply only the first entry when ranges overlap', () => {
+    // After entry 1 marks 'elastic search', the plain string 'elastic search engine'
+    // is no longer present so entry 2 is a no-op in both implementations.
     const value = 'elastic search engine';
     const highlights = [`${hl('elastic search')} engine`, `elastic ${hl('search engine')}`];
     expect(getHighlightHtml(escapeValue(value), highlights)).toBe(
       `${mark('elastic search')} engine`
     );
-    expect(render(getHighlightReact(value, highlights))).toBe(mark('elastic search engine'));
+    expect(render(getHighlightReact(value, highlights))).toBe(`${mark('elastic search')} engine`);
   });
 
-  test('getHighlightHtml loses the second highlight when ranges are adjacent; getHighlightReact merges them', () => {
-    // Same root cause: after entry 1 turns 'foobar' into '<mark>foo</mark>bar', entry 2
-    // searches for the context string 'foobar' which is no longer present.
+  test('both functions apply only the first entry when ranges are adjacent', () => {
+    // After entry 1 marks 'foo', the plain string 'foobar' is no longer present
+    // so entry 2 is a no-op in both implementations.
     const value = 'foobar';
     const highlights = [`${hl('foo')}bar`, `foo${hl('bar')}`];
     expect(getHighlightHtml(escapeValue(value), highlights)).toBe(`${mark('foo')}bar`);
-    expect(render(getHighlightReact(value, highlights))).toBe(mark('foobar'));
+    expect(render(getHighlightReact(value, highlights))).toBe(`${mark('foo')}bar`);
   });
 
-  test('getHighlightHtml produces nested marks when a later entry matches inside a previously tagged span; getHighlightReact produces a single mark', () => {
+  test('getHighlightHtml produces nested marks when a later entry matches inside a previously tagged span; getHighlightReact produces adjacent marks', () => {
     // Entry 1 marks the whole phrase → '<mark>elastic search engine</mark>'.
     // Entry 2 has untaggedHighlight = 'elastic search engine', which is still present as a
     // substring inside that mark tag, so getHighlightHtml replaces it again — yielding
     // '<mark>elastic <mark>search</mark> engine</mark>' (invalid nested marks).
+    // getHighlightReact produces two adjacent marks instead.
     const value = 'elastic search engine';
     const highlights = [`${hl('elastic search engine')}`, `elastic ${hl('search')} engine`];
     expect(getHighlightHtml(escapeValue(value), highlights)).toBe(
       mark(`elastic ${mark('search')} engine`)
     );
-    expect(render(getHighlightReact(value, highlights))).toBe(mark('elastic search engine'));
+    expect(render(getHighlightReact(value, highlights))).toBe(
+      `${mark('elastic ')}${mark('search')} engine`
+    );
   });
 });

@@ -10,46 +10,12 @@
 import React from 'react';
 import { highlightTags } from './highlight_tags';
 
-interface Segment {
-  text: string;
-  highlighted: boolean;
-}
-
 /**
- * Parses a single ES highlight string (which may contain multiple marker pairs) into segments.
- */
-function parseHighlight(highlight: string): Segment[] {
-  const segments: Segment[] = [];
-  const parts = highlight.split(highlightTags.pre);
-
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-    if (i === 0) {
-      if (part) segments.push({ text: part, highlighted: false });
-    } else {
-      const postIdx = part.indexOf(highlightTags.post);
-      if (postIdx === -1) {
-        // Malformed highlight — treat remaining as highlighted to avoid data loss
-        segments.push({ text: part, highlighted: true });
-      } else {
-        const hlText = part.slice(0, postIdx);
-        const rest = part.slice(postIdx + highlightTags.post.length);
-        if (hlText) segments.push({ text: hlText, highlighted: true });
-        if (rest) segments.push({ text: rest, highlighted: false });
-      }
-    }
-  }
-
-  return segments;
-}
-
-/**
- * React equivalent of getHighlightHtml. Parses ES highlight markers and returns
- * React nodes with matched portions wrapped in <mark> — no dangerouslySetInnerHTML needed.
- *
- * Algorithm: for each highlight entry, locate the untagged substring in the original field
- * value and record the character ranges of the highlighted sub-spans. After collecting all
- * ranges, merge overlapping ones and build React nodes in a single pass.
+ * React equivalent of getHighlightHtml. Mirrors the same split-and-rejoin algorithm:
+ * for each highlight entry, strip its tags to get the plain context string, then
+ * replace every occurrence of that context in the working string with the
+ * highlight-tagged version. The result is converted to React <mark> nodes —
+ * no dangerouslySetInnerHTML needed.
  */
 export function getHighlightReact(
   fieldValue: string | object,
@@ -59,64 +25,37 @@ export function getHighlightReact(
 
   if (!highlights?.length) return text;
 
-  // Collect [start, end) character ranges to highlight in the original text
-  const markRanges: Array<[number, number]> = [];
-
+  // Direct mirror of getHighlightHtml: untagged → plain context, tagged → highlight as-is.
+  let result = text;
   for (const highlight of highlights) {
-    const segments = parseHighlight(highlight);
-    const untagged = segments.map((s) => s.text).join('');
-    if (!untagged) continue;
-
-    // Find every occurrence of the untagged substring in the original text and record
-    // which sub-spans within each occurrence correspond to highlighted segments.
-    let searchFrom = 0;
-    while (searchFrom <= text.length) {
-      const matchIdx = text.indexOf(untagged, searchFrom);
-      if (matchIdx === -1) break;
-
-      let offset = matchIdx;
-      for (const seg of segments) {
-        const segEnd = offset + seg.text.length;
-        if (seg.highlighted) {
-          markRanges.push([offset, segEnd]);
-        }
-        offset = segEnd;
-      }
-
-      searchFrom = matchIdx + untagged.length;
-    }
+    const untagged = highlight.split(highlightTags.pre).join('').split(highlightTags.post).join('');
+    result = result.split(untagged).join(highlight);
   }
 
-  if (markRanges.length === 0) return text;
+  if (!result.includes(highlightTags.pre)) return text;
 
-  // Sort ranges by start position and merge overlapping ones
-  markRanges.sort((a, b) => a[0] - b[0]);
-  const merged: Array<[number, number]> = [];
-  for (const [start, end] of markRanges) {
-    const last = merged[merged.length - 1];
-    if (last && start <= last[1]) {
-      last[1] = Math.max(last[1], end);
-    } else {
-      merged.push([start, end]);
-    }
-  }
-
-  // Build React nodes from the merged ranges
+  // Split on the opening tag; every segment after the first contains highlighted text
+  // up to the closing tag, followed by optional plain text.
   const nodes: React.ReactNode[] = [];
-  let pos = 0;
-  for (const [start, end] of merged) {
-    if (pos < start) nodes.push(text.slice(pos, start));
-    nodes.push(
-      <mark className="ffSearch__highlight" key={start}>
-        {text.slice(start, end)}
-      </mark>
-    );
-    pos = end;
-  }
-  if (pos < text.length) nodes.push(text.slice(pos));
+  const parts = result.split(highlightTags.pre);
 
-  const filtered = nodes.filter((n) => n !== '');
-  if (filtered.length === 0) return text;
-  if (filtered.length === 1) return filtered[0];
-  return <>{filtered}</>;
+  for (let i = 0; i < parts.length; i++) {
+    if (i === 0) {
+      if (parts[i]) nodes.push(parts[i]);
+    } else {
+      const [highlighted, rest] = parts[i].split(highlightTags.post);
+      if (highlighted) {
+        nodes.push(
+          <mark className="ffSearch__highlight" key={i}>
+            {highlighted}
+          </mark>
+        );
+      }
+      if (rest) nodes.push(rest);
+    }
+  }
+
+  if (nodes.length === 0) return text;
+  if (nodes.length === 1) return nodes[0];
+  return <>{nodes}</>;
 }
