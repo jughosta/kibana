@@ -27,22 +27,48 @@ describe('StaticLookupFormat', () => {
   describe('textConvert', () => {
     test('maps empty string to configured value', () => {
       expect(formatter.convert('', 'text')).toBe('Empty String Mapped');
+      expect(formatter.convert('', 'html')).toBe('Empty String Mapped');
+      expect(formatter.reactConvert('')).toBe('Empty String Mapped');
     });
 
     test('null stays null and shows null label', () => {
       expect(formatter.convert(null, 'text')).toBe(NULL_LABEL);
+      expect(formatter.convert(null, 'html')).toBe(
+        '<span class="ffString__emptyValue">(null)</span>'
+      );
+      expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
     });
 
     test('undefined stays undefined and shows null label', () => {
       expect(formatter.convert(undefined, 'text')).toBe(NULL_LABEL);
+      expect(formatter.convert(undefined, 'html')).toBe(
+        '<span class="ffString__emptyValue">(null)</span>'
+      );
+      expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
     });
 
     test('maps known key to configured value', () => {
       expect(formatter.convert('test', 'text')).toBe('Test Value');
+      expect(formatter.convert('test', 'html')).toBe('Test Value');
+      expect(formatter.reactConvert('test')).toBe('Test Value');
     });
 
     test('maps unknown key to unknownKeyValue', () => {
       expect(formatter.convert('unknown', 'text')).toBe('Custom Unknown');
+      expect(formatter.convert('unknown', 'html')).toBe('Custom Unknown');
+      expect(formatter.reactConvert('unknown')).toBe('Custom Unknown');
     });
 
     test('falls back to original value when no unknownKeyValue is set', () => {
@@ -51,6 +77,8 @@ describe('StaticLookupFormat', () => {
         unknownKeyValue: null,
       });
       expect(formatterWithoutUnknown.convert('unknown', 'text')).toBe('unknown');
+      expect(formatterWithoutUnknown.convert('unknown', 'html')).toBe('unknown');
+      expect(formatterWithoutUnknown.reactConvert('unknown')).toBe('unknown');
     });
 
     test('falls back to null label for null/undefined when no unknownKeyValue is set', () => {
@@ -60,6 +88,20 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithoutUnknown.convert(null, 'text')).toBe(NULL_LABEL);
       expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe(NULL_LABEL);
+      expect(formatterWithoutUnknown.reactConvert(null)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
+      expect(formatterWithoutUnknown.reactConvert(undefined)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
     });
 
     test('falls back to unknownKeyValue for an empty string when no mapping exists', () => {
@@ -68,6 +110,8 @@ describe('StaticLookupFormat', () => {
         unknownKeyValue: 'Unknown',
       });
       expect(formatterWithUnknown.convert('', 'text')).toBe('Unknown');
+      expect(formatterWithUnknown.convert('', 'html')).toBe('Unknown');
+      expect(formatterWithUnknown.reactConvert('')).toBe('Unknown');
     });
 
     test('falls back to empty label for an empty string when no unknownKeyValue is set', () => {
@@ -76,6 +120,16 @@ describe('StaticLookupFormat', () => {
         unknownKeyValue: null,
       });
       expect(formatterWithoutUnknown.convert('', 'text')).toBe(EMPTY_LABEL);
+      expect(formatterWithoutUnknown.convert('', 'html')).toBe(
+        '<span class="ffString__emptyValue">(blank)</span>'
+      );
+      expect(formatterWithoutUnknown.reactConvert('')).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (blank)
+        </span>
+      `);
     });
   });
 
@@ -87,6 +141,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithEmptyStringValue.convert('empty', 'text')).toBe('');
       expect(formatterWithEmptyStringValue.convert('empty', 'html')).toBe('');
+      expect(formatterWithEmptyStringValue.reactConvert('empty')).toBe('');
     });
 
     test('skips entry with empty key and empty value, falls back to unknownKeyValue', () => {
@@ -96,6 +151,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithEmptyKeyAndValue.convert('', 'text')).toBe('Unknown');
       expect(formatterWithEmptyKeyAndValue.convert('', 'html')).toBe('Unknown');
+      expect(formatterWithEmptyKeyAndValue.reactConvert('')).toBe('Unknown');
     });
 
     test('skips entry with undefined key and empty value, falls back to missing value label', () => {
@@ -107,6 +163,13 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithUndefinedKeyEmptyValue.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
+      expect(formatterWithUndefinedKeyEmptyValue.reactConvert('')).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (blank)
+        </span>
+      `);
     });
 
     test('correctly maps to 0 value (does not fall back to unknownKeyValue)', () => {
@@ -116,6 +179,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithZeroValue.convert('zero', 'text')).toBe('0');
       expect(formatterWithZeroValue.convert('zero', 'html')).toBe('0');
+      expect(formatterWithZeroValue.reactConvert('zero')).toBe('0');
     });
 
     test('correctly maps to false value (does not fall back to unknownKeyValue)', () => {
@@ -125,38 +189,58 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithFalseValue.convert('falsy', 'text')).toBe('false');
       expect(formatterWithFalseValue.convert('falsy', 'html')).toBe('false');
+      expect(formatterWithFalseValue.reactConvert('falsy')).toBe('false');
     });
   });
 
   describe('htmlConvert', () => {
     test('maps empty string to configured value and escapes HTML', () => {
       expect(formatter.convert('', 'html')).toBe('Empty String Mapped');
+      expect(formatter.reactConvert('')).toBe('Empty String Mapped');
     });
 
     test('null stays null and shows null label HTML', () => {
       expect(formatter.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
+      expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
     });
 
     test('undefined stays undefined and shows null label HTML', () => {
       expect(formatter.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
+      expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
     });
 
     test('maps known key to configured value and escapes HTML', () => {
       expect(formatter.convert('test', 'html')).toBe('Test Value');
+      expect(formatter.reactConvert('test')).toBe('Test Value');
     });
 
     test('maps unknown key to unknownKeyValue and escapes HTML', () => {
       expect(formatter.convert('unknown', 'html')).toBe('Custom Unknown');
+      expect(formatter.reactConvert('unknown')).toBe('Custom Unknown');
     });
 
     test('escapes HTML in mapped values', () => {
       expect(formatter.convert('html', 'html')).toBe(
         '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
       );
+      // React handles escaping automatically, so the raw string is returned
+      expect(formatter.reactConvert('html')).toBe('<script>alert("test")</script>');
     });
 
     test('preserves highlight functionality', () => {
@@ -172,6 +256,16 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert('test', 'html', options)).toBe(
         '<mark class="ffSearch__highlight">Test</mark> Value'
       );
+      expect(formatter.reactConvert('test', options)).toMatchInlineSnapshot(`
+        <React.Fragment>
+          <mark
+            className="ffSearch__highlight"
+          >
+            Test
+          </mark>
+           Value
+        </React.Fragment>
+      `);
     });
 
     test('falls back to missing value handling when textConvert returns original null/empty values', () => {
@@ -184,19 +278,41 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithoutCustomMapping.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
+      expect(formatterWithoutCustomMapping.reactConvert('')).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (blank)
+        </span>
+      `);
 
       // Null should show (null) since textConvert returns the original null
       expect(formatterWithoutCustomMapping.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
+      expect(formatterWithoutCustomMapping.reactConvert(null)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
 
       // Undefined should show (null) since textConvert returns the original undefined
       expect(formatterWithoutCustomMapping.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
+      expect(formatterWithoutCustomMapping.reactConvert(undefined)).toMatchInlineSnapshot(`
+        <span
+          className="ffString__emptyValue"
+        >
+          (null)
+        </span>
+      `);
 
       // Unknown value should fall back to original value since unknownKeyValue is null
       expect(formatterWithoutCustomMapping.convert('unknown', 'html')).toBe('unknown');
+      expect(formatterWithoutCustomMapping.reactConvert('unknown')).toBe('unknown');
     });
   });
 
@@ -214,21 +330,25 @@ describe('StaticLookupFormat', () => {
     test('maps boolean true (1) to "true" key value', () => {
       expect(formatter.convert(1, 'text')).toBe('Yes');
       expect(formatter.convert(1, 'html')).toBe('Yes');
+      expect(formatter.reactConvert(1)).toBe('Yes');
     });
 
     test('maps boolean false (0) to "false" key value', () => {
       expect(formatter.convert(0, 'text')).toBe('No');
       expect(formatter.convert(0, 'html')).toBe('No');
+      expect(formatter.reactConvert(0)).toBe('No');
     });
 
     test('maps string "true" to configured value', () => {
       expect(formatter.convert('true', 'text')).toBe('Yes');
       expect(formatter.convert('true', 'html')).toBe('Yes');
+      expect(formatter.reactConvert('true')).toBe('Yes');
     });
 
     test('maps string "false" to configured value', () => {
       expect(formatter.convert('false', 'text')).toBe('No');
       expect(formatter.convert('false', 'html')).toBe('No');
+      expect(formatter.reactConvert('false')).toBe('No');
     });
   });
 
@@ -240,6 +360,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(emptyFormatter.convert('anything', 'text')).toBe('Default');
       expect(emptyFormatter.convert('anything', 'html')).toBe('Default');
+      expect(emptyFormatter.reactConvert('anything')).toBe('Default');
     });
 
     test('handles lookupEntries with empty objects', () => {
@@ -249,6 +370,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithEmptyEntries.convert('test', 'text')).toBe('Default');
       expect(formatterWithEmptyEntries.convert('test', 'html')).toBe('Default');
+      expect(formatterWithEmptyEntries.reactConvert('test')).toBe('Default');
     });
 
     test('treats undefined key as empty string key when value is provided', () => {
@@ -261,6 +383,7 @@ describe('StaticLookupFormat', () => {
       // Empty string should map to the value with undefined key
       expect(formatterWithUndefinedKey.convert('', 'text')).toBe('Empty String Mapped');
       expect(formatterWithUndefinedKey.convert('', 'html')).toBe('Empty String Mapped');
+      expect(formatterWithUndefinedKey.reactConvert('')).toBe('Empty String Mapped');
     });
 
     test('treats null key as empty string key when value is provided', () => {
@@ -270,6 +393,7 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithNullKey.convert('', 'text')).toBe('Empty String Mapped');
       expect(formatterWithNullKey.convert('', 'html')).toBe('Empty String Mapped');
+      expect(formatterWithNullKey.reactConvert('')).toBe('Empty String Mapped');
     });
 
     test('does not treat undefined key as empty string key when value is not provided', () => {
@@ -280,6 +404,7 @@ describe('StaticLookupFormat', () => {
       // Empty string should not be mapped, should fall back to unknownKeyValue
       expect(formatterWithEmptyEntry.convert('', 'text')).toBe('Unknown');
       expect(formatterWithEmptyEntry.convert('', 'html')).toBe('Unknown');
+      expect(formatterWithEmptyEntry.reactConvert('')).toBe('Unknown');
     });
   });
 });
