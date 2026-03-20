@@ -18,10 +18,10 @@ import { highlightTags } from './highlight_tags';
  * no dangerouslySetInnerHTML needed.
  */
 export function getHighlightReact(
-  fieldValue: string | object,
+  fieldValue: string,
   highlights: string[] | undefined | null
 ): React.ReactNode {
-  const text = typeof fieldValue === 'object' ? JSON.stringify(fieldValue) : String(fieldValue);
+  const text = fieldValue;
 
   if (!highlights?.length) return text;
 
