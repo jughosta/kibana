@@ -34,7 +34,7 @@ describe('PercentFormat', () => {
     expect(formatter.reactConvert('0.99999')).toBe('100%');
   });
 
-  test('handles missing values', () => {
+  test('missing value', () => {
     const formatter = new PercentFormat({ pattern: '0,0%' }, getConfig);
 
     expect(formatter.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');

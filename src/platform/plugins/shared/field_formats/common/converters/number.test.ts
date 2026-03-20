@@ -12,8 +12,11 @@ import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import { NULL_LABEL } from '@kbn/field-formats-common';
 
 describe('NumberFormat', () => {
-  const getConfig = (key: string) =>
-    ({ [FORMATS_UI_SETTINGS.FORMAT_NUMBER_DEFAULT_PATTERN]: '0,0.[000]' }[key]);
+  const config: { [key: string]: string } = {
+    [FORMATS_UI_SETTINGS.FORMAT_NUMBER_DEFAULT_PATTERN]: '0,0.[000]',
+  };
+
+  const getConfig = (key: string) => config[key];
 
   test('default pattern', () => {
     const formatter = new NumberFormat({}, getConfig);
@@ -33,7 +36,6 @@ describe('NumberFormat', () => {
 
   test('object input', () => {
     const formatter = new NumberFormat({}, getConfig);
-
     expect(
       formatter.convert({ min: 150, max: 1000, sum: 5000, value_count: 10 })
     ).toMatchInlineSnapshot(`"{\\"min\\":150,\\"max\\":1000,\\"sum\\":5000,\\"value_count\\":10}"`);
@@ -78,10 +80,9 @@ describe('NumberFormat', () => {
 
   test('null input', () => {
     const formatter = new NumberFormat({}, getConfig);
-
-    expect(formatter.convert(null)).toBe(NULL_LABEL);
-    expect(formatter.convert(null, 'html')).toBe(
-      `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
+    expect(formatter.convert(null)).toMatchInlineSnapshot(`"${NULL_LABEL}"`);
+    expect(formatter.convert(null, 'html')).toMatchInlineSnapshot(
+      `"<span class=\\"ffString__emptyValue\\">${NULL_LABEL}</span>"`
     );
     expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
       <span

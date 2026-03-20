@@ -35,7 +35,7 @@ describe('CurrencyFormat', () => {
     expect(formatter.reactConvert('12000.23')).toBe('$12000.2');
   });
 
-  test('handles missing values', () => {
+  test('missing value', () => {
     const formatter = new CurrencyFormat({ pattern: '$0.[0]' }, getConfig);
 
     expect(formatter.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');

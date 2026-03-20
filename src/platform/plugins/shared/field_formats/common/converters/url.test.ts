@@ -14,7 +14,7 @@ import { highlightTags } from '../utils/highlight/highlight_tags';
 describe('UrlFormat', () => {
   const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
 
-  test('outputs a simple <a> tag for http URLs', () => {
+  test('outputs a simple <a> tag by default', () => {
     const url = new UrlFormat({});
 
     expect(url.convert('http://elastic.co', HTML_CONTEXT_TYPE)).toBe(
@@ -31,7 +31,7 @@ describe('UrlFormat', () => {
     `);
   });
 
-  test('outputs a mailto: link', () => {
+  test('outputs a mailto: link when URL starts with mailto:', () => {
     const url = new UrlFormat({});
 
     expect(url.convert('mailto:test@example.com', HTML_CONTEXT_TYPE)).toBe(
@@ -86,7 +86,7 @@ describe('UrlFormat', () => {
     `);
   });
 
-  test('outputs an <audio> element', () => {
+  test('outputs an <audio> if type === "audio"', () => {
     const url = new UrlFormat({ type: 'audio' });
 
     expect(url.convert('http://elastic.co', HTML_CONTEXT_TYPE)).toBe(

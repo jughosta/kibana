@@ -17,13 +17,13 @@ describe('IP Address Format', () => {
     ip = new IpFormat({}, jest.fn());
   });
 
-  test('converts a decimal to a dotted IP string', () => {
+  test('converts a value from a decimal to a string', () => {
     expect(ip.convert(1186489492)).toBe('70.184.100.148');
     expect(ip.convert(1186489492, HTML_CONTEXT_TYPE)).toBe('70.184.100.148');
     expect(ip.reactConvert(1186489492)).toBe('70.184.100.148');
   });
 
-  test('handles missing values', () => {
+  test('missing value', () => {
     expect(ip.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(ip.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(ip.convert(null, HTML_CONTEXT_TYPE)).toBe(
@@ -48,7 +48,7 @@ describe('IP Address Format', () => {
     `);
   });
 
-  test('escapes HTML characters in html context', () => {
+  test('escapes HTML characters in html context via fallback', () => {
     expect(ip.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );

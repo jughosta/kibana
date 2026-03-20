@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-// eslint-disable-next-line max-classes-per-file
+/* eslint-disable max-classes-per-file -- TestFormat + Aggs-style convert() override test double */
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import { constant, trimEnd, trimStart, get } from 'lodash';

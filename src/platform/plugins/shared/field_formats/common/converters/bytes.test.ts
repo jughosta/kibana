@@ -35,7 +35,7 @@ describe('BytesFormat', () => {
     expect(formatter.reactConvert('5150000')).toBe('5MB');
   });
 
-  test('handles missing values', () => {
+  test('missing value', () => {
     const formatter = new BytesFormat({}, getConfig);
 
     expect(formatter.convert(null)).toBe('(null)');

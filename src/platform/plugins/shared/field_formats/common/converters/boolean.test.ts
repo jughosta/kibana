@@ -18,17 +18,44 @@ describe('Boolean Format', () => {
   });
 
   [
-    { input: 0, expected: 'false' },
-    { input: 'no', expected: 'false' },
-    { input: false, expected: 'false' },
-    { input: 'false', expected: 'false' },
-    { input: 1, expected: 'true' },
-    { input: 'yes', expected: 'true' },
-    { input: true, expected: 'true' },
-    { input: 'true', expected: 'true' },
-    { input: ' True  ', expected: 'true' }, // should handle trailing and mixed case
+    {
+      input: 0,
+      expected: 'false',
+    },
+    {
+      input: 'no',
+      expected: 'false',
+    },
+    {
+      input: false,
+      expected: 'false',
+    },
+    {
+      input: 'false',
+      expected: 'false',
+    },
+    {
+      input: 1,
+      expected: 'true',
+    },
+    {
+      input: 'yes',
+      expected: 'true',
+    },
+    {
+      input: true,
+      expected: 'true',
+    },
+    {
+      input: 'true',
+      expected: 'true',
+    },
+    {
+      input: ' True  ', // should handle trailing and mixed case
+      expected: 'true',
+    },
   ].forEach((data) => {
-    test(`converts ${data.input} to boolean`, () => {
+    test(`convert ${data.input} to boolean`, () => {
       expect(boolean.convert(data.input)).toBe(data.expected);
       expect(boolean.convert(data.input, HTML_CONTEXT_TYPE)).toBe(data.expected);
       expect(boolean.reactConvert(data.input)).toBe(data.expected);
@@ -37,11 +64,12 @@ describe('Boolean Format', () => {
 
   test('does not convert non-boolean values, instead returning original value', () => {
     const s = 'non-boolean value!!';
+
     expect(boolean.convert(s)).toBe(s);
     expect(boolean.reactConvert(s)).toBe(s);
   });
 
-  test('handles missing values', () => {
+  test('handles a missing value', () => {
     expect(boolean.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(boolean.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(boolean.convert(null, HTML_CONTEXT_TYPE)).toBe(
@@ -66,7 +94,7 @@ describe('Boolean Format', () => {
     `);
   });
 
-  test('escapes HTML characters in html context', () => {
+  test('escapes HTML characters in html context via fallback', () => {
     expect(boolean.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );

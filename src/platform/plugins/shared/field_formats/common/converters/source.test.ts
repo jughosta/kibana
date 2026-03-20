@@ -12,10 +12,15 @@ import type { HtmlContextTypeConvert } from '../types';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 
 describe('Source Format', () => {
-  test('should render stringified object', () => {
-    const source = new SourceFormat({}, jest.fn());
-    const convertHtml = source.getConverterFor(HTML_CONTEXT_TYPE) as HtmlContextTypeConvert;
+  let convertHtml: Function;
 
+  beforeEach(() => {
+    const source = new SourceFormat({}, jest.fn());
+
+    convertHtml = source.getConverterFor(HTML_CONTEXT_TYPE) as HtmlContextTypeConvert;
+  });
+
+  test('should render stringified object', () => {
     const hit = {
       foo: 'bar',
       number: 42,
@@ -23,7 +28,7 @@ describe('Source Format', () => {
       also: 'with "quotes" or \'single quotes\'',
     };
 
-    expect(convertHtml(hit)).toMatchInlineSnapshot(
+    expect(convertHtml(hit, { field: 'field', hit })).toMatchInlineSnapshot(
       `"{&quot;foo&quot;:&quot;bar&quot;,&quot;number&quot;:42,&quot;hello&quot;:&quot;&lt;h1&gt;World&lt;/h1&gt;&quot;,&quot;also&quot;:&quot;with \\\\&quot;quotes\\\\&quot; or &#39;single quotes&#39;&quot;}"`
     );
   });

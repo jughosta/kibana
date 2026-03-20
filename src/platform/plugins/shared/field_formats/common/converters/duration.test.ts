@@ -11,7 +11,7 @@ import { DurationFormat } from './duration';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 
 describe('Duration Format', () => {
-  test('handles missing values', () => {
+  test('handles missing values in html context', () => {
     const duration = new DurationFormat(
       {
         inputFormat: 'seconds',
