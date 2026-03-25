@@ -11,7 +11,7 @@ import { i18n } from '@kbn/i18n';
 import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { asPrettyString, getHighlightReact, shortenDottedString } from '../utils';
 import { FieldFormat } from '../field_format';
-import type { ReactContextTypeConvert, TextContextTypeConvert } from '../types';
+import type { ReactContextTypeSingleConvert, TextContextTypeConvert } from '../types';
 import { FIELD_FORMAT_IDS } from '../types';
 
 const TRANSFORM_OPTIONS = [
@@ -130,12 +130,13 @@ export class StringFormat extends FieldFormat {
     }
   };
 
-  reactConvertSingle: ReactContextTypeConvert = (val, { hit, field } = {}) => {
+  reactConvertSingle: ReactContextTypeSingleConvert = (val, { hit, field } = {}) => {
     const missing = this.checkForMissingValueReact(val);
     if (missing) return missing;
 
-    if (hit?.highlight?.[field?.name!]) {
-      return getHighlightReact(this.textConvert(val), hit.highlight[field!.name]);
+    const fieldName = field?.name;
+    if (fieldName && hit?.highlight?.[fieldName]) {
+      return getHighlightReact(this.textConvert(val), hit.highlight[fieldName]);
     }
 
     return this.textConvert(val);

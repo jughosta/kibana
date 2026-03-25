@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import type { ReactNode, ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import { escape, transform, size, cloneDeep, get, defaults } from 'lodash';
@@ -133,7 +133,8 @@ export abstract class FieldFormat {
         // Note: checkForMissingValueReact is intentionally skipped here so those formatters can
         // apply their own missing-bucket label instead of the generic null placeholder.
         this.convert(val, 'text', options);
-    const highlights = options?.hit?.highlight?.[options?.field?.name!];
+    const fieldName = options?.field?.name;
+    const highlights = fieldName ? options?.hit?.highlight?.[fieldName] : undefined;
     return highlights ? getHighlightReact(formatted, highlights) : formatted;
   };
 
@@ -284,7 +285,9 @@ export abstract class FieldFormat {
           // Plain scalars must be HTML-escaped since the result is injected as raw HTML
           return escape(String(node));
         }
-        return ReactDOM.renderToStaticMarkup(node as ReactElement);
+        // Wrap in fragment to safely handle arrays and other non-element ReactNodes
+        const element = React.isValidElement(node) ? node : <>{node}</>;
+        return ReactDOM.renderToStaticMarkup(element);
       };
     }
 
@@ -314,5 +317,13 @@ export abstract class FieldFormat {
     if (val == null || val === MISSING_TOKEN) {
       return <span className="ffString__emptyValue">{NULL_LABEL}</span>;
     }
+  }
+
+  /**
+   * @deprecated Use checkForMissingValueReact() instead. This method exists only for
+   * backward compatibility with custom formatters that may override it.
+   */
+  protected checkForMissingValueHtml(val: unknown): string | void {
+    return checkForMissingValueHtml(val);
   }
 }

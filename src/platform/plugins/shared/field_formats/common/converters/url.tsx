@@ -14,7 +14,7 @@ import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { getHighlightReact } from '../utils';
 import { FieldFormat } from '../field_format';
 import type {
-  ReactContextTypeConvert,
+  ReactContextTypeSingleConvert,
   TextContextTypeConvert,
   FieldFormatMetaParams,
   FieldFormatParams,
@@ -135,16 +135,19 @@ export class UrlFormat extends FieldFormat {
     return this.formatLabel(value);
   };
 
-  reactConvertSingle: ReactContextTypeConvert = (rawValue: string | number, options = {}) => {
+  reactConvertSingle: ReactContextTypeSingleConvert = (rawValue, options = {}) => {
     const missing = this.checkForMissingValueReact(rawValue);
     if (missing) return missing;
+
+    // After the missing value check, rawValue is guaranteed to be a valid string or number
+    const value = rawValue as string | number;
 
     const { field, hit } = options;
     const { parsedUrl } = this._params;
     const { basePath, pathname, origin } = parsedUrl || {};
 
-    const url = this.formatUrl(rawValue);
-    const label = this.formatLabel(rawValue, url);
+    const url = this.formatUrl(value);
+    const label = this.formatLabel(value, url);
 
     switch (this.param('type')) {
       case 'audio':
@@ -207,9 +210,11 @@ export class UrlFormat extends FieldFormat {
         }
 
         const linkTarget = this.param('openLinkInCurrentTab') ? '_self' : '_blank';
-        const linkContent = hit?.highlight?.[field?.name!]
-          ? getHighlightReact(label, hit.highlight[field!.name])
-          : label;
+        const fieldName = field?.name;
+        const linkContent =
+          fieldName && hit?.highlight?.[fieldName]
+            ? getHighlightReact(label, hit.highlight[fieldName])
+            : label;
 
         return (
           <a href={`${prefix}${url}`} target={linkTarget} rel="noopener noreferrer">

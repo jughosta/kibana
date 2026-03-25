@@ -12,7 +12,7 @@ import React from 'react';
 import { findLast, cloneDeep } from 'lodash';
 import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { FieldFormat } from '../field_format';
-import type { ReactContextTypeConvert, TextContextTypeConvert } from '../types';
+import type { ReactContextTypeSingleConvert, TextContextTypeConvert } from '../types';
 import { FIELD_FORMAT_IDS } from '../types';
 import { asPrettyString } from '../utils';
 import { DEFAULT_CONVERTER_COLOR } from '../constants/color_default';
@@ -70,14 +70,16 @@ export class ColorFormat extends FieldFormat {
     return asPrettyString(val, options);
   };
 
-  reactConvertSingle: ReactContextTypeConvert = (val: string | number, options) => {
+  reactConvertSingle: ReactContextTypeSingleConvert = (val, options) => {
     const missing = this.checkForMissingValueReact(val);
     if (missing) {
       return missing;
     }
 
-    const color = this.findColorRuleForVal(val) as typeof DEFAULT_CONVERTER_COLOR;
-    const displayVal = asPrettyString(val, options);
+    // After the missing value check, val is guaranteed to be a valid string, number, or boolean
+    const value = val as string | number | boolean;
+    const color = this.findColorRuleForVal(value) as typeof DEFAULT_CONVERTER_COLOR;
+    const displayVal = asPrettyString(value, options);
 
     if (!color) return displayVal;
 

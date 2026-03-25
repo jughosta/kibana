@@ -13,7 +13,7 @@ import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { FieldFormat } from '../field_format';
 import type {
   HtmlContextTypeConvert,
-  ReactContextTypeConvert,
+  ReactContextTypeSingleConvert,
   TextContextTypeConvert,
 } from '../types';
 import { FIELD_FORMAT_IDS } from '../types';
@@ -138,7 +138,7 @@ export class StaticLookupFormat extends FieldFormat {
       : getHighlightHtml(formatted, hit.highlight[field.name]);
   };
 
-  reactConvertSingle: ReactContextTypeConvert = (val, options = {}) => {
+  reactConvertSingle: ReactContextTypeSingleConvert = (val, options = {}) => {
     const { result, isMissingValue } = this.lookup(val);
 
     if (isMissingValue) {
@@ -149,8 +149,9 @@ export class StaticLookupFormat extends FieldFormat {
     const { field, hit } = options;
     const formatted = String(result ?? '');
 
-    if (hit?.highlight?.[field?.name!]) {
-      return getHighlightReact(formatted, hit.highlight[field!.name]);
+    const fieldName = field?.name;
+    if (fieldName && hit?.highlight?.[fieldName]) {
+      return getHighlightReact(formatted, hit.highlight[fieldName]);
     }
 
     return formatted;
