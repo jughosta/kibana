@@ -99,7 +99,7 @@ The following formatters are defined within this plugin:
 
 ```typescript
 import { FieldFormat } from '@kbn/field-formats-plugin/common';
-import type { ReactContextTypeConvert, TextContextTypeConvert } from '@kbn/field-formats-plugin/common';
+import type { ReactContextTypeSingleConvert, TextContextTypeConvert } from '@kbn/field-formats-plugin/common';
 
 export class MyCustomFormat extends FieldFormat {
   static id = 'my_custom';
@@ -111,8 +111,8 @@ export class MyCustomFormat extends FieldFormat {
     return `Custom: ${value}`;
   };
 
-  // React conversion (recommended)
-  reactConvertSingle: ReactContextTypeConvert = (value) => {
+  // React conversion (recommended) - use ReactContextTypeSingleConvert for single-value converters
+  reactConvertSingle: ReactContextTypeSingleConvert = (value) => {
     return <span style={{ fontWeight: 'bold' }}>Custom: {value}</span>;
   };
 }

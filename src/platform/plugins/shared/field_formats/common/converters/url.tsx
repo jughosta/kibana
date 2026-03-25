@@ -158,7 +158,12 @@ export class UrlFormat extends FieldFormat {
         // If the URL hasn't been formatted to become a meaningful label then the best we can do
         // is tell screen readers where the image comes from.
         const imageLabel =
-          label === url ? `A dynamically-specified image located at ${url}` : label;
+          label === url
+            ? i18n.translate('fieldFormats.url.dynamicImageAltText', {
+                defaultMessage: 'A dynamically-specified image located at {url}',
+                values: { url },
+              })
+            : label;
         const parsedWidth = parseInt(this.param('width'), 10);
         const parsedHeight = parseInt(this.param('height'), 10);
         return (
