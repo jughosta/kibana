@@ -16,6 +16,7 @@ import type { DataViewSpec } from '../../../common/types';
 import { handleErrors } from './util/handle_errors';
 import { fieldSpecSchema, runtimeFieldSchema, serializedFieldFormatSchema } from '../../schemas';
 import { dataViewSpecSchema } from '../schema';
+import { ManagedDataViewError } from '../../../common/errors';
 import type {
   DataViewsServerPluginStartDependencies,
   DataViewsServerPluginStart,
@@ -69,6 +70,11 @@ export const updateDataView = async ({
 }: UpdateDataViewArgs) => {
   usageCollection?.incrementCounter({ counterName });
   const dataView = await dataViewsService.getDataViewLazy(id);
+
+  if (dataView.managed) {
+    throw new ManagedDataViewError(id);
+  }
+
   const {
     title,
     timeFieldName,

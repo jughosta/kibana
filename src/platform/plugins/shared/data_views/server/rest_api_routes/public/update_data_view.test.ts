@@ -10,13 +10,27 @@
 import { updateDataView } from './update_data_view';
 import { dataViewsService } from '../../mocks';
 import { getUsageCollection } from './test_utils';
+import { ManagedDataViewError } from '../../../common/errors';
+import type { DataViewLazy } from '../../../common';
 
-describe('get default data view', () => {
-  it('call usageCollection', async () => {
+describe('updateDataView', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls usageCollection', async () => {
     const usageCollection = getUsageCollection();
+    dataViewsService.getDataViewLazy.mockImplementation(
+      async () =>
+        ({
+          managed: false,
+          title: 'kibana*',
+        } as unknown as DataViewLazy)
+    );
+
     await updateDataView({
       dataViewsService,
-      counterName: 'GET /path',
+      counterName: 'POST /path',
       usageCollection,
       spec: {
         title: 'kibana*',
@@ -24,6 +38,46 @@ describe('get default data view', () => {
       id: 'abc',
       refreshFields: false,
     });
-    expect(usageCollection.incrementCounter).toBeCalledTimes(1);
+    expect(usageCollection.incrementCounter).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws ManagedDataViewError when data view is managed', async () => {
+    dataViewsService.getDataViewLazy.mockImplementation(
+      async () =>
+        ({
+          managed: true,
+          title: 'managed-pattern*',
+        } as unknown as DataViewLazy)
+    );
+
+    await expect(
+      updateDataView({
+        dataViewsService,
+        counterName: 'POST /path',
+        spec: { title: 'new-title*' },
+        id: 'managed-id',
+        refreshFields: false,
+      })
+    ).rejects.toThrow(ManagedDataViewError);
+
+    expect(dataViewsService.updateSavedObject).not.toHaveBeenCalled();
+  });
+
+  it('allows update when data view is not managed', async () => {
+    const mockDataView = {
+      managed: false,
+      title: 'old-title*',
+    } as unknown as DataViewLazy;
+    dataViewsService.getDataViewLazy.mockImplementation(async () => mockDataView);
+
+    await updateDataView({
+      dataViewsService,
+      counterName: 'POST /path',
+      spec: { title: 'new-title*' },
+      id: 'regular-id',
+      refreshFields: false,
+    });
+
+    expect(dataViewsService.updateSavedObject).toHaveBeenCalledWith(mockDataView);
   });
 });
