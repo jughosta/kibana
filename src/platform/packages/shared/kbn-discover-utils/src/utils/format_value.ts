@@ -80,7 +80,7 @@ export function formatFieldValueReact(
   field?: DataViewField,
   options?: ReactContextTypeOptions
 ): ReactNode {
-  const converterOptions: ReactContextTypeOptions = { hit, field, ...options };
+  const converterOptions: ReactContextTypeOptions = { ...options, hit, field };
 
   const formatter =
     !dataView || !field

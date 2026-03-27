@@ -135,7 +135,10 @@ export abstract class FieldFormat {
         this.convert(val, 'text', options);
     const fieldName = options?.field?.name;
     const highlights = fieldName ? options?.hit?.highlight?.[fieldName] : undefined;
-    return highlights ? getHighlightReact(formatted, highlights) : formatted;
+    // getHighlightReact expects a string; guard against edge cases where convert() returns non-string
+    return highlights && typeof formatted === 'string'
+      ? getHighlightReact(formatted, highlights)
+      : formatted;
   };
 
   /**
@@ -277,8 +280,8 @@ export abstract class FieldFormat {
     if (!htmlConverter) {
       const reactConvert = this.reactConvert.bind(this);
       htmlConverter = (value, options) => {
-        const missing = checkForMissingValueHtml(value);
-        if (missing) return missing;
+        // Let reactConvert handle missing value detection so formatters can customize behavior
+        // (e.g., StaticLookupFormat mapping '' to a custom label).
         const node = reactConvert(value, options);
         if (node == null) return '';
         if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {

@@ -107,7 +107,7 @@ export class UrlFormat extends FieldFormat {
     // trim all the odd bits, the variable names
     const parts = template.split(templateMatchRE).map((part, i) => (i % 2 ? part.trim() : part));
 
-    return function (locals: Record<string, string>): string {
+    return function (locals: Record<string, string | number>): string {
       // replace all the odd bits with their local var
       let output = '';
       let i = -1;

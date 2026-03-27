@@ -29,6 +29,9 @@ export function getHighlightReact(
   let result = text;
   for (const highlight of highlights) {
     const untagged = highlight.split(highlightTags.pre).join('').split(highlightTags.post).join('');
+    if (untagged.length === 0) {
+      continue;
+    }
     result = result.split(untagged).join(highlight);
   }
 
