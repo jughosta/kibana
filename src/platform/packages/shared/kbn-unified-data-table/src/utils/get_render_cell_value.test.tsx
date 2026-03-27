@@ -17,7 +17,7 @@ import {
   dataViewMock,
   createDataViewWithBytesField,
   columnsMetaOverridingBytesType,
-  createFormatFieldValueSpy,
+  createFormatFieldValueReactSpy,
   expectFieldCallToMatch,
 } from '@kbn/discover-utils/src/__mocks__';
 import type { DataView } from '@kbn/data-views-plugin/public';
@@ -1009,7 +1009,7 @@ describe('Unified data table cell rendering', function () {
 
   describe('columnsMeta handling for _source column', () => {
     it('should use data view field type when columnsMeta is undefined', () => {
-      const formatFieldValueSpy = createFormatFieldValueSpy();
+      const formatFieldValueReactSpy = createFormatFieldValueReactSpy();
       const testDataView = createDataViewWithBytesField();
 
       const rows = [
@@ -1046,12 +1046,12 @@ describe('Unified data table cell rendering', function () {
         />
       );
 
-      expectFieldCallToMatch(formatFieldValueSpy, 'bytes', 'number');
-      formatFieldValueSpy.mockRestore();
+      expectFieldCallToMatch(formatFieldValueReactSpy, 'bytes', 'number');
+      formatFieldValueReactSpy.mockRestore();
     });
 
     it('should use columnsMeta type instead of data view field type when provided', () => {
-      const formatFieldValueSpy = createFormatFieldValueSpy();
+      const formatFieldValueReactSpy = createFormatFieldValueReactSpy();
       const testDataView = createDataViewWithBytesField();
 
       const rows = [
@@ -1088,8 +1088,8 @@ describe('Unified data table cell rendering', function () {
         />
       );
 
-      expectFieldCallToMatch(formatFieldValueSpy, 'bytes', 'string', ['keyword']);
-      formatFieldValueSpy.mockRestore();
+      expectFieldCallToMatch(formatFieldValueReactSpy, 'bytes', 'string', ['keyword']);
+      formatFieldValueReactSpy.mockRestore();
     });
   });
 });

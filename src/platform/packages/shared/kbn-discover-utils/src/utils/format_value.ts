@@ -23,6 +23,10 @@ import type { EsHitRecord } from '../types';
  * Formats the value of a specific field using the appropriate field formatter if available
  * or the default string field formatter otherwise.
  *
+ * @deprecated Use `formatFieldValueReact` instead for React components to avoid dangerouslySetInnerHTML.
+ * This function returns HTML strings and should only be used when `contentType: 'text'` is needed,
+ * or in legacy code paths that haven't been migrated yet (e.g., UnifiedDocViewer, SummaryColumn).
+ *
  * @param value The value to format
  * @param hit The actual search hit (required to get highlight information from)
  * @param fieldFormats Field formatters
