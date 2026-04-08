@@ -67,6 +67,7 @@ export {
   dismissAllFlyoutsExceptFor,
   dismissFlyouts,
   prepareDataViewForEditing,
+  getEsqlDataView,
   LogLevelBadge,
   getDefaultSort,
   getSort,
@@ -75,6 +76,7 @@ export {
   getEsQuerySort,
   getTieBreakerFieldName,
   escapeAndPreserveHighlightTags,
+  getHighlightedFieldValue,
   severityOrder,
 } from './src';
 
