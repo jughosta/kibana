@@ -37,7 +37,6 @@ const formattedHitReactCache = new WeakMap<
 
 /**
  * Returns a formatted document in form of key/value pairs where the value is a ReactNode
- * that can be rendered directly without dangerouslySetInnerHTML.
  * @param hit
  * @param dataView
  * @param shouldShowFieldHandler

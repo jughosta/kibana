@@ -71,7 +71,6 @@ type FormattedHitReactPair = readonly [
 
 /**
  * Pairs array for each field in the hit where values are ReactNodes
- * that can be rendered directly without dangerouslySetInnerHTML.
  */
 export type FormattedHitReact = FormattedHitReactPair[];
 
