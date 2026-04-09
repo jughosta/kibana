@@ -10,6 +10,7 @@
 import { UrlFormat } from './url';
 import { TEXT_CONTEXT_TYPE, HTML_CONTEXT_TYPE } from '../content_types';
 import { highlightTags } from '../utils/highlight/highlight_tags';
+import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
 
 describe('UrlFormat', () => {
   const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
@@ -63,27 +64,9 @@ describe('UrlFormat', () => {
     expect(url.convert('', HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(blank)</span>'
     );
-    expect(url.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(url.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(url.reactConvert('')).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (blank)
-      </span>
-    `);
+    expectReactElementWithNull(url.reactConvert(null));
+    expectReactElementWithNull(url.reactConvert(undefined));
+    expectReactElementWithBlank(url.reactConvert(''));
   });
 
   test('outputs an <audio> if type === "audio"', () => {

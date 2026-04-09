@@ -9,6 +9,7 @@
 
 import { BoolFormat } from './boolean';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('Boolean Format', () => {
   let boolean: BoolFormat;
@@ -78,20 +79,8 @@ describe('Boolean Format', () => {
     expect(boolean.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(boolean.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(boolean.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(boolean.reactConvert(null));
+    expectReactElementWithNull(boolean.reactConvert(undefined));
   });
 
   test('escapes HTML characters in html context via fallback', () => {
@@ -109,28 +98,7 @@ describe('Boolean Format', () => {
     expect(boolean.convert([true, false], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>true<span class="ffArray__highlight">,</span> false<span class="ffArray__highlight">]</span>'
     );
-    expect(boolean.reactConvert([true, false])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        true
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        false
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(boolean.reactConvert([true, false]), ['true', 'false']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

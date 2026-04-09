@@ -9,6 +9,7 @@
 
 import { NULL_LABEL, EMPTY_LABEL } from '@kbn/field-formats-common';
 import { StaticLookupFormat } from './static_lookup';
+import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
 
 describe('StaticLookupFormat', () => {
   let formatter: StaticLookupFormat;
@@ -36,13 +37,7 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatter.reactConvert(null));
     });
 
     test('undefined stays undefined and shows null label', () => {
@@ -50,13 +45,7 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatter.reactConvert(undefined));
     });
 
     test('maps known key to configured value', () => {
@@ -88,20 +77,8 @@ describe('StaticLookupFormat', () => {
       });
       expect(formatterWithoutUnknown.convert(null, 'text')).toBe(NULL_LABEL);
       expect(formatterWithoutUnknown.convert(undefined, 'text')).toBe(NULL_LABEL);
-      expect(formatterWithoutUnknown.reactConvert(null)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
-      expect(formatterWithoutUnknown.reactConvert(undefined)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatterWithoutUnknown.reactConvert(null));
+      expectReactElementWithNull(formatterWithoutUnknown.reactConvert(undefined));
     });
 
     test('falls back to unknownKeyValue for an empty string when no mapping exists', () => {
@@ -123,13 +100,7 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithoutUnknown.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
-      expect(formatterWithoutUnknown.reactConvert('')).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (blank)
-        </span>
-      `);
+      expectReactElementWithBlank(formatterWithoutUnknown.reactConvert(''));
     });
   });
 
@@ -163,13 +134,7 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithUndefinedKeyEmptyValue.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
-      expect(formatterWithUndefinedKeyEmptyValue.reactConvert('')).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (blank)
-        </span>
-      `);
+      expectReactElementWithBlank(formatterWithUndefinedKeyEmptyValue.reactConvert(''));
     });
 
     test('correctly maps to 0 value (does not fall back to unknownKeyValue)', () => {
@@ -203,26 +168,14 @@ describe('StaticLookupFormat', () => {
       expect(formatter.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatter.reactConvert(null));
     });
 
     test('undefined stays undefined and shows null label HTML', () => {
       expect(formatter.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatter.reactConvert(undefined));
     });
 
     test('maps known key to configured value and escapes HTML', () => {
@@ -278,37 +231,19 @@ describe('StaticLookupFormat', () => {
       expect(formatterWithoutCustomMapping.convert('', 'html')).toBe(
         '<span class="ffString__emptyValue">(blank)</span>'
       );
-      expect(formatterWithoutCustomMapping.reactConvert('')).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (blank)
-        </span>
-      `);
+      expectReactElementWithBlank(formatterWithoutCustomMapping.reactConvert(''));
 
       // Null should show (null) since textConvert returns the original null
       expect(formatterWithoutCustomMapping.convert(null, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatterWithoutCustomMapping.reactConvert(null)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatterWithoutCustomMapping.reactConvert(null));
 
       // Undefined should show (null) since textConvert returns the original undefined
       expect(formatterWithoutCustomMapping.convert(undefined, 'html')).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(formatterWithoutCustomMapping.reactConvert(undefined)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(formatterWithoutCustomMapping.reactConvert(undefined));
 
       // Unknown value should fall back to original value since unknownKeyValue is null
       expect(formatterWithoutCustomMapping.convert('unknown', 'html')).toBe('unknown');

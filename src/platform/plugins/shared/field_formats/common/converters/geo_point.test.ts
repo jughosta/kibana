@@ -9,6 +9,7 @@
 
 import { GeoPointFormat } from './geo_point';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull } from '../test_utils';
 
 describe('GeoPoint Format', () => {
   describe('output format', () => {
@@ -121,20 +122,8 @@ describe('GeoPoint Format', () => {
       expect(geoPointFormat.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
         '<span class="ffString__emptyValue">(null)</span>'
       );
-      expect(geoPointFormat.reactConvert(null)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
-      expect(geoPointFormat.reactConvert(undefined)).toMatchInlineSnapshot(`
-        <span
-          className="ffString__emptyValue"
-        >
-          (null)
-        </span>
-      `);
+      expectReactElementWithNull(geoPointFormat.reactConvert(null));
+      expectReactElementWithNull(geoPointFormat.reactConvert(undefined));
     });
 
     test('escapes HTML characters in html context via fallback', () => {

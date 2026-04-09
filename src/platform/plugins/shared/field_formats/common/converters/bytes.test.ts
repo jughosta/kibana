@@ -11,6 +11,7 @@ import { BytesFormat } from './bytes';
 import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import type { FieldFormatsGetConfigFn } from '../types';
 import { HTML_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull } from '../test_utils';
 
 describe('BytesFormat', () => {
   const config: { [key: string]: string } = {
@@ -46,20 +47,8 @@ describe('BytesFormat', () => {
     expect(formatter.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(formatter.reactConvert(null));
+    expectReactElementWithNull(formatter.reactConvert(undefined));
   });
 
   test('wraps a multi-value array with bracket notation', () => {

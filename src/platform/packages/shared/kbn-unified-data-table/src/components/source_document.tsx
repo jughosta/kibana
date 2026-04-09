@@ -114,8 +114,8 @@ function getTopLevelObjectPairsReact(
   const innerColumns = getInnerColumns(row.fields as Record<string, unknown[]>, columnId);
   // Put the most important fields first
   const highlights: Record<string, unknown> = (row.highlight as Record<string, unknown>) ?? {};
-  const highlightPairs: Array<[string, ReactNode, string]> = [];
-  const sourcePairs: Array<[string, ReactNode, string]> = [];
+  const highlightPairs: FormattedHitReact = [];
+  const sourcePairs: FormattedHitReact = [];
   Object.entries(innerColumns).forEach(([key, values]) => {
     const subField = getDataViewFieldOrCreateFromColumnMeta({
       dataView,
