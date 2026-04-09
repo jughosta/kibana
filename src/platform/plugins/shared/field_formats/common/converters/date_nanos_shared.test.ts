@@ -169,7 +169,7 @@ describe('Date Nanos Format', () => {
         >
           ,
         </span>
-
+         
         Dec 31, 2019 @ 17:00:00.000000000
         <span
           className="ffArray__highlight"

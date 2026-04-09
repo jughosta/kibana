@@ -14,6 +14,15 @@ const EMPTY_VALUE_CLASS = 'ffString__emptyValue';
 const ARRAY_HIGHLIGHT_CLASS = 'ffArray__highlight';
 
 /**
+ * Asserts that a React element is actually a plain string (not a React element).
+ * This is used when reactConvert returns the value as-is without wrapping.
+ */
+export const expectReactElementAsString = (element: React.ReactNode, expectedValue: string) => {
+  expect(typeof element).toBe('string');
+  expect(element).toBe(expectedValue);
+};
+
+/**
  * Asserts that a React element represents a null value display.
  * Expects a span with className "ffString__emptyValue" and text "(null)".
  */

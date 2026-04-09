@@ -16,6 +16,7 @@ import { asPrettyString } from './utils';
 import { highlightTags } from './utils/highlight/highlight_tags';
 import type { FieldFormatParams, HtmlContextTypeOptions, TextContextTypeOptions } from './types';
 import { NULL_LABEL } from '@kbn/field-formats-common';
+import { expectReactElementAsString } from './test_utils';
 
 const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
 const renderReact = (node: React.ReactNode) =>
@@ -232,12 +233,12 @@ describe('FieldFormat class', () => {
     describe('default reactConvert array support', () => {
       test('returns empty string for an empty array', () => {
         const f = getTestFormat(undefined, (v) => String(v));
-        expect(f.reactConvert([])).toBe('');
+        expectReactElementAsString(f.reactConvert([]), '');
       });
 
       test('returns the single element without brackets for a one-element array', () => {
         const f = getTestFormat(undefined, (v) => String(v));
-        expect(f.reactConvert(['hello'])).toBe('hello');
+        expectReactElementAsString(f.reactConvert(['hello']), 'hello');
       });
 
       test('wraps multi-element arrays with styled brackets and comma separators', () => {
@@ -301,17 +302,21 @@ describe('FieldFormat class', () => {
 
       test('returns plain text from reactConvert when no highlights are present', () => {
         const f = getTestFormat(undefined, constant('lorem ipsum'));
-        const result = f.reactConvert('lorem ipsum', { field: { name: 'myField' }, hit: {} });
-        expect(result).toBe('lorem ipsum');
+        expectReactElementAsString(
+          f.reactConvert('lorem ipsum', { field: { name: 'myField' }, hit: {} }),
+          'lorem ipsum'
+        );
       });
 
       test('returns plain text from reactConvert when highlight is for a different field', () => {
         const f = getTestFormat(undefined, constant('lorem ipsum'));
-        const result = f.reactConvert('lorem ipsum', {
-          field: { name: 'myField' },
-          hit: { highlight: { otherField: [`lorem ${hl('ipsum')}`] } },
-        });
-        expect(result).toBe('lorem ipsum');
+        expectReactElementAsString(
+          f.reactConvert('lorem ipsum', {
+            field: { name: 'myField' },
+            hit: { highlight: { otherField: [`lorem ${hl('ipsum')}`] } },
+          }),
+          'lorem ipsum'
+        );
       });
 
       test('produces <mark> in HTML output via bridge when highlights are present', () => {
@@ -334,7 +339,8 @@ describe('FieldFormat class', () => {
 
       test('returns plain text for convert() override formatters when no highlights present', () => {
         const f = getConvertOverrideFormat();
-        expect(f.reactConvert('ipsum', { field: { name: 'myField' }, hit: {} })).toBe(
+        expectReactElementAsString(
+          f.reactConvert('ipsum', { field: { name: 'myField' }, hit: {} }),
           'formatted:ipsum'
         );
       });

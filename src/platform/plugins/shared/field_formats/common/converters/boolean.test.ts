@@ -9,7 +9,11 @@
 
 import { BoolFormat } from './boolean';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
-import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
+import {
+  expectReactElementAsString,
+  expectReactElementWithNull,
+  expectReactElementAsArray,
+} from '../test_utils';
 
 describe('Boolean Format', () => {
   let boolean: BoolFormat;
@@ -59,7 +63,7 @@ describe('Boolean Format', () => {
     test(`convert ${data.input} to boolean`, () => {
       expect(boolean.convert(data.input)).toBe(data.expected);
       expect(boolean.convert(data.input, HTML_CONTEXT_TYPE)).toBe(data.expected);
-      expect(boolean.reactConvert(data.input)).toBe(data.expected);
+      expectReactElementAsString(boolean.reactConvert(data.input), data.expected);
     });
   });
 
@@ -67,7 +71,7 @@ describe('Boolean Format', () => {
     const s = 'non-boolean value!!';
 
     expect(boolean.convert(s)).toBe(s);
-    expect(boolean.reactConvert(s)).toBe(s);
+    expectReactElementAsString(boolean.reactConvert(s), s);
   });
 
   test('handles a missing value', () => {
@@ -88,7 +92,8 @@ describe('Boolean Format', () => {
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );
     // reactConvert returns the same as textConvert - the HTML bridge handles escaping
-    expect(boolean.reactConvert('<script>alert("test")</script>')).toBe(
+    expectReactElementAsString(
+      boolean.reactConvert('<script>alert("test")</script>'),
       '<script>alert("test")</script>'
     );
   });
@@ -104,6 +109,6 @@ describe('Boolean Format', () => {
   test('returns the single element without brackets for a one-element array', () => {
     expect(boolean.convert([true], TEXT_CONTEXT_TYPE)).toBe('["true"]');
     expect(boolean.convert([true], HTML_CONTEXT_TYPE)).toBe('true');
-    expect(boolean.reactConvert([true])).toBe('true');
+    expectReactElementAsString(boolean.reactConvert([true]), 'true');
   });
 });

@@ -12,6 +12,7 @@ import { HTML_CONTEXT_TYPE } from '../content_types';
 import { highlightTags } from '../utils/highlight/highlight_tags';
 import { StringFormat } from './string';
 import {
+  expectReactElementAsString,
   expectReactElementWithNull,
   expectReactElementWithBlank,
   expectReactElementAsArray,
@@ -37,7 +38,7 @@ describe('String Format', () => {
     );
     expect(string.convert('Kibana')).toBe('kibana');
     expect(stripSpan(string.convert('Kibana', 'html'))).toBe('kibana');
-    expect(string.reactConvert('Kibana')).toBe('kibana');
+    expectReactElementAsString(string.reactConvert('Kibana'), 'kibana');
   });
 
   test('convert a string to upper case', () => {
@@ -49,7 +50,7 @@ describe('String Format', () => {
     );
     expect(string.convert('Kibana')).toBe('KIBANA');
     expect(stripSpan(string.convert('Kibana', 'html'))).toBe('KIBANA');
-    expect(string.reactConvert('Kibana')).toBe('KIBANA');
+    expectReactElementAsString(string.reactConvert('Kibana'), 'KIBANA');
   });
 
   test('decode a base64 string', () => {
@@ -61,7 +62,7 @@ describe('String Format', () => {
     );
     expect(string.convert('Zm9vYmFy')).toBe('foobar');
     expect(stripSpan(string.convert('Zm9vYmFy', 'html'))).toBe('foobar');
-    expect(string.reactConvert('Zm9vYmFy')).toBe('foobar');
+    expectReactElementAsString(string.reactConvert('Zm9vYmFy'), 'foobar');
   });
 
   test('convert a string to title case', () => {
@@ -73,19 +74,20 @@ describe('String Format', () => {
     );
     expect(string.convert('PLEASE DO NOT SHOUT')).toBe('Please Do Not Shout');
     expect(stripSpan(string.convert('PLEASE DO NOT SHOUT', 'html'))).toBe('Please Do Not Shout');
-    expect(string.reactConvert('PLEASE DO NOT SHOUT')).toBe('Please Do Not Shout');
+    expectReactElementAsString(string.reactConvert('PLEASE DO NOT SHOUT'), 'Please Do Not Shout');
     expect(string.convert('Mean, variance and standard_deviation.')).toBe(
       'Mean, Variance And Standard_deviation.'
     );
     expect(stripSpan(string.convert('Mean, variance and standard_deviation.', 'html'))).toBe(
       'Mean, Variance And Standard_deviation.'
     );
-    expect(string.reactConvert('Mean, variance and standard_deviation.')).toBe(
+    expectReactElementAsString(
+      string.reactConvert('Mean, variance and standard_deviation.'),
       'Mean, Variance And Standard_deviation.'
     );
     expect(string.convert('Stay CALM!')).toBe('Stay Calm!');
     expect(stripSpan(string.convert('Stay CALM!', 'html'))).toBe('Stay Calm!');
-    expect(string.reactConvert('Stay CALM!')).toBe('Stay Calm!');
+    expectReactElementAsString(string.reactConvert('Stay CALM!'), 'Stay Calm!');
   });
 
   test('convert a string to short case', () => {
@@ -97,7 +99,7 @@ describe('String Format', () => {
     );
     expect(string.convert('dot.notated.string')).toBe('d.n.string');
     expect(stripSpan(string.convert('dot.notated.string', 'html'))).toBe('d.n.string');
-    expect(string.reactConvert('dot.notated.string')).toBe('d.n.string');
+    expectReactElementAsString(string.reactConvert('dot.notated.string'), 'd.n.string');
   });
 
   test('convert a string to unknown transform case', () => {
@@ -109,7 +111,7 @@ describe('String Format', () => {
     );
     const value = 'test test test';
     expect(string.convert(value)).toBe(value);
-    expect(string.reactConvert(value)).toBe(value);
+    expectReactElementAsString(string.reactConvert(value), value);
   });
 
   test('decode a URL Param string', () => {
@@ -123,7 +125,8 @@ describe('String Format', () => {
     expect(
       stripSpan(string.convert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98', 'html'))
     ).toBe('안녕 키바나');
-    expect(string.reactConvert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98')).toBe(
+    expectReactElementAsString(
+      string.reactConvert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98'),
       '안녕 키바나'
     );
   });
@@ -182,7 +185,8 @@ describe('String Format', () => {
     expect(string.convert('<script>alert("test")</script>', HTML_CONTEXT_TYPE)).toBe(
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );
-    expect(string.reactConvert('<script>alert("test")</script>')).toBe(
+    expectReactElementAsString(
+      string.reactConvert('<script>alert("test")</script>'),
       '<script>alert("test")</script>'
     );
   });
@@ -202,7 +206,7 @@ describe('String Format', () => {
 
     expect(string.convert(['hello'], 'text')).toBe('["hello"]');
     expect(string.convert(['hello'], HTML_CONTEXT_TYPE)).toBe('hello');
-    expect(string.reactConvert(['hello'])).toBe('hello');
+    expectReactElementAsString(string.reactConvert(['hello']), 'hello');
   });
 
   test('returns empty for an empty array', () => {
@@ -210,6 +214,6 @@ describe('String Format', () => {
 
     expect(string.convert([], 'text')).toBe('[]');
     expect(string.convert([], HTML_CONTEXT_TYPE)).toBe('');
-    expect(string.reactConvert([])).toBe('');
+    expectReactElementAsString(string.reactConvert([]), '');
   });
 });
