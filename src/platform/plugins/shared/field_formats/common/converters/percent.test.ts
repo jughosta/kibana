@@ -10,6 +10,7 @@
 import { PercentFormat } from './percent';
 import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('PercentFormat', () => {
   const config: { [key: string]: string } = {
@@ -45,20 +46,8 @@ describe('PercentFormat', () => {
     expect(formatter.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(formatter.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(formatter.reactConvert(null));
+    expectReactElementWithNull(formatter.reactConvert(undefined));
   });
 
   test('wraps a multi-value array with bracket notation', () => {
@@ -68,28 +57,7 @@ describe('PercentFormat', () => {
     expect(formatter.convert([0.5, 0.75], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>50%<span class="ffArray__highlight">,</span> 75%<span class="ffArray__highlight">]</span>'
     );
-    expect(formatter.reactConvert([0.5, 0.75])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        50%
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        75%
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(formatter.reactConvert([0.5, 0.75]), ['50%', '75%']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

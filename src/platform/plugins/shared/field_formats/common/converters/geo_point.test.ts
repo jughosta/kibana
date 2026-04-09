@@ -9,7 +9,7 @@
 
 import { GeoPointFormat } from './geo_point';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
-import { expectReactElementWithNull } from '../test_utils';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('GeoPoint Format', () => {
   describe('output format', () => {
@@ -164,33 +164,13 @@ describe('GeoPoint Format', () => {
       ).toBe(
         '<span class="ffArray__highlight">[</span>10.1,125.6<span class="ffArray__highlight">,</span> 51.5,0<span class="ffArray__highlight">]</span>'
       );
-      expect(
+      expectReactElementAsArray(
         geoPointFormat.reactConvert([
           { type: 'Point', coordinates: [125.6, 10.1] },
           { type: 'Point', coordinates: [0, 51.5] },
-        ])
-      ).toMatchInlineSnapshot(`
-        <React.Fragment>
-          <span
-            className="ffArray__highlight"
-          >
-            [
-          </span>
-          10.1,125.6
-          <span
-            className="ffArray__highlight"
-          >
-            ,
-          </span>
-           
-          51.5,0
-          <span
-            className="ffArray__highlight"
-          >
-            ]
-          </span>
-        </React.Fragment>
-      `);
+        ]),
+        ['10.1,125.6', '51.5,0']
+      );
     });
 
     test('returns the single element without brackets for a one-element array', () => {

@@ -11,6 +11,11 @@ import { EMPTY_LABEL, NULL_LABEL } from '@kbn/field-formats-common';
 import { HTML_CONTEXT_TYPE } from '../content_types';
 import { highlightTags } from '../utils/highlight/highlight_tags';
 import { StringFormat } from './string';
+import {
+  expectReactElementWithNull,
+  expectReactElementWithBlank,
+  expectReactElementAsArray,
+} from '../test_utils';
 
 /**
  * Removes a wrapping span, that is created by the field formatter infrastructure
@@ -129,13 +134,7 @@ describe('String Format', () => {
     expect(stripSpan(string.convert('', HTML_CONTEXT_TYPE))).toBe(
       `<span class="ffString__emptyValue">${EMPTY_LABEL}</span>`
     );
-    expect(string.reactConvert('')).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (blank)
-      </span>
-    `);
+    expectReactElementWithBlank(string.reactConvert(''));
   });
 
   test('outputs specific missing value', () => {
@@ -148,20 +147,8 @@ describe('String Format', () => {
     expect(stripSpan(string.convert(undefined, HTML_CONTEXT_TYPE))).toBe(
       `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
     );
-    expect(string.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(string.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(string.reactConvert(null));
+    expectReactElementWithNull(string.reactConvert(undefined));
   });
 
   test('does escape value while highlighting', () => {
@@ -207,28 +194,7 @@ describe('String Format', () => {
     expect(string.convert(['foo', 'bar'], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>foo<span class="ffArray__highlight">,</span> bar<span class="ffArray__highlight">]</span>'
     );
-    expect(string.reactConvert(['foo', 'bar'])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        foo
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        bar
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(string.reactConvert(['foo', 'bar']), ['foo', 'bar']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

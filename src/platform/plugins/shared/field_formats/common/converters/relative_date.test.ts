@@ -11,6 +11,7 @@ import React from 'react';
 import moment from 'moment-timezone';
 import { RelativeDateFormat } from './relative_date';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull } from '../test_utils';
 
 describe('Relative Date Format', () => {
   // Use a fixed date to avoid time-dependent output in array assertions
@@ -34,20 +35,8 @@ describe('Relative Date Format', () => {
     expect(convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(reactConvert(null));
+    expectReactElementWithNull(reactConvert(undefined));
   });
 
   test('decoding invalid date should echo invalid value', () => {

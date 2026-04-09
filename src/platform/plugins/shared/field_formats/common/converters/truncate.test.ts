@@ -9,6 +9,11 @@
 
 import { TruncateFormat } from './truncate';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import {
+  expectReactElementWithNull,
+  expectReactElementWithBlank,
+  expectReactElementAsArray,
+} from '../test_utils';
 
 describe('String TruncateFormat', () => {
   test('truncate large string', () => {
@@ -63,27 +68,9 @@ describe('String TruncateFormat', () => {
     expect(truncate.convert('', HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(blank)</span>'
     );
-    expect(truncate.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(truncate.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(truncate.reactConvert('')).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (blank)
-      </span>
-    `);
+    expectReactElementWithNull(truncate.reactConvert(null));
+    expectReactElementWithNull(truncate.reactConvert(undefined));
+    expectReactElementWithBlank(truncate.reactConvert(''));
   });
 
   test('escapes HTML characters in html context', () => {
@@ -132,28 +119,10 @@ describe('String TruncateFormat', () => {
     expect(truncate.convert(['hello world', 'foo bar'], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>hell...<span class="ffArray__highlight">,</span> foo bar<span class="ffArray__highlight">]</span>'
     );
-    expect(truncate.reactConvert(['hello world', 'foo bar'])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        hell...
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        foo bar
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(truncate.reactConvert(['hello world', 'foo bar']), [
+      'hell...',
+      'foo bar',
+    ]);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

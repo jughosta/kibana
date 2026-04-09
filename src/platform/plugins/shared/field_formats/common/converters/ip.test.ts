@@ -9,6 +9,7 @@
 
 import { IpFormat } from './ip';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('IP Address Format', () => {
   let ip: IpFormat;
@@ -32,20 +33,8 @@ describe('IP Address Format', () => {
     expect(ip.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(ip.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(ip.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(ip.reactConvert(null));
+    expectReactElementWithNull(ip.reactConvert(undefined));
   });
 
   test('escapes HTML characters in html context via fallback', () => {
@@ -64,28 +53,10 @@ describe('IP Address Format', () => {
     expect(ip.convert([1186489492, 16777343], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>70.184.100.148<span class="ffArray__highlight">,</span> 1.0.0.127<span class="ffArray__highlight">]</span>'
     );
-    expect(ip.reactConvert([1186489492, 16777343])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        70.184.100.148
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        1.0.0.127
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(ip.reactConvert([1186489492, 16777343]), [
+      '70.184.100.148',
+      '1.0.0.127',
+    ]);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

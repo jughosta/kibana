@@ -11,6 +11,7 @@ import moment from 'moment-timezone';
 import { DateNanosFormat, analysePatternForFract, formatWithNanos } from './date_nanos_shared';
 import type { FieldFormatsGetConfigFn } from '../types';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull } from '../test_utils';
 
 describe('Date Nanos Format', () => {
   let convert: Function;
@@ -82,20 +83,8 @@ describe('Date Nanos Format', () => {
     expect(convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(date.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(date.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(date.reactConvert(null));
+    expectReactElementWithNull(date.reactConvert(undefined));
   });
 
   test('should clear the memoization cache after changing the date', () => {
@@ -180,7 +169,7 @@ describe('Date Nanos Format', () => {
         >
           ,
         </span>
-         
+
         Dec 31, 2019 @ 17:00:00.000000000
         <span
           className="ffArray__highlight"

@@ -9,6 +9,7 @@
 
 import { DurationFormat } from './duration';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('Duration Format', () => {
   test('handles missing values in html context', () => {
@@ -27,20 +28,8 @@ describe('Duration Format', () => {
     expect(duration.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(duration.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(duration.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(duration.reactConvert(null));
+    expectReactElementWithNull(duration.reactConvert(undefined));
   });
 
   test('returns a plain string for a numeric duration', () => {
@@ -64,28 +53,7 @@ describe('Duration Format', () => {
     expect(formatter.convert([60, 3600], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>a minute<span class="ffArray__highlight">,</span> an hour<span class="ffArray__highlight">]</span>'
     );
-    expect(formatter.reactConvert([60, 3600])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        a minute
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        an hour
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(formatter.reactConvert([60, 3600]), ['a minute', 'an hour']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

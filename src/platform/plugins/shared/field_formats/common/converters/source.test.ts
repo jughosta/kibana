@@ -10,6 +10,7 @@
 import { SourceFormat } from './source';
 import type { HtmlContextTypeConvert } from '../types';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('Source Format', () => {
   let convertHtml: Function;
@@ -52,20 +53,8 @@ describe('Source Format', () => {
     expect(source.convert(undefined, HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffString__emptyValue">(null)</span>'
     );
-    expect(source.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(source.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(source.reactConvert(null));
+    expectReactElementWithNull(source.reactConvert(undefined));
   });
 
   test('wraps a multi-value array with bracket notation', () => {
@@ -77,28 +66,7 @@ describe('Source Format', () => {
     expect(source.convert([{ a: 1 }, { b: 2 }], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>{&quot;a&quot;:1}<span class="ffArray__highlight">,</span> {&quot;b&quot;:2}<span class="ffArray__highlight">]</span>'
     );
-    expect(source.reactConvert([{ a: 1 }, { b: 2 }])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        {"a":1}
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        {"b":2}
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(source.reactConvert([{ a: 1 }, { b: 2 }]), ['{"a":1}', '{"b":2}']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

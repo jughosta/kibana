@@ -40,50 +40,41 @@ export const expectReactElementWithBlank = (element: React.ReactNode) => {
  * Expects a React.Fragment with [value1, value2, ...] structure where
  * brackets and commas are wrapped in spans with className "ffArray__highlight".
  */
-export const expectReactElementAsArray = (
-  element: React.ReactNode,
-  expectedValues: Array<React.ReactNode>
-) => {
+export const expectReactElementAsArray = (element: React.ReactNode, expectedValues: string[]) => {
   const el = element as ReactElement;
   expect(el.type).toBe(Symbol.for('react.fragment'));
 
   const children = el.props.children as React.ReactNode[];
 
-  // Build expected children: [bracket, value1, comma, ' ', value2, comma, ' ', value3, ..., bracket]
-  const expectedChildren: React.ReactNode[] = [];
+  // Expected structure: [bracket, value1, comma, ' ', value2, ..., bracket]
+  expect(children).toHaveLength(3 * expectedValues.length);
 
-  // Opening bracket
-  expectedChildren.push(
-    expect.objectContaining({
-      type: 'span',
-      props: { className: ARRAY_HIGHLIGHT_CLASS, children: '[' },
-    })
-  );
+  // Check opening bracket
+  const openBracket = children[0] as ReactElement;
+  expect(openBracket.type).toBe('span');
+  expect(openBracket.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
+  expect(openBracket.props.children).toBe('[');
 
+  // Check values and separators
   expectedValues.forEach((value, index) => {
-    // Add the value
-    expectedChildren.push(value);
+    const valueIndex = 1 + index * 3;
+    expect(children[valueIndex]).toBe(value);
 
     if (index < expectedValues.length - 1) {
-      // Add comma separator
-      expectedChildren.push(
-        expect.objectContaining({
-          type: 'span',
-          props: { className: ARRAY_HIGHLIGHT_CLASS, children: ',' },
-        })
-      );
-      // Add space
-      expectedChildren.push(' ');
+      // Check comma
+      const comma = children[valueIndex + 1] as ReactElement;
+      expect(comma.type).toBe('span');
+      expect(comma.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
+      expect(comma.props.children).toBe(',');
+
+      // Check space
+      expect(children[valueIndex + 2]).toBe(' ');
     }
   });
 
-  // Closing bracket
-  expectedChildren.push(
-    expect.objectContaining({
-      type: 'span',
-      props: { className: ARRAY_HIGHLIGHT_CLASS, children: ']' },
-    })
-  );
-
-  expect(children).toEqual(expectedChildren);
+  // Check closing bracket
+  const closeBracket = children[children.length - 1] as ReactElement;
+  expect(closeBracket.type).toBe('span');
+  expect(closeBracket.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
+  expect(closeBracket.props.children).toBe(']');
 };

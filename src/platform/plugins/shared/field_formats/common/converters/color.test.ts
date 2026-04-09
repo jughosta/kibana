@@ -9,6 +9,7 @@
 
 import { ColorFormat } from './color';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
+import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
 
 describe('Color Format', () => {
   const checkResult = (text: string | number, color: string, backgroundColor: string) =>
@@ -27,27 +28,9 @@ describe('Color Format', () => {
     expect(colorer.convert(null, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(colorer.convert(undefined, TEXT_CONTEXT_TYPE)).toBe('(null)');
     expect(colorer.convert('', TEXT_CONTEXT_TYPE)).toBe('(blank)');
-    expect(colorer.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(colorer.reactConvert(undefined)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
-    expect(colorer.reactConvert('')).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (blank)
-      </span>
-    `);
+    expectReactElementWithNull(colorer.reactConvert(null));
+    expectReactElementWithNull(colorer.reactConvert(undefined));
+    expectReactElementWithBlank(colorer.reactConvert(''));
   };
 
   describe('field is a number', () => {

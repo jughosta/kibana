@@ -11,7 +11,7 @@ import { BytesFormat } from './bytes';
 import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import type { FieldFormatsGetConfigFn } from '../types';
 import { HTML_CONTEXT_TYPE } from '../content_types';
-import { expectReactElementWithNull } from '../test_utils';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('BytesFormat', () => {
   const config: { [key: string]: string } = {
@@ -58,28 +58,7 @@ describe('BytesFormat', () => {
     expect(formatter.convert([1024, 2048], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>1KB<span class="ffArray__highlight">,</span> 2KB<span class="ffArray__highlight">]</span>'
     );
-    expect(formatter.reactConvert([1024, 2048])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        1KB
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        2KB
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(formatter.reactConvert([1024, 2048]), ['1KB', '2KB']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {

@@ -10,6 +10,7 @@
 import { NumberFormat } from './number';
 import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import { NULL_LABEL } from '@kbn/field-formats-common';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('NumberFormat', () => {
   const config: { [key: string]: string } = {
@@ -84,13 +85,7 @@ describe('NumberFormat', () => {
     expect(formatter.convert(null, 'html')).toMatchInlineSnapshot(
       `"<span class=\\"ffString__emptyValue\\">${NULL_LABEL}</span>"`
     );
-    expect(formatter.reactConvert(null)).toMatchInlineSnapshot(`
-      <span
-        className="ffString__emptyValue"
-      >
-        (null)
-      </span>
-    `);
+    expectReactElementWithNull(formatter.reactConvert(null));
   });
 
   test('escapes HTML characters in html context', () => {
@@ -113,28 +108,7 @@ describe('NumberFormat', () => {
     expect(formatter.convert([1000, 2000], 'html')).toBe(
       '<span class="ffArray__highlight">[</span>1,000<span class="ffArray__highlight">,</span> 2,000<span class="ffArray__highlight">]</span>'
     );
-    expect(formatter.reactConvert([1000, 2000])).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        1,000
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        2,000
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(formatter.reactConvert([1000, 2000]), ['1,000', '2,000']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {
