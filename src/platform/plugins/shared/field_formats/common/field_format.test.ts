@@ -16,6 +16,7 @@ import { asPrettyString } from './utils';
 import { highlightTags } from './utils/highlight/highlight_tags';
 import type { FieldFormatParams, HtmlContextTypeOptions, TextContextTypeOptions } from './types';
 import { NULL_LABEL } from '@kbn/field-formats-common';
+import { expectReactElementAsArray } from './test_utils';
 
 const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
 const renderReact = (node: React.ReactNode) =>
@@ -242,12 +243,7 @@ describe('FieldFormat class', () => {
 
       test('wraps multi-element arrays with styled brackets and comma separators', () => {
         const f = getTestFormat(undefined, (v) => String(v));
-        expect(renderReact(f.reactConvert([1, 2, 3]))).toBe(
-          '<span class="ffArray__highlight">[</span>' +
-            '1<span class="ffArray__highlight">,</span> ' +
-            '2<span class="ffArray__highlight">,</span> ' +
-            '3<span class="ffArray__highlight">]</span>'
-        );
+        expectReactElementAsArray(f.reactConvert([1, 2, 3]), ['1', '2', '3']);
       });
 
       test('uses newline separator and indentation when values contain newlines', () => {
@@ -263,22 +259,13 @@ describe('FieldFormat class', () => {
 
       test('HTML-escapes special characters inside array elements', () => {
         const f = getTestFormat(undefined, (v) => String(v));
-        expect(renderReact(f.reactConvert(['<a>', '<b>']))).toBe(
-          '<span class="ffArray__highlight">[</span>' +
-            '&lt;a&gt;<span class="ffArray__highlight">,</span> ' +
-            '&lt;b&gt;<span class="ffArray__highlight">]</span>'
-        );
+        expectReactElementAsArray(f.reactConvert(['<a>', '<b>']), ['&lt;a&gt;', '&lt;b&gt;']);
       });
 
       test('reactConvert and convert(html) produce identical array output', () => {
         const f = getTestFormat(undefined, (v) => String(v));
-        const expected =
-          '<span class="ffArray__highlight">[</span>' +
-          '1<span class="ffArray__highlight">,</span> ' +
-          '2<span class="ffArray__highlight">,</span> ' +
-          '3<span class="ffArray__highlight">]</span>';
-        expect(renderReact(f.reactConvert([1, 2, 3]))).toBe(expected);
-        expect(f.convert([1, 2, 3], 'html')).toBe(expected);
+        expectReactElementAsArray(f.reactConvert([1, 2, 3]), ['1', '2', '3']);
+        expect(f.convert([1, 2, 3], 'html')).toBe(renderReact(f.reactConvert([1, 2, 3])));
       });
     });
 
