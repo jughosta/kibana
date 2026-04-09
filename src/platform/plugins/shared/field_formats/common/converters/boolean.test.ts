@@ -9,15 +9,7 @@
 
 import { BoolFormat } from './boolean';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
-import {
-  expectReactElementAsString,
-  expectReactElementWithNull,
-  expectReactElementAsArray,
-} from '../test_utils';
-
-// Note: expectReactElementAsString is only used when the input contains HTML tags
-// (e.g., '<script>') to verify that React handles the escaping correctly.
-// For simple string outputs, use .toBe() directly.
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('Boolean Format', () => {
   let boolean: BoolFormat;
@@ -96,8 +88,7 @@ describe('Boolean Format', () => {
       '&lt;script&gt;alert(&quot;test&quot;)&lt;/script&gt;'
     );
     // reactConvert returns the same as textConvert - the HTML bridge handles escaping
-    expectReactElementAsString(
-      boolean.reactConvert('<script>alert("test")</script>'),
+    expect(boolean.reactConvert('<script>alert("test")</script>')).toBe(
       '<script>alert("test")</script>'
     );
   });
