@@ -7,9 +7,28 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import type { ReactElement } from 'react';
 import { ColorFormat } from './color';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
+
+const expectColoredReactElement = (
+  element: React.ReactNode,
+  text: string | number,
+  color: string,
+  backgroundColor: string
+) => {
+  const el = element as ReactElement;
+  expect(el.type).toBe('span');
+  expect(el.props.style).toEqual({
+    color,
+    backgroundColor,
+    display: 'inline-block',
+    padding: '0 8px',
+    borderRadius: '3px',
+  });
+  expect(el.props.children).toBe(String(text));
+};
 
 describe('Color Format', () => {
   const checkResult = (text: string | number, color: string, backgroundColor: string) =>
@@ -55,21 +74,7 @@ describe('Color Format', () => {
       expect(colorer.convert(151, HTML_CONTEXT_TYPE)).toBe('151');
 
       expect(colorer.reactConvert(99)).toBe('99');
-      expect(colorer.reactConvert(100)).toMatchInlineSnapshot(`
-        <span
-          style={
-            Object {
-              "backgroundColor": "yellow",
-              "borderRadius": "3px",
-              "color": "blue",
-              "display": "inline-block",
-              "padding": "0 8px",
-            }
-          }
-        >
-          100
-        </span>
-      `);
+      expectColoredReactElement(colorer.reactConvert(100), 100, 'blue', 'yellow');
       expect(colorer.reactConvert(151)).toBe('151');
 
       checkMissingValues(colorer);
@@ -114,21 +119,7 @@ describe('Color Format', () => {
       expect(colorer.convert(true, HTML_CONTEXT_TYPE)).toBe(checkResult('true', 'blue', 'yellow'));
       expect(colorer.convert(false, HTML_CONTEXT_TYPE)).toBe('false');
 
-      expect(colorer.reactConvert(true)).toMatchInlineSnapshot(`
-        <span
-          style={
-            Object {
-              "backgroundColor": "yellow",
-              "borderRadius": "3px",
-              "color": "blue",
-              "display": "inline-block",
-              "padding": "0 8px",
-            }
-          }
-        >
-          true
-        </span>
-      `);
+      expectColoredReactElement(colorer.reactConvert(true), 'true', 'blue', 'yellow');
       expect(colorer.reactConvert(false)).toBe('false');
 
       checkMissingValues(colorer);
@@ -163,21 +154,7 @@ describe('Color Format', () => {
       expect(converter('AB <', HTML_CONTEXT_TYPE)).toBe(checkResult('AB &lt;', 'white', 'red'));
       expect(converter('a', HTML_CONTEXT_TYPE)).toBe('a');
 
-      expect(colorer.reactConvert('AAA')).toMatchInlineSnapshot(`
-        <span
-          style={
-            Object {
-              "backgroundColor": "red",
-              "borderRadius": "3px",
-              "color": "white",
-              "display": "inline-block",
-              "padding": "0 8px",
-            }
-          }
-        >
-          AAA
-        </span>
-      `);
+      expectColoredReactElement(colorer.reactConvert('AAA'), 'AAA', 'white', 'red');
       expect(colorer.reactConvert('B')).toBe('B');
 
       checkMissingValues(colorer);
@@ -300,20 +277,6 @@ describe('Color Format', () => {
 
     expect(colorer.convert([100], TEXT_CONTEXT_TYPE)).toBe('["100"]');
     expect(colorer.convert([100], HTML_CONTEXT_TYPE)).toBe(checkResult(100, 'blue', 'yellow'));
-    expect(colorer.reactConvert([100])).toMatchInlineSnapshot(`
-      <span
-        style={
-          Object {
-            "backgroundColor": "yellow",
-            "borderRadius": "3px",
-            "color": "blue",
-            "display": "inline-block",
-            "padding": "0 8px",
-          }
-        }
-      >
-        100
-      </span>
-    `);
+    expectColoredReactElement(colorer.reactConvert([100]), 100, 'blue', 'yellow');
   });
 });

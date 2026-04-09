@@ -15,6 +15,10 @@ import {
   expectReactElementAsArray,
 } from '../test_utils';
 
+// Note: expectReactElementAsString is only used when the input contains HTML tags
+// (e.g., '<script>') to verify that React handles the escaping correctly.
+// For simple string outputs, use .toBe() directly.
+
 describe('Boolean Format', () => {
   let boolean: BoolFormat;
 
@@ -63,7 +67,7 @@ describe('Boolean Format', () => {
     test(`convert ${data.input} to boolean`, () => {
       expect(boolean.convert(data.input)).toBe(data.expected);
       expect(boolean.convert(data.input, HTML_CONTEXT_TYPE)).toBe(data.expected);
-      expectReactElementAsString(boolean.reactConvert(data.input), data.expected);
+      expect(boolean.reactConvert(data.input)).toBe(data.expected);
     });
   });
 
@@ -71,7 +75,7 @@ describe('Boolean Format', () => {
     const s = 'non-boolean value!!';
 
     expect(boolean.convert(s)).toBe(s);
-    expectReactElementAsString(boolean.reactConvert(s), s);
+    expect(boolean.reactConvert(s)).toBe(s);
   });
 
   test('handles a missing value', () => {
@@ -109,6 +113,6 @@ describe('Boolean Format', () => {
   test('returns the single element without brackets for a one-element array', () => {
     expect(boolean.convert([true], TEXT_CONTEXT_TYPE)).toBe('["true"]');
     expect(boolean.convert([true], HTML_CONTEXT_TYPE)).toBe('true');
-    expectReactElementAsString(boolean.reactConvert([true]), 'true');
+    expect(boolean.reactConvert([true])).toBe('true');
   });
 });

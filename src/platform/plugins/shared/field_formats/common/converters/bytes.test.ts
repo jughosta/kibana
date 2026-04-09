@@ -11,11 +11,7 @@ import { BytesFormat } from './bytes';
 import { FORMATS_UI_SETTINGS } from '../constants/ui_settings';
 import type { FieldFormatsGetConfigFn } from '../types';
 import { HTML_CONTEXT_TYPE } from '../content_types';
-import {
-  expectReactElementAsString,
-  expectReactElementWithNull,
-  expectReactElementAsArray,
-} from '../test_utils';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('BytesFormat', () => {
   const config: { [key: string]: string } = {
@@ -29,7 +25,7 @@ describe('BytesFormat', () => {
 
     expect(formatter.convert(5150000)).toBe('4.911MB');
     expect(formatter.convert(5150000, HTML_CONTEXT_TYPE)).toBe('4.911MB');
-    expectReactElementAsString(formatter.reactConvert(5150000), '4.911MB');
+    expect(formatter.reactConvert(5150000)).toBe('4.911MB');
   });
 
   test('custom pattern', () => {
@@ -37,7 +33,7 @@ describe('BytesFormat', () => {
 
     expect(formatter.convert('5150000')).toBe('5MB');
     expect(formatter.convert('5150000', HTML_CONTEXT_TYPE)).toBe('5MB');
-    expectReactElementAsString(formatter.reactConvert('5150000'), '5MB');
+    expect(formatter.reactConvert('5150000')).toBe('5MB');
   });
 
   test('missing value', () => {
@@ -70,6 +66,6 @@ describe('BytesFormat', () => {
 
     expect(formatter.convert([1024], 'text')).toBe('["1KB"]');
     expect(formatter.convert([1024], HTML_CONTEXT_TYPE)).toBe('1KB');
-    expectReactElementAsString(formatter.reactConvert([1024]), '1KB');
+    expect(formatter.reactConvert([1024])).toBe('1KB');
   });
 });

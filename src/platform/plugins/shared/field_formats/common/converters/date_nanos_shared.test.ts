@@ -11,7 +11,7 @@ import moment from 'moment-timezone';
 import { DateNanosFormat, analysePatternForFract, formatWithNanos } from './date_nanos_shared';
 import type { FieldFormatsGetConfigFn } from '../types';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
-import { expectReactElementWithNull } from '../test_utils';
+import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
 
 describe('Date Nanos Format', () => {
   let convert: Function;
@@ -154,30 +154,10 @@ describe('Date Nanos Format', () => {
     ).toMatchInlineSnapshot(
       `"<span class=\\"ffArray__highlight\\">[</span>May 20, 2019 @ 07:04:56.357001234<span class=\\"ffArray__highlight\\">,</span> Dec 31, 2019 @ 17:00:00.000000000<span class=\\"ffArray__highlight\\">]</span>"`
     );
-    expect(
-      formatter.reactConvert(['2019-05-20T14:04:56.357001234Z', '2020-01-01T00:00:00.000000000Z'])
-    ).toMatchInlineSnapshot(`
-      <React.Fragment>
-        <span
-          className="ffArray__highlight"
-        >
-          [
-        </span>
-        May 20, 2019 @ 07:04:56.357001234
-        <span
-          className="ffArray__highlight"
-        >
-          ,
-        </span>
-         
-        Dec 31, 2019 @ 17:00:00.000000000
-        <span
-          className="ffArray__highlight"
-        >
-          ]
-        </span>
-      </React.Fragment>
-    `);
+    expectReactElementAsArray(
+      formatter.reactConvert(['2019-05-20T14:04:56.357001234Z', '2020-01-01T00:00:00.000000000Z']),
+      ['May 20, 2019 @ 07:04:56.357001234', 'Dec 31, 2019 @ 17:00:00.000000000']
+    );
   });
 
   test('returns the single element without brackets for a one-element array', () => {

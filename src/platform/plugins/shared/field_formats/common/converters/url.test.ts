@@ -10,11 +10,7 @@
 import { UrlFormat } from './url';
 import { TEXT_CONTEXT_TYPE, HTML_CONTEXT_TYPE } from '../content_types';
 import { highlightTags } from '../utils/highlight/highlight_tags';
-import {
-  expectReactElementAsString,
-  expectReactElementWithNull,
-  expectReactElementWithBlank,
-} from '../test_utils';
+import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
 
 describe('UrlFormat', () => {
   const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
@@ -292,7 +288,7 @@ describe('UrlFormat', () => {
       const url = new UrlFormat({});
 
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('url');
-      expectReactElementAsString(url.reactConvert('url'), 'url');
+      expect(url.reactConvert('url')).toBe('url');
     });
   });
 
@@ -322,7 +318,7 @@ describe('UrlFormat', () => {
 
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('external url');
       // reactConvert returns the raw URL when it can't form an absolute link (no parsedUrl)
-      expectReactElementAsString(url.reactConvert('url'), 'url');
+      expect(url.reactConvert('url')).toBe('url');
     });
 
     test('can use the raw value with {{value}}', () => {
@@ -331,7 +327,7 @@ describe('UrlFormat', () => {
       });
 
       expect(url.convert('url?', TEXT_CONTEXT_TYPE)).toBe('external url?');
-      expectReactElementAsString(url.reactConvert('url?'), 'url?');
+      expect(url.reactConvert('url?')).toBe('url?');
     });
 
     test('can use the raw value with {{rawValue}}', () => {
@@ -340,7 +336,7 @@ describe('UrlFormat', () => {
       });
 
       expect(url.convert('url?', TEXT_CONTEXT_TYPE)).toBe('external url?');
-      expectReactElementAsString(url.reactConvert('url?'), 'url?');
+      expect(url.reactConvert('url?')).toBe('url?');
     });
 
     test('can use the url', () => {
@@ -367,14 +363,14 @@ describe('UrlFormat', () => {
       const url = new UrlFormat({ urlTemplate: '{{ not really a var }}' });
 
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('');
-      expectReactElementAsString(url.reactConvert('url'), '');
+      expect(url.reactConvert('url')).toBe('');
     });
 
     test('does not allow executing code in variable expressions', () => {
       const url = new UrlFormat({ urlTemplate: '{{ (__dirname = true) && value }}' });
 
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('');
-      expectReactElementAsString(url.reactConvert('url'), '');
+      expect(url.reactConvert('url')).toBe('');
     });
 
     describe('', () => {
@@ -382,7 +378,7 @@ describe('UrlFormat', () => {
         const url = new UrlFormat({ urlTemplate: '{{ toString }}' });
 
         expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('');
-        expectReactElementAsString(url.reactConvert('url'), '');
+        expect(url.reactConvert('url')).toBe('');
       });
     });
   });
