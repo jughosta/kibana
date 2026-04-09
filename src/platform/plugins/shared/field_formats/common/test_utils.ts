@@ -7,7 +7,8 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import type { ReactElement } from 'react';
+import { isValidElement, type ReactElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { NULL_LABEL, EMPTY_LABEL } from '@kbn/field-formats-common';
 
 const EMPTY_VALUE_CLASS = 'ffString__emptyValue';
@@ -37,44 +38,16 @@ export const expectReactElementWithBlank = (element: React.ReactNode) => {
 
 /**
  * Asserts that a React element represents an array with bracket notation.
- * Expects a React.Fragment with [value1, value2, ...] structure where
- * brackets and commas are wrapped in spans with className "ffArray__highlight".
+ * Expects a structure like: [value1, value2, ...] where brackets and commas
+ * are wrapped in spans with className "ffArray__highlight".
  */
 export const expectReactElementAsArray = (element: React.ReactNode, expectedValues: string[]) => {
-  const el = element as ReactElement;
-  expect(el.type).toBe(Symbol.for('react.fragment'));
+  expect(isValidElement(element)).toBe(true);
 
-  const children = el.props.children as React.ReactNode[];
+  const html = renderToStaticMarkup(element as ReactElement);
 
-  // Expected structure: [bracket, value1, comma, ' ', value2, ..., bracket]
-  expect(children).toHaveLength(3 * expectedValues.length);
+  const bracket = (char: string) => `<span class="${ARRAY_HIGHLIGHT_CLASS}">${char}</span>`;
+  const expectedHtml = bracket('[') + expectedValues.join(`${bracket(',')} `) + bracket(']');
 
-  // Check opening bracket
-  const openBracket = children[0] as ReactElement;
-  expect(openBracket.type).toBe('span');
-  expect(openBracket.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
-  expect(openBracket.props.children).toBe('[');
-
-  // Check values and separators
-  expectedValues.forEach((value, index) => {
-    const valueIndex = 1 + index * 3;
-    expect(children[valueIndex]).toBe(value);
-
-    if (index < expectedValues.length - 1) {
-      // Check comma
-      const comma = children[valueIndex + 1] as ReactElement;
-      expect(comma.type).toBe('span');
-      expect(comma.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
-      expect(comma.props.children).toBe(',');
-
-      // Check space
-      expect(children[valueIndex + 2]).toBe(' ');
-    }
-  });
-
-  // Check closing bracket
-  const closeBracket = children[children.length - 1] as ReactElement;
-  expect(closeBracket.type).toBe('span');
-  expect(closeBracket.props.className).toBe(ARRAY_HIGHLIGHT_CLASS);
-  expect(closeBracket.props.children).toBe(']');
+  expect(html).toBe(expectedHtml);
 };

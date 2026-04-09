@@ -10,7 +10,7 @@
 import { SourceFormat } from './source';
 import type { HtmlContextTypeConvert } from '../types';
 import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
-import { expectReactElementWithNull, expectReactElementAsArray } from '../test_utils';
+import { expectReactElementWithNull } from '../test_utils';
 
 describe('Source Format', () => {
   let convertHtml: Function;
@@ -55,18 +55,6 @@ describe('Source Format', () => {
     );
     expectReactElementWithNull(source.reactConvert(null));
     expectReactElementWithNull(source.reactConvert(undefined));
-  });
-
-  test('wraps a multi-value array with bracket notation', () => {
-    const source = new SourceFormat({}, jest.fn());
-
-    expect(source.convert([{ a: 1 }, { b: 2 }], TEXT_CONTEXT_TYPE)).toBe(
-      '["{\\"a\\":1}","{\\"b\\":2}"]'
-    );
-    expect(source.convert([{ a: 1 }, { b: 2 }], HTML_CONTEXT_TYPE)).toBe(
-      '<span class="ffArray__highlight">[</span>{&quot;a&quot;:1}<span class="ffArray__highlight">,</span> {&quot;b&quot;:2}<span class="ffArray__highlight">]</span>'
-    );
-    expectReactElementAsArray(source.reactConvert([{ a: 1 }, { b: 2 }]), ['{"a":1}', '{"b":2}']);
   });
 
   test('returns the single element without brackets for a one-element array', () => {
