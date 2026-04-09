@@ -14,11 +14,17 @@ import { VIEW_MODE } from '@kbn/saved-search-plugin/public';
 import type { EsHitRecord } from '@kbn/discover-utils';
 import { buildDataTableRecord } from '@kbn/discover-utils';
 import { FetchStatus } from '../../../types';
+import type { InternalStateMockToolkit } from '../../../../__mocks__/discover_state.mock';
 import { getDiscoverInternalStateMock } from '../../../../__mocks__/discover_state.mock';
 import { savedSearchMock } from '../../../../__mocks__/saved_search';
 import { internalStateActions } from '../redux';
 import type { DiscoverAppState } from '../redux';
 import { dataViewAdHoc } from '../../../../__mocks__/data_view_complex';
+import type { DiscoverDataStateContainer } from '../discover_data_state_container';
+
+// Track resources from the last test for cleanup in afterEach
+let lastTestToolkit: InternalStateMockToolkit | undefined;
+let lastTestDataState: DiscoverDataStateContainer | undefined;
 
 async function getTestProps({
   query,
@@ -41,6 +47,10 @@ async function getTestProps({
     tabId: toolkit.getCurrentTab().id,
     skipWaitForDataFetching: true,
   });
+
+  // Track for cleanup in afterEach
+  lastTestToolkit = toolkit;
+  lastTestDataState = dataState;
 
   toolkit.internalState.dispatch(
     toolkit.injectCurrentTab(internalStateActions.updateAppState)({
@@ -115,6 +125,16 @@ const setupTest = async ({
 // Testing buildEsqlFetchSubscribe through the state container
 // since the logic is pretty intertwined with the state management
 describe('buildEsqlFetchSubscribe', () => {
+  afterEach(() => {
+    // Cancel pending URL state storage updates (uses Promise.resolve().then(flush) batching)
+    // and stop leaked throttled middleware timers (lodash.throttle with 300ms trailing setTimeout)
+    lastTestToolkit?.stateStorageContainer.cancel();
+    // Cancel running queries and abort controllers in the data state container
+    lastTestDataState?.cancel();
+    lastTestToolkit = undefined;
+    lastTestDataState = undefined;
+    jest.restoreAllMocks();
+  });
   test('an ES|QL query should change state when loading and finished', async () => {
     const { replaceUrlState, dataState, tabId } = await setupTest();
 
