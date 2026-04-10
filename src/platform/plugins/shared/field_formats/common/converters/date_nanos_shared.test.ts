@@ -107,7 +107,8 @@ describe('Date Nanos Format', () => {
 
   test('should return the value itself when it cannot successfully be formatted', () => {
     const dateMath = 'now+1M/d';
-    expect(convert(dateMath)).toBe(dateMath);
+    expect(convert(dateMath, TEXT_CONTEXT_TYPE)).toBe(dateMath);
+    expect(convert(dateMath, HTML_CONTEXT_TYPE)).toBe(dateMath);
     expect(date.reactConvert(dateMath)).toBe(dateMath);
   });
 
@@ -119,9 +120,9 @@ describe('Date Nanos Format', () => {
       }[key] as string);
     const formatter = new DateNanosFormat({}, getConfig);
 
-    expect(formatter.convert('2019-05-20T14:04:56.357001234Z')).toMatchInlineSnapshot(
-      `"May 20, 2019 @ 07:04:56.357001234"`
-    );
+    expect(
+      formatter.convert('2019-05-20T14:04:56.357001234Z', TEXT_CONTEXT_TYPE)
+    ).toMatchInlineSnapshot(`"May 20, 2019 @ 07:04:56.357001234"`);
     expect(
       formatter.convert('2019-05-20T14:04:56.357001234Z', HTML_CONTEXT_TYPE)
     ).toMatchInlineSnapshot(`"May 20, 2019 @ 07:04:56.357001234"`);

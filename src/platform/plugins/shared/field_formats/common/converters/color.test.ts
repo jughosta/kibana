@@ -75,6 +75,7 @@ describe('Color Format', () => {
 
       expect(colorer.reactConvert(99)).toBe('99');
       expectColoredReactElement(colorer.reactConvert(100), 100, 'blue', 'yellow');
+      expectColoredReactElement(colorer.reactConvert(150), 150, 'blue', 'yellow');
       expect(colorer.reactConvert(151)).toBe('151');
 
       checkMissingValues(colorer);
@@ -146,16 +147,14 @@ describe('Color Format', () => {
       expect(converter('B', HTML_CONTEXT_TYPE)).toBe('B');
       expect(converter('AAA', HTML_CONTEXT_TYPE)).toBe(checkResult('AAA', 'white', 'red'));
       expect(converter('AB', HTML_CONTEXT_TYPE)).toBe(checkResult('AB', 'white', 'red'));
-      expect(converter('a', HTML_CONTEXT_TYPE)).toBe('a');
-
-      expect(converter('B', HTML_CONTEXT_TYPE)).toBe('B');
-      expect(converter('AAA', HTML_CONTEXT_TYPE)).toBe(checkResult('AAA', 'white', 'red'));
-      expect(converter('AB', HTML_CONTEXT_TYPE)).toBe(checkResult('AB', 'white', 'red'));
       expect(converter('AB <', HTML_CONTEXT_TYPE)).toBe(checkResult('AB &lt;', 'white', 'red'));
       expect(converter('a', HTML_CONTEXT_TYPE)).toBe('a');
 
-      expectColoredReactElement(colorer.reactConvert('AAA'), 'AAA', 'white', 'red');
       expect(colorer.reactConvert('B')).toBe('B');
+      expectColoredReactElement(colorer.reactConvert('AAA'), 'AAA', 'white', 'red');
+      expectColoredReactElement(colorer.reactConvert('AB'), 'AB', 'white', 'red');
+      expectColoredReactElement(colorer.reactConvert('AB <'), 'AB <', 'white', 'red');
+      expect(colorer.reactConvert('a')).toBe('a');
 
       checkMissingValues(colorer);
     });

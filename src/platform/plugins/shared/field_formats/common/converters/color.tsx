@@ -76,7 +76,6 @@ export class ColorFormat extends FieldFormat {
       return missing;
     }
 
-    // After the missing value check, val is guaranteed to be a valid string, number, or boolean
     const value = val as string | number | boolean;
     const color = this.findColorRuleForVal(value) as typeof DEFAULT_CONVERTER_COLOR;
     const displayVal = asPrettyString(value, options);

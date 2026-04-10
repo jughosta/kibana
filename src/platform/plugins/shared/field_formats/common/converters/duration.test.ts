@@ -38,7 +38,7 @@ describe('Duration Format', () => {
       jest.fn()
     );
 
-    expect(formatter.convert(60)).toBe('a minute');
+    expect(formatter.convert(60, TEXT_CONTEXT_TYPE)).toBe('a minute');
     expect(formatter.convert(60, HTML_CONTEXT_TYPE)).toBe('a minute');
     expect(formatter.reactConvert(60)).toBe('a minute');
   });
@@ -637,7 +637,17 @@ describe('Duration Format', () => {
           },
           jest.fn()
         );
-        expect(duration.convert(input)).toBe(output);
+        expect(duration.convert(input, TEXT_CONTEXT_TYPE)).toBe(output);
+
+        if (output === '(null)') {
+          expect(duration.convert(input, HTML_CONTEXT_TYPE)).toBe(
+            '<span class="ffString__emptyValue">(null)</span>'
+          );
+          expectReactElementWithNull(duration.reactConvert(input));
+        } else {
+          expect(duration.convert(input, HTML_CONTEXT_TYPE)).toBe(output);
+          expect(duration.reactConvert(input)).toBe(output);
+        }
       });
     });
   }
