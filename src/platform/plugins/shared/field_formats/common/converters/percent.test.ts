@@ -22,7 +22,7 @@ describe('PercentFormat', () => {
   test('default pattern', () => {
     const formatter = new PercentFormat({}, getConfig);
 
-    expect(formatter.convert(0.99999)).toBe('99.999%');
+    expect(formatter.convert(0.99999, TEXT_CONTEXT_TYPE)).toBe('99.999%');
     expect(formatter.convert(0.99999, HTML_CONTEXT_TYPE)).toBe('99.999%');
     expect(formatter.reactConvert(0.99999)).toBe('99.999%');
   });
@@ -30,7 +30,7 @@ describe('PercentFormat', () => {
   test('custom pattern', () => {
     const formatter = new PercentFormat({ pattern: '0,0%' }, getConfig);
 
-    expect(formatter.convert('0.99999')).toBe('100%');
+    expect(formatter.convert('0.99999', TEXT_CONTEXT_TYPE)).toBe('100%');
     expect(formatter.convert('0.99999', HTML_CONTEXT_TYPE)).toBe('100%');
     expect(formatter.reactConvert('0.99999')).toBe('100%');
   });

@@ -40,13 +40,15 @@ describe('Relative Date Format', () => {
   });
 
   test('decoding invalid date should echo invalid value', () => {
-    expect(convert('not a valid date')).toBe('not a valid date');
+    expect(convert('not a valid date', TEXT_CONTEXT_TYPE)).toBe('not a valid date');
+    expect(convert('not a valid date', HTML_CONTEXT_TYPE)).toBe('not a valid date');
     expect(reactConvert('not a valid date')).toBe('not a valid date');
   });
 
   test('should parse date values', () => {
     const val = '2017-08-13T20:24:09.904Z';
-    expect(convert(val)).toBe(moment(val).fromNow());
+    expect(convert(val, TEXT_CONTEXT_TYPE)).toBe(moment(val).fromNow());
+    expect(convert(val, HTML_CONTEXT_TYPE)).toBe(moment(val).fromNow());
     expect(reactConvert(val)).toBe(moment(val).fromNow());
   });
 

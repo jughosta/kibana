@@ -19,7 +19,7 @@ describe('IP Address Format', () => {
   });
 
   test('converts a value from a decimal to a string', () => {
-    expect(ip.convert(1186489492)).toBe('70.184.100.148');
+    expect(ip.convert(1186489492, TEXT_CONTEXT_TYPE)).toBe('70.184.100.148');
     expect(ip.convert(1186489492, HTML_CONTEXT_TYPE)).toBe('70.184.100.148');
     expect(ip.reactConvert(1186489492)).toBe('70.184.100.148');
   });

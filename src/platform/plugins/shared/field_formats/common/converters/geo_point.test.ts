@@ -20,15 +20,15 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
-        '10.1,125.6'
-      );
+      expect(
+        geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, TEXT_CONTEXT_TYPE)
+      ).toBe('10.1,125.6');
       expect(
         geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, HTML_CONTEXT_TYPE)
       ).toBe('10.1,125.6');
-      expect(
-        geoPointFormat.reactConvert({ type: 'Point', coordinates: [125.6, 10.1] })
-      ).toMatchInlineSnapshot(`"10.1,125.6"`);
+      expect(geoPointFormat.reactConvert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
+        '10.1,125.6'
+      );
     });
 
     test('"WKT"', () => {
@@ -38,9 +38,12 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
-        'POINT (125.6 10.1)'
-      );
+      expect(
+        geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, TEXT_CONTEXT_TYPE)
+      ).toBe('POINT (125.6 10.1)');
+      expect(
+        geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, HTML_CONTEXT_TYPE)
+      ).toBe('POINT (125.6 10.1)');
       expect(geoPointFormat.reactConvert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
         'POINT (125.6 10.1)'
       );
@@ -55,9 +58,12 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
-        '10.1,125.6'
-      );
+      expect(
+        geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, TEXT_CONTEXT_TYPE)
+      ).toBe('10.1,125.6');
+      expect(
+        geoPointFormat.convert({ type: 'Point', coordinates: [125.6, 10.1] }, HTML_CONTEXT_TYPE)
+      ).toBe('10.1,125.6');
       expect(geoPointFormat.reactConvert({ type: 'Point', coordinates: [125.6, 10.1] })).toBe(
         '10.1,125.6'
       );
@@ -70,7 +76,12 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert({ lat: 10.1, lon: 125.6 })).toBe('10.1,125.6');
+      expect(geoPointFormat.convert({ lat: 10.1, lon: 125.6 }, TEXT_CONTEXT_TYPE)).toBe(
+        '10.1,125.6'
+      );
+      expect(geoPointFormat.convert({ lat: 10.1, lon: 125.6 }, HTML_CONTEXT_TYPE)).toBe(
+        '10.1,125.6'
+      );
       expect(geoPointFormat.reactConvert({ lat: 10.1, lon: 125.6 })).toBe('10.1,125.6');
     });
 
@@ -81,7 +92,8 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert('10.1,125.6')).toBe('10.1,125.6');
+      expect(geoPointFormat.convert('10.1,125.6', TEXT_CONTEXT_TYPE)).toBe('10.1,125.6');
+      expect(geoPointFormat.convert('10.1,125.6', HTML_CONTEXT_TYPE)).toBe('10.1,125.6');
       expect(geoPointFormat.reactConvert('10.1,125.6')).toBe('10.1,125.6');
     });
 
@@ -92,7 +104,8 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert('POINT (125.6 10.1)')).toBe('10.1,125.6');
+      expect(geoPointFormat.convert('POINT (125.6 10.1)', TEXT_CONTEXT_TYPE)).toBe('10.1,125.6');
+      expect(geoPointFormat.convert('POINT (125.6 10.1)', HTML_CONTEXT_TYPE)).toBe('10.1,125.6');
       expect(geoPointFormat.reactConvert('POINT (125.6 10.1)')).toBe('10.1,125.6');
     });
 
@@ -103,7 +116,8 @@ describe('GeoPoint Format', () => {
         },
         jest.fn()
       );
-      expect(geoPointFormat.convert('notgeopoint')).toBe('notgeopoint');
+      expect(geoPointFormat.convert('notgeopoint', TEXT_CONTEXT_TYPE)).toBe('notgeopoint');
+      expect(geoPointFormat.convert('notgeopoint', HTML_CONTEXT_TYPE)).toBe('notgeopoint');
       expect(geoPointFormat.reactConvert('notgeopoint')).toBe('notgeopoint');
     });
 
