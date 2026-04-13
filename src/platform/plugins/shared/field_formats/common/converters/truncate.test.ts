@@ -19,7 +19,7 @@ describe('String TruncateFormat', () => {
   test('truncate large string', () => {
     const truncate = new TruncateFormat({ fieldLength: 4 }, jest.fn());
 
-    expect(truncate.convert('This is some text')).toBe('This...');
+    expect(truncate.convert('This is some text', TEXT_CONTEXT_TYPE)).toBe('This...');
     expect(truncate.convert('This is some text', HTML_CONTEXT_TYPE)).toBe('This...');
     expect(truncate.reactConvert('This is some text')).toBe('This...');
   });
@@ -27,21 +27,24 @@ describe('String TruncateFormat', () => {
   test('does not truncate large string when field length is not a string', () => {
     const truncate = new TruncateFormat({ fieldLength: 'not number' }, jest.fn());
 
-    expect(truncate.convert('This is some text')).toBe('This is some text');
+    expect(truncate.convert('This is some text', TEXT_CONTEXT_TYPE)).toBe('This is some text');
+    expect(truncate.convert('This is some text', HTML_CONTEXT_TYPE)).toBe('This is some text');
     expect(truncate.reactConvert('This is some text')).toBe('This is some text');
   });
 
   test('does not truncate large string when field length is null', () => {
     const truncate = new TruncateFormat({ fieldLength: null }, jest.fn());
 
-    expect(truncate.convert('This is some text')).toBe('This is some text');
+    expect(truncate.convert('This is some text', TEXT_CONTEXT_TYPE)).toBe('This is some text');
+    expect(truncate.convert('This is some text', HTML_CONTEXT_TYPE)).toBe('This is some text');
     expect(truncate.reactConvert('This is some text')).toBe('This is some text');
   });
 
   test('does not truncate large string when field length larger than the text', () => {
     const truncate = new TruncateFormat({ fieldLength: 100000 }, jest.fn());
 
-    expect(truncate.convert('This is some text')).toBe('This is some text');
+    expect(truncate.convert('This is some text', TEXT_CONTEXT_TYPE)).toBe('This is some text');
+    expect(truncate.convert('This is some text', HTML_CONTEXT_TYPE)).toBe('This is some text');
     expect(truncate.reactConvert('This is some text')).toBe('This is some text');
   });
 
@@ -49,7 +52,8 @@ describe('String TruncateFormat', () => {
     // https://github.com/elastic/kibana/issues/29648
     const truncate = new TruncateFormat({ fieldLength: 3.2 }, jest.fn());
 
-    expect(truncate.convert('This is some text')).toBe('Thi...');
+    expect(truncate.convert('This is some text', TEXT_CONTEXT_TYPE)).toBe('Thi...');
+    expect(truncate.convert('This is some text', HTML_CONTEXT_TYPE)).toBe('Thi...');
     expect(truncate.reactConvert('This is some text')).toBe('Thi...');
   });
 

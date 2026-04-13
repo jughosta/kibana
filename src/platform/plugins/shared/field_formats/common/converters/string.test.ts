@@ -8,8 +8,7 @@
  */
 
 import { EMPTY_LABEL, NULL_LABEL } from '@kbn/field-formats-common';
-import { HTML_CONTEXT_TYPE } from '../content_types';
-import { highlightTags } from '../utils/highlight/highlight_tags';
+import { HTML_CONTEXT_TYPE, TEXT_CONTEXT_TYPE } from '../content_types';
 import { StringFormat } from './string';
 import {
   expectReactElementWithNull,
@@ -26,8 +25,6 @@ function stripSpan(input: string): string {
 }
 
 describe('String Format', () => {
-  const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
-
   test('convert a string to lower case', () => {
     const string = new StringFormat(
       {
@@ -35,8 +32,8 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('Kibana')).toBe('kibana');
-    expect(stripSpan(string.convert('Kibana', 'html'))).toBe('kibana');
+    expect(string.convert('Kibana', TEXT_CONTEXT_TYPE)).toBe('kibana');
+    expect(stripSpan(string.convert('Kibana', HTML_CONTEXT_TYPE))).toBe('kibana');
     expect(string.reactConvert('Kibana')).toBe('kibana');
   });
 
@@ -47,8 +44,8 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('Kibana')).toBe('KIBANA');
-    expect(stripSpan(string.convert('Kibana', 'html'))).toBe('KIBANA');
+    expect(string.convert('Kibana', TEXT_CONTEXT_TYPE)).toBe('KIBANA');
+    expect(stripSpan(string.convert('Kibana', HTML_CONTEXT_TYPE))).toBe('KIBANA');
     expect(string.reactConvert('Kibana')).toBe('KIBANA');
   });
 
@@ -59,8 +56,8 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('Zm9vYmFy')).toBe('foobar');
-    expect(stripSpan(string.convert('Zm9vYmFy', 'html'))).toBe('foobar');
+    expect(string.convert('Zm9vYmFy', TEXT_CONTEXT_TYPE)).toBe('foobar');
+    expect(stripSpan(string.convert('Zm9vYmFy', HTML_CONTEXT_TYPE))).toBe('foobar');
     expect(string.reactConvert('Zm9vYmFy')).toBe('foobar');
   });
 
@@ -71,20 +68,22 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('PLEASE DO NOT SHOUT')).toBe('Please Do Not Shout');
-    expect(stripSpan(string.convert('PLEASE DO NOT SHOUT', 'html'))).toBe('Please Do Not Shout');
+    expect(string.convert('PLEASE DO NOT SHOUT', TEXT_CONTEXT_TYPE)).toBe('Please Do Not Shout');
+    expect(stripSpan(string.convert('PLEASE DO NOT SHOUT', HTML_CONTEXT_TYPE))).toBe(
+      'Please Do Not Shout'
+    );
     expect(string.reactConvert('PLEASE DO NOT SHOUT')).toBe('Please Do Not Shout');
-    expect(string.convert('Mean, variance and standard_deviation.')).toBe(
+    expect(string.convert('Mean, variance and standard_deviation.', TEXT_CONTEXT_TYPE)).toBe(
       'Mean, Variance And Standard_deviation.'
     );
-    expect(stripSpan(string.convert('Mean, variance and standard_deviation.', 'html'))).toBe(
-      'Mean, Variance And Standard_deviation.'
-    );
+    expect(
+      stripSpan(string.convert('Mean, variance and standard_deviation.', HTML_CONTEXT_TYPE))
+    ).toBe('Mean, Variance And Standard_deviation.');
     expect(string.reactConvert('Mean, variance and standard_deviation.')).toBe(
       'Mean, Variance And Standard_deviation.'
     );
-    expect(string.convert('Stay CALM!')).toBe('Stay Calm!');
-    expect(stripSpan(string.convert('Stay CALM!', 'html'))).toBe('Stay Calm!');
+    expect(string.convert('Stay CALM!', TEXT_CONTEXT_TYPE)).toBe('Stay Calm!');
+    expect(stripSpan(string.convert('Stay CALM!', HTML_CONTEXT_TYPE))).toBe('Stay Calm!');
     expect(string.reactConvert('Stay CALM!')).toBe('Stay Calm!');
   });
 
@@ -95,8 +94,8 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('dot.notated.string')).toBe('d.n.string');
-    expect(stripSpan(string.convert('dot.notated.string', 'html'))).toBe('d.n.string');
+    expect(string.convert('dot.notated.string', TEXT_CONTEXT_TYPE)).toBe('d.n.string');
+    expect(stripSpan(string.convert('dot.notated.string', HTML_CONTEXT_TYPE))).toBe('d.n.string');
     expect(string.reactConvert('dot.notated.string')).toBe('d.n.string');
   });
 
@@ -108,7 +107,8 @@ describe('String Format', () => {
       jest.fn()
     );
     const value = 'test test test';
-    expect(string.convert(value)).toBe(value);
+    expect(string.convert(value, TEXT_CONTEXT_TYPE)).toBe(value);
+    expect(stripSpan(string.convert(value, HTML_CONTEXT_TYPE))).toBe(value);
     expect(string.reactConvert(value)).toBe(value);
   });
 
@@ -119,9 +119,13 @@ describe('String Format', () => {
       },
       jest.fn()
     );
-    expect(string.convert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98')).toBe('안녕 키바나');
     expect(
-      stripSpan(string.convert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98', 'html'))
+      string.convert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98', TEXT_CONTEXT_TYPE)
+    ).toBe('안녕 키바나');
+    expect(
+      stripSpan(
+        string.convert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98', HTML_CONTEXT_TYPE)
+      )
     ).toBe('안녕 키바나');
     expect(string.reactConvert('%EC%95%88%EB%85%95%20%ED%82%A4%EB%B0%94%EB%82%98')).toBe(
       '안녕 키바나'
@@ -130,7 +134,7 @@ describe('String Format', () => {
 
   test('outputs specific empty value', () => {
     const string = new StringFormat();
-    expect(string.convert('')).toBe(EMPTY_LABEL);
+    expect(string.convert('', TEXT_CONTEXT_TYPE)).toBe(EMPTY_LABEL);
     expect(stripSpan(string.convert('', HTML_CONTEXT_TYPE))).toBe(
       `<span class="ffString__emptyValue">${EMPTY_LABEL}</span>`
     );
@@ -139,8 +143,8 @@ describe('String Format', () => {
 
   test('outputs specific missing value', () => {
     const string = new StringFormat();
-    expect(string.convert(null)).toBe(NULL_LABEL);
-    expect(string.convert(undefined)).toBe(NULL_LABEL);
+    expect(string.convert(null, TEXT_CONTEXT_TYPE)).toBe(NULL_LABEL);
+    expect(string.convert(undefined, TEXT_CONTEXT_TYPE)).toBe(NULL_LABEL);
     expect(stripSpan(string.convert(null, HTML_CONTEXT_TYPE))).toBe(
       `<span class="ffString__emptyValue">${NULL_LABEL}</span>`
     );
@@ -153,22 +157,16 @@ describe('String Format', () => {
 
   test('does escape value while highlighting', () => {
     const string = new StringFormat();
-    expect(
-      stripSpan(
-        string.convert('<img />', 'html', {
-          field: { name: 'foo' },
-          hit: {
-            highlight: { foo: ['@kibana-highlighted-field@<img />@/kibana-highlighted-field@'] },
-          },
-        })
-      )
-    ).toBe('<mark class="ffSearch__highlight">&lt;img /&gt;</mark>');
-    expect(
-      string.reactConvert('<img />', {
-        field: { name: 'foo' },
-        hit: { highlight: { foo: [`${hl('<img />')}`] } },
-      })
-    ).toMatchInlineSnapshot(`
+    const options = {
+      field: { name: 'foo' },
+      hit: {
+        highlight: { foo: ['@kibana-highlighted-field@<img />@/kibana-highlighted-field@'] },
+      },
+    };
+    expect(stripSpan(string.convert('<img />', HTML_CONTEXT_TYPE, options))).toBe(
+      '<mark class="ffSearch__highlight">&lt;img /&gt;</mark>'
+    );
+    expect(string.reactConvert('<img />', options)).toMatchInlineSnapshot(`
       <mark
         className="ffSearch__highlight"
       >
@@ -190,7 +188,7 @@ describe('String Format', () => {
   test('wraps a multi-value array with bracket notation', () => {
     const string = new StringFormat();
 
-    expect(string.convert(['foo', 'bar'], 'text')).toBe('["foo","bar"]');
+    expect(string.convert(['foo', 'bar'], TEXT_CONTEXT_TYPE)).toBe('["foo","bar"]');
     expect(string.convert(['foo', 'bar'], HTML_CONTEXT_TYPE)).toBe(
       '<span class="ffArray__highlight">[</span>foo<span class="ffArray__highlight">,</span> bar<span class="ffArray__highlight">]</span>'
     );
@@ -200,7 +198,7 @@ describe('String Format', () => {
   test('returns the single element without brackets for a one-element array', () => {
     const string = new StringFormat();
 
-    expect(string.convert(['hello'], 'text')).toBe('["hello"]');
+    expect(string.convert(['hello'], TEXT_CONTEXT_TYPE)).toBe('["hello"]');
     expect(string.convert(['hello'], HTML_CONTEXT_TYPE)).toBe('hello');
     expect(string.reactConvert(['hello'])).toBe('hello');
   });
@@ -208,7 +206,7 @@ describe('String Format', () => {
   test('returns empty for an empty array', () => {
     const string = new StringFormat();
 
-    expect(string.convert([], 'text')).toBe('[]');
+    expect(string.convert([], TEXT_CONTEXT_TYPE)).toBe('[]');
     expect(string.convert([], HTML_CONTEXT_TYPE)).toBe('');
     expect(string.reactConvert([])).toBe('');
   });

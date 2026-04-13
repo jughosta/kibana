@@ -80,7 +80,7 @@ export abstract class NumeralFormat extends FieldFormat {
     if (val == null || val === MISSING_TOKEN) {
       return <span className="ffString__emptyValue">{NULL_LABEL}</span>;
     }
-    if (typeof val === 'object') {
+    if (typeof val === 'object' && !Array.isArray(val)) {
       return asPrettyString(val);
     }
     return this.getConvertedValue(val);

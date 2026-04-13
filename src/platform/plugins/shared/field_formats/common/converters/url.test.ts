@@ -9,15 +9,13 @@
 
 import { UrlFormat } from './url';
 import { TEXT_CONTEXT_TYPE, HTML_CONTEXT_TYPE } from '../content_types';
-import { highlightTags } from '../utils/highlight/highlight_tags';
 import { expectReactElementWithNull, expectReactElementWithBlank } from '../test_utils';
 
 describe('UrlFormat', () => {
-  const hl = (word: string) => `${highlightTags.pre}${word}${highlightTags.post}`;
-
   test('outputs a simple <a> tag by default', () => {
     const url = new UrlFormat({});
 
+    expect(url.convert('http://elastic.co', TEXT_CONTEXT_TYPE)).toBe('http://elastic.co');
     expect(url.convert('http://elastic.co', HTML_CONTEXT_TYPE)).toBe(
       '<a href="http://elastic.co" target="_blank" rel="noopener noreferrer">http://elastic.co</a>'
     );
@@ -72,6 +70,7 @@ describe('UrlFormat', () => {
   test('outputs an <audio> if type === "audio"', () => {
     const url = new UrlFormat({ type: 'audio' });
 
+    expect(url.convert('http://elastic.co', TEXT_CONTEXT_TYPE)).toBe('http://elastic.co');
     expect(url.convert('http://elastic.co', HTML_CONTEXT_TYPE)).toBe(
       '<audio controls="" preload="none" src="http://elastic.co"></audio>'
     );
@@ -88,6 +87,7 @@ describe('UrlFormat', () => {
     test('default', () => {
       const url = new UrlFormat({ type: 'img' });
 
+      expect(url.convert('http://elastic.co', TEXT_CONTEXT_TYPE)).toBe('http://elastic.co');
       expect(url.convert('http://elastic.co', HTML_CONTEXT_TYPE)).toBe(
         '<img src="http://elastic.co" alt="A dynamically-specified image located at http://elastic.co" ' +
           'style="width:auto;height:auto;max-width:none;max-height:none"/>'
@@ -317,8 +317,6 @@ describe('UrlFormat', () => {
       const url = new UrlFormat({ labelTemplate: 'external {{value }}' });
 
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('external url');
-      // reactConvert returns the raw URL when it can't form an absolute link (no parsedUrl)
-      expect(url.reactConvert('url')).toBe('url');
     });
 
     test('can use the raw value with {{value}}', () => {
@@ -327,7 +325,6 @@ describe('UrlFormat', () => {
       });
 
       expect(url.convert('url?', TEXT_CONTEXT_TYPE)).toBe('external url?');
-      expect(url.reactConvert('url?')).toBe('url?');
     });
 
     test('can use the raw value with {{rawValue}}', () => {
@@ -336,7 +333,6 @@ describe('UrlFormat', () => {
       });
 
       expect(url.convert('url?', TEXT_CONTEXT_TYPE)).toBe('external url?');
-      expect(url.reactConvert('url?')).toBe('url?');
     });
 
     test('can use the url', () => {
@@ -608,23 +604,19 @@ describe('UrlFormat', () => {
       expect(converter('10.22.55.66')).toBe(
         '<a href="http://kibana.host.com/app/10.22.55.66" target="_blank" rel="noopener noreferrer">10.22.55.66</a>'
       );
+      expect(url.reactConvert('10.22.55.66')).toMatchInlineSnapshot(`
+        <a
+          href="http://kibana.host.com/app/10.22.55.66"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          10.22.55.66
+        </a>
+      `);
 
       expect(converter('http://www.domain.name/app/kibana#/dashboard/')).toBe(
         '<a href="http://www.domain.name/app/kibana#/dashboard/" target="_blank" rel="noopener noreferrer">http://www.domain.name/app/kibana#/dashboard/</a>'
       );
-
-      expect(converter('/app/kibana')).toBe(
-        '<a href="http://kibana.host.com/app/kibana" target="_blank" rel="noopener noreferrer">/app/kibana</a>'
-      );
-
-      expect(converter('kibana#/dashboard/')).toBe(
-        '<a href="http://kibana.host.com/app/kibana#/dashboard/" target="_blank" rel="noopener noreferrer">kibana#/dashboard/</a>'
-      );
-
-      expect(converter('#/dashboard/')).toBe(
-        '<a href="http://kibana.host.com/app/kibana#/dashboard/" target="_blank" rel="noopener noreferrer">#/dashboard/</a>'
-      );
-
       expect(url.reactConvert('http://www.domain.name/app/kibana#/dashboard/'))
         .toMatchInlineSnapshot(`
         <a
@@ -635,13 +627,43 @@ describe('UrlFormat', () => {
           http://www.domain.name/app/kibana#/dashboard/
         </a>
       `);
-      expect(url.reactConvert('10.22.55.66')).toMatchInlineSnapshot(`
+
+      expect(converter('/app/kibana')).toBe(
+        '<a href="http://kibana.host.com/app/kibana" target="_blank" rel="noopener noreferrer">/app/kibana</a>'
+      );
+      expect(url.reactConvert('/app/kibana')).toMatchInlineSnapshot(`
         <a
-          href="http://kibana.host.com/app/10.22.55.66"
+          href="http://kibana.host.com/app/kibana"
           rel="noopener noreferrer"
           target="_blank"
         >
-          10.22.55.66
+          /app/kibana
+        </a>
+      `);
+
+      expect(converter('kibana#/dashboard/')).toBe(
+        '<a href="http://kibana.host.com/app/kibana#/dashboard/" target="_blank" rel="noopener noreferrer">kibana#/dashboard/</a>'
+      );
+      expect(url.reactConvert('kibana#/dashboard/')).toMatchInlineSnapshot(`
+        <a
+          href="http://kibana.host.com/app/kibana#/dashboard/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          kibana#/dashboard/
+        </a>
+      `);
+
+      expect(converter('#/dashboard/')).toBe(
+        '<a href="http://kibana.host.com/app/kibana#/dashboard/" target="_blank" rel="noopener noreferrer">#/dashboard/</a>'
+      );
+      expect(url.reactConvert('#/dashboard/')).toMatchInlineSnapshot(`
+        <a
+          href="http://kibana.host.com/app/kibana#/dashboard/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          #/dashboard/
         </a>
       `);
     });
@@ -673,7 +695,11 @@ describe('UrlFormat', () => {
     expect(
       url.reactConvert('http://elastic.co', {
         field: { name: 'link' },
-        hit: { highlight: { link: [`${hl('http://elastic.co')}`] } },
+        hit: {
+          highlight: {
+            link: ['@kibana-highlighted-field@http://elastic.co@/kibana-highlighted-field@'],
+          },
+        },
       })
     ).toMatchInlineSnapshot(`
       <a
