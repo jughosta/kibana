@@ -13,7 +13,7 @@ import ReactDOM from 'react-dom/server';
 import { escape, transform, size, cloneDeep, get, defaults } from 'lodash';
 import { EMPTY_LABEL, MISSING_TOKEN, NULL_LABEL } from '@kbn/field-formats-common';
 import { createCustomFieldFormat } from './converters/custom';
-import { checkForMissingValueHtml, wrapReactArray } from './utils';
+import { checkForMissingValueHtml, formatReactArray } from './utils';
 import type {
   FieldFormatsGetConfigFn,
   FieldFormatsContentType,
@@ -113,7 +113,7 @@ export abstract class FieldFormat {
     // Arrays: mirror the html_content_type bracket/comma rendering but with React nodes.
     // Single-element arrays and empty arrays are passed through without brackets.
     if (Array.isArray(val)) {
-      return wrapReactArray(val, (v) => this.reactConvert(v, options));
+      return formatReactArray(val, (v) => this.reactConvert(v, options));
     }
 
     if (this.reactConvertSingle) {
@@ -124,6 +124,7 @@ export abstract class FieldFormat {
       const missing = this.checkForMissingValueReact(val);
       if (missing) return missing;
     }
+
     const formatted = this.textConvert
       ? this.textConvert(val, options)
       : // Some formatters (e.g. AggsTermsFieldFormat, AggsMultiTermsFieldFormat) override

@@ -11,54 +11,70 @@ import React from 'react';
 import { highlightTags } from './highlight_tags';
 
 /**
- * React equivalent of getHighlightHtml. Mirrors the same split-and-rejoin algorithm:
- * for each highlight entry, strip its tags to get the plain context string, then
- * replace every occurrence of that context in the working string with the
- * highlight-tagged version. The result is converted to React <mark> nodes —
- * no dangerouslySetInnerHTML needed.
+ * React equivalent of getHighlightHtml. Mirrors the same two-step algorithm:
+ *
+ * Step 1 (identical to getHighlightHtml): for each highlight, strip its Kibana
+ * tags to get the plain substring, then replace every occurrence of that
+ * substring in the working string with the tagged version. Note: getHighlightHtml
+ * HTML-escapes each highlight before this step; that is omitted here because
+ * React automatically escapes text node content.
+ *
+ * Step 2 (React-specific): convert the tag-substituted string to React nodes,
+ * wrapping each highlighted span in a <mark> element instead of an HTML string.
  */
 export function getHighlightReact(
   fieldValue: string,
   highlights: string[] | undefined | null
 ): React.ReactNode {
-  const text = fieldValue;
+  if (!highlights?.length) return fieldValue;
 
-  if (!highlights?.length) return text;
-
-  // Direct mirror of getHighlightHtml: untagged → plain context, tagged → highlight as-is.
-  let result = text;
+  // Step 1 — mirror of getHighlightHtml's replacement loop.
+  //
+  // ES highlight snippets are fragments of the field value, not the full value.
+  // We locate each highlighted substring within the full value and inject the
+  // Kibana tags there, so that Step 2 can mark every match in context.
+  //
+  //   fieldValue = "lorem ipsum dolor ipsum amet"
+  //   highlight  = "@kibana-highlighted-field@ipsum@/kibana-highlighted-field@"  ← ES snippet
+  //   untagged   = "ipsum"               ← strip tags to get the plain substring
+  //   result     = "lorem @kibana-highlighted-field@ipsum@/kibana-highlighted-field@ dolor @kibana-highlighted-field@ipsum@/kibana-highlighted-field@ amet"  ← all occurrences tagged
+  let result = fieldValue;
   for (const highlight of highlights) {
     const untagged = highlight.split(highlightTags.pre).join('').split(highlightTags.post).join('');
-    if (untagged.length === 0) {
-      continue;
-    }
+    if (!untagged) continue;
     result = result.split(untagged).join(highlight);
   }
 
-  if (!result.includes(highlightTags.pre)) return text;
+  if (!result.includes(highlightTags.pre)) return fieldValue;
 
-  // Split on the opening tag; every segment after the first contains highlighted text
-  // up to the closing tag, followed by optional plain text.
+  // Step 2 — convert to React nodes.
+  //
+  // Splitting on @kibana-highlighted-field@ gives:
+  //   ["lorem ", "ipsum@/kibana-highlighted-field@ dolor ", "ipsum@/kibana-highlighted-field@ amet"]
+  //    ^prefix   ^part 0                                    ^part 1
+  //
+  // Each part then splits on @/kibana-highlighted-field@ to separate the
+  // highlighted text from the plain text that follows it:
+  //   "ipsum@/kibana-highlighted-field@ dolor " → highlighted="ipsum"  after=" dolor "
+  //   "ipsum@/kibana-highlighted-field@ amet"   → highlighted="ipsum"  after=" amet"
+  //
+  // Final nodes: ["lorem ", <mark>ipsum</mark>, " dolor ", <mark>ipsum</mark>, " amet"]
   const nodes: React.ReactNode[] = [];
-  const parts = result.split(highlightTags.pre);
+  const [prefix, ...highlightedParts] = result.split(highlightTags.pre);
 
-  for (let i = 0; i < parts.length; i++) {
-    if (i === 0) {
-      if (parts[i]) nodes.push(parts[i]);
-    } else {
-      const [highlighted, rest] = parts[i].split(highlightTags.post);
-      if (highlighted) {
-        nodes.push(
-          <mark className="ffSearch__highlight" key={i}>
-            {highlighted}
-          </mark>
-        );
-      }
-      if (rest) nodes.push(rest);
-    }
+  if (prefix) nodes.push(prefix);
+  for (const [i, part] of highlightedParts.entries()) {
+    const [highlighted, after] = part.split(highlightTags.post);
+    if (highlighted)
+      nodes.push(
+        <mark className="ffSearch__highlight" key={i}>
+          {highlighted}
+        </mark>
+      );
+    if (after) nodes.push(after);
   }
 
-  if (nodes.length === 0) return text;
+  if (nodes.length === 0) return fieldValue;
   if (nodes.length === 1) return nodes[0];
   return <>{nodes}</>;
 }
