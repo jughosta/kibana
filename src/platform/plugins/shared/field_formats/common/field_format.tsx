@@ -9,7 +9,7 @@
 
 import type { ReactNode } from 'react';
 import React from 'react';
-import ReactDOM from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { escape, transform, size, cloneDeep, get, defaults } from 'lodash';
 import { EMPTY_LABEL, MISSING_TOKEN, NULL_LABEL } from '@kbn/field-formats-common';
 import { createCustomFieldFormat } from './converters/custom';
@@ -279,7 +279,7 @@ export abstract class FieldFormat {
         }
         // Wrap in fragment to safely handle arrays and other non-element ReactNodes
         const element = React.isValidElement(node) ? node : <>{node}</>;
-        return ReactDOM.renderToStaticMarkup(element);
+        return renderToStaticMarkup(element);
       };
     }
 
