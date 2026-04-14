@@ -88,7 +88,7 @@ export class UrlFormat extends FieldFormat {
     return this.compileTemplate(template)({
       value: strValue,
       url,
-      rawValue: strValue,
+      rawValue: value,
     });
   }
 
@@ -99,7 +99,7 @@ export class UrlFormat extends FieldFormat {
 
     return this.compileTemplate(template)({
       value: encodeURIComponent(strValue),
-      rawValue: strValue,
+      rawValue: value,
     });
   }
 

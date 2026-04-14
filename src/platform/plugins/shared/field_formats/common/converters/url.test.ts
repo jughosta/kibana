@@ -290,6 +290,40 @@ describe('UrlFormat', () => {
       expect(url.convert('url', TEXT_CONTEXT_TYPE)).toBe('url');
       expect(url.reactConvert('url')).toBe('url');
     });
+
+    test('rawValue in url template is not URL-encoded (unlike value)', () => {
+      const url = new UrlFormat({
+        urlTemplate: 'http://elastic.co/?raw={{rawValue}}&encoded={{value}}',
+      });
+
+      expect(url.convert('hello world', TEXT_CONTEXT_TYPE)).toBe(
+        'http://elastic.co/?raw=hello world&encoded=hello%20world'
+      );
+      expect(url.reactConvert('hello world')).toMatchInlineSnapshot(`
+        <a
+          href="http://elastic.co/?raw=hello world&encoded=hello%20world"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          http://elastic.co/?raw=hello world&encoded=hello%20world
+        </a>
+      `);
+    });
+
+    test('preserves the original numeric value with {{rawValue}} in url template', () => {
+      const url = new UrlFormat({ urlTemplate: 'http://elastic.co/?id={{rawValue}}' });
+
+      expect(url.convert(42, TEXT_CONTEXT_TYPE)).toBe('http://elastic.co/?id=42');
+      expect(url.reactConvert(42)).toMatchInlineSnapshot(`
+        <a
+          href="http://elastic.co/?id=42"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          http://elastic.co/?id=42
+        </a>
+      `);
+    });
   });
 
   describe('label template', () => {
@@ -772,7 +806,7 @@ describe('UrlFormat', () => {
         >
           ,
         </span>
-         
+
         <a
           href="http://kibana.io"
           rel="noopener noreferrer"

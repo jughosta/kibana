@@ -19,6 +19,7 @@ const ARRAY_HIGHLIGHT_CLASS = 'ffArray__highlight';
  * Expects a span with className "ffString__emptyValue" and text "(null)".
  */
 export const expectReactElementWithNull = (element: React.ReactNode) => {
+  expect(isValidElement(element)).toBe(true);
   const el = element as ReactElement;
   expect(el.type).toBe('span');
   expect(el.props.className).toBe(EMPTY_VALUE_CLASS);
@@ -30,6 +31,7 @@ export const expectReactElementWithNull = (element: React.ReactNode) => {
  * Expects a span with className "ffString__emptyValue" and text "(blank)".
  */
 export const expectReactElementWithBlank = (element: React.ReactNode) => {
+  expect(isValidElement(element)).toBe(true);
   const el = element as ReactElement;
   expect(el.type).toBe('span');
   expect(el.props.className).toBe(EMPTY_VALUE_CLASS);
