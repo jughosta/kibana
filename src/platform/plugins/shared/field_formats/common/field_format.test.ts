@@ -7,7 +7,8 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-/* eslint-disable max-classes-per-file -- TestFormat + Aggs-style convert() override test double */
+/* eslint-disable max-classes-per-file -- needs TestFormat (generic test double) + ConvertOverrideFormat (tests the convert()-override code path, as used by AggsTermsFieldFormat) */
+
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import { constant, trimEnd, trimStart, get } from 'lodash';
@@ -37,16 +38,6 @@ const getTestFormat = (
     textConvert = textConvert;
     htmlConvert = htmlConvert;
   })(_params, jest.fn());
-
-/** Formatter that overrides convert() directly (no textConvert), like AggsTermsFieldFormat. */
-const getConvertOverrideFormat = () =>
-  new (class ConvertOverrideFormat extends FieldFormat {
-    static id = 'convert-override-format';
-    static title = 'Convert Override Format';
-
-    convert = (val: unknown) => `formatted:${val}`;
-    getConverterFor = () => this.convert;
-  })(undefined, jest.fn());
 
 describe('FieldFormat class', () => {
   describe('params', () => {
@@ -313,19 +304,28 @@ describe('FieldFormat class', () => {
         expect(result).toBe('lorem <mark class="ffSearch__highlight">ipsum</mark> dolor');
       });
 
-      test('wraps matched text in <mark> for formatters that override convert() directly', () => {
-        const f = getConvertOverrideFormat();
-        const result = renderReact(
-          f.reactConvert('ipsum', makeOptions('myField', [`${hl('formatted:ipsum')}`]))
-        );
-        expect(result).toBe('<mark class="ffSearch__highlight">formatted:ipsum</mark>');
-      });
+      describe('for formatters that override convert() directly (mimics AggsTermsFieldFormat)', () => {
+        class ConvertOverrideFormat extends FieldFormat {
+          static id = 'convert-override-format';
+          static title = 'Convert Override Format';
+          convert = (val: unknown) => `formatted:${val}`;
+          getConverterFor = () => this.convert;
+        }
 
-      test('returns plain text for convert() override formatters when no highlights present', () => {
-        const f = getConvertOverrideFormat();
-        expect(f.reactConvert('ipsum', { field: { name: 'myField' }, hit: {} })).toBe(
-          'formatted:ipsum'
-        );
+        test('wraps matched text in <mark> via reactConvert when highlights are present', () => {
+          const f = new ConvertOverrideFormat(undefined, jest.fn());
+          const result = renderReact(
+            f.reactConvert('ipsum', makeOptions('myField', [`${hl('formatted:ipsum')}`]))
+          );
+          expect(result).toBe('<mark class="ffSearch__highlight">formatted:ipsum</mark>');
+        });
+
+        test('returns plain text when no highlights present', () => {
+          const f = new ConvertOverrideFormat(undefined, jest.fn());
+          expect(f.reactConvert('ipsum', { field: { name: 'myField' }, hit: {} })).toBe(
+            'formatted:ipsum'
+          );
+        });
       });
 
       test('HTML-escapes special characters in highlighted output', () => {

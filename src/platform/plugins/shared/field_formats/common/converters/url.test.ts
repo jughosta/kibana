@@ -806,7 +806,7 @@ describe('UrlFormat', () => {
         >
           ,
         </span>
-
+         
         <a
           href="http://kibana.io"
           rel="noopener noreferrer"
