@@ -7,6 +7,8 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
+import React from 'react';
+import ReactDOM from 'react-dom/server';
 import { identity } from 'lodash';
 
 import type { IFieldFormat, SerializedFieldFormat } from '@kbn/field-formats-plugin/common';
@@ -15,6 +17,8 @@ import { MultiFieldKey } from '../buckets/multi_field_key';
 import { getAggsFormats } from './get_aggs_formats';
 import { MISSING_TOKEN } from '@kbn/field-formats-common';
 
+const renderReact = (node: React.ReactNode) =>
+  ReactDOM.renderToStaticMarkup(React.createElement(React.Fragment, null, node));
 const getAggFormat = (
   mapping: SerializedFieldFormat,
   getFormat: (mapping: SerializedFieldFormat) => IFieldFormat
@@ -186,5 +190,81 @@ describe('getAggsFormats', () => {
 
     expect(format.convert('text')).toBe('');
     expect(getFormat).toHaveBeenCalledTimes(terms.length);
+  });
+
+  describe('AggsTermsFieldFormat — reactConvert', () => {
+    const mapping = {
+      id: 'terms',
+      params: { otherBucketLabel: 'other bucket', missingBucketLabel: 'missing bucket' },
+    };
+
+    test('returns missingBucketLabel for MISSING_TOKEN, not the generic null placeholder', () => {
+      // This is the key invariant: reactConvert must NOT call checkForMissingValueReact before
+      // delegating to convert(), otherwise the user-configured label would be lost.
+      const format = getAggFormat(mapping, getFormat);
+      expect(format.reactConvert(MISSING_TOKEN)).toBe('missing bucket');
+    });
+
+    test('returns otherBucketLabel for __other__', () => {
+      const format = getAggFormat(mapping, getFormat);
+      expect(format.reactConvert('__other__')).toBe('other bucket');
+    });
+
+    test('delegates to the underlying format for normal values', () => {
+      const format = getAggFormat(mapping, getFormat);
+      expect(format.reactConvert('machine.os.keyword')).toBe('machine.os.keyword');
+    });
+
+    test('applies highlights to the value produced by the underlying format', () => {
+      const format = getAggFormat(mapping, getFormat);
+      const options = {
+        field: { name: 'myField' },
+        hit: {
+          highlight: {
+            myField: ['@kibana-highlighted-field@machine@/kibana-highlighted-field@.os.keyword'],
+          },
+        },
+      };
+      expect(renderReact(format.reactConvert('machine.os.keyword', options))).toBe(
+        '<mark class="ffSearch__highlight">machine</mark>.os.keyword'
+      );
+    });
+
+    test('does not apply highlights when options.field is absent', () => {
+      const format = getAggFormat(mapping, getFormat);
+      const result = format.reactConvert('machine.os.keyword', {
+        hit: {
+          highlight: {
+            myField: ['@kibana-highlighted-field@machine@/kibana-highlighted-field@.os.keyword'],
+          },
+        },
+      });
+      expect(result).toBe('machine.os.keyword');
+    });
+  });
+
+  describe('AggsMultiTermsFieldFormat — reactConvert', () => {
+    test('returns otherBucketLabel for __other__', () => {
+      const mapping = {
+        id: 'multi_terms',
+        params: {
+          paramsPerField: [{ id: 'terms' }, { id: 'terms' }],
+          otherBucketLabel: 'other bucket',
+        },
+      };
+      const format = getAggFormat(mapping, getFormat);
+      expect(format.reactConvert('__other__')).toBe('other bucket');
+    });
+
+    test('delegates to the underlying format for normal multi-field values', () => {
+      const mapping = {
+        id: 'multi_terms',
+        params: { paramsPerField: [{ id: 'terms' }, { id: 'terms' }] },
+      };
+      const format = getAggFormat(mapping, getFormat);
+      expect(format.reactConvert(new MultiFieldKey({ key: ['source', 'geo.src'] }))).toBe(
+        'source › geo.src'
+      );
+    });
   });
 });

@@ -40,7 +40,7 @@ describe('formatReactArray', () => {
     });
 
     test('wraps three or more elements with a comma between each pair', () => {
-      expect(render(formatReactArray([1, 2, 3], (v) => String(v)))).toBe(
+      expect(render(formatReactArray([1, 2, 3], String))).toBe(
         `${open}1${comma} 2${comma} 3${close}`
       );
     });
@@ -64,23 +64,22 @@ describe('formatReactArray', () => {
         `${open}\n` + `  {\n    "x": 1\n  }${comma}\n` + `  {\n    "y": 2\n  }\n` + `${close}`
       );
     });
+
+    test('preserves blank lines (consecutive newlines) by only indenting after the run', () => {
+      // \n\n should become \n\n  (the blank line is kept, indent appended after the run)
+      // not \n  \n  (which would wrongly add spaces to the blank line itself)
+      expect(render(formatReactArray(['a\n\nb', 'c'], String))).toBe(
+        `${open}\n  a\n\n  b${comma}\n  c\n${close}`
+      );
+    });
   });
 
   describe('multi-element arrays — multiline mode with React element nodes', () => {
     // These cases arise when convertSingle returns a React element rather than a plain string,
     // e.g. getHighlightReact wrapping a search-highlighted multiline JSON value in <mark> nodes.
 
-    test('triggers multiline mode when a React element child contains a newline', () => {
-      const convertSingle = (v: unknown) => React.createElement('mark', null, `${v}\nline2`);
-
-      const result = render(formatReactArray(['val1', 'val2'], convertSingle));
-
-      expect(result).toContain(`${open}\n`);
-      expect(result).toContain(`\n${close}`);
-    });
-
     test('indents newlines inside a React element child', () => {
-      const convertSingle = (v: unknown) => React.createElement('mark', null, `${v}\nline2`);
+      const convertSingle = (v: unknown) => <mark>{`${v}\nline2`}</mark>;
 
       expect(render(formatReactArray(['top', 'top'], convertSingle))).toBe(
         `${open}\n` +
@@ -90,34 +89,18 @@ describe('formatReactArray', () => {
       );
     });
 
-    test('triggers multiline mode when the newline is nested deeper in the React tree', () => {
-      // e.g. <span><em>{\n  "x": 1\n}</em></span>
-      const convertSingle = () =>
-        React.createElement('span', null, React.createElement('em', null, '{\n  "x": 1\n}'));
-
-      const result = render(formatReactArray(['a', 'b'], convertSingle));
-
-      expect(result).toContain(`${open}\n`);
-      expect(result).toContain(`\n${close}`);
-    });
-
     test('indents newlines nested deep in a React element tree', () => {
-      const convertSingle = () =>
-        React.createElement('span', null, React.createElement('em', null, 'top\nindented'));
+      const convertSingle = () => (
+        <span>
+          <em>{'top\nindented'}</em>
+        </span>
+      );
 
       expect(render(formatReactArray(['a', 'b'], convertSingle))).toBe(
         `${open}\n` +
           `  <span><em>top\n  indented</em></span>${comma}\n` +
           `  <span><em>top\n  indented</em></span>\n` +
           `${close}`
-      );
-    });
-
-    test('does not trigger multiline mode when React elements contain no newlines', () => {
-      const convertSingle = (v: unknown) => React.createElement('mark', null, String(v));
-
-      expect(render(formatReactArray(['a', 'b'], convertSingle))).toBe(
-        `${open}<mark>a</mark>${comma} <mark>b</mark>${close}`
       );
     });
 

@@ -62,9 +62,11 @@ const withArrayStyles = (text: string, key?: string) => (
 const withKey = (node: ReactNode, key: string | number): ReactNode =>
   React.isValidElement(node) ? React.cloneElement(node as React.ReactElement, { key }) : node;
 
-// Recursively checks whether a ReactNode contains a newline anywhere in its text content.
-// Necessary because convertSingle may return a React element (e.g. <mark> from getHighlightReact)
-// rather than a plain string, so a simple typeof === 'string' check would miss those cases.
+/**
+ * Recursively checks whether a ReactNode contains a newline anywhere in its text content.
+ * Necessary because convertSingle may return a React element (e.g. <mark> from getHighlightReact)
+ * rather than a plain string, so a simple typeof === 'string' check would miss those cases.
+ */
 function hasNewline(node: ReactNode): boolean {
   if (typeof node === 'string') return node.includes('\n');
   if (Array.isArray(node)) return node.some(hasNewline);
@@ -73,10 +75,14 @@ function hasNewline(node: ReactNode): boolean {
   return false;
 }
 
-// Recursively adds two-space indentation after every newline in a ReactNode tree,
-// mirroring the string-only replaceAll('\n', '\n  ') but for arbitrary React nodes.
+/**
+ * Recursively adds two-space indentation after every newline run in a ReactNode tree,
+ * mirroring html_content_type's replaceAll(/(\n+)/g, '$1  ') but for arbitrary React nodes.
+ * Using a regex that captures the full newline run preserves blank lines (consecutive newlines)
+ * by appending the indent only once after the entire run, not after each individual newline.
+ */
 function indentNode(node: ReactNode): ReactNode {
-  if (typeof node === 'string') return node.replaceAll('\n', '\n  ');
+  if (typeof node === 'string') return node.replaceAll(/(\n+)/g, '$1  ');
   if (Array.isArray(node)) return node.map(indentNode);
   if (React.isValidElement(node)) {
     const { children } = node.props as { children?: ReactNode };

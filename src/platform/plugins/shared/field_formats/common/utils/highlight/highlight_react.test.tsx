@@ -101,7 +101,7 @@ describe('getHighlightReact and getHighlightHtml', () => {
     check('<script>alert(1)</script>', [], '&lt;script&gt;alert(1)&lt;/script&gt;');
   });
 
-  test('applies only the first entry when entries share the same untagged context', () => {
+  test('when highlight entries share the same untagged context only the first applies — same behavior as getHighlightHtml', () => {
     check(
       'lorem ipsum dolor sit',
       [`${hl('lorem')} ipsum dolor sit`, `lorem ipsum dolor ${hl('sit')}`],

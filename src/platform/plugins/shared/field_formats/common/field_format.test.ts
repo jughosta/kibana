@@ -336,6 +336,16 @@ describe('FieldFormat class', () => {
         expect(result).toBe('<mark class="ffSearch__highlight">&lt;em&gt;lorem&lt;/em&gt;</mark>');
         expect(result).not.toContain('<em>');
       });
+
+      test('does not apply highlights when options.field is absent', () => {
+        const f = getTestFormat(undefined, constant('lorem ipsum'));
+        // Without a field name the highlight lookup key is undefined, so highlights are skipped
+        // even if hit.highlight contains data.
+        const result = f.reactConvert('lorem ipsum', {
+          hit: { highlight: { myField: [`lorem ${hl('ipsum')}`] } },
+        });
+        expect(result).toBe('lorem ipsum');
+      });
     });
   });
 });

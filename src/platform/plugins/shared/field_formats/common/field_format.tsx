@@ -92,8 +92,6 @@ export abstract class FieldFormat {
    *
    * @property {reactConvertSingle}
    * @protected
-   * have to remove the protected because of
-   * https://github.com/Microsoft/TypeScript/issues/17293
    */
   reactConvertSingle: ReactContextTypeSingleConvert | undefined;
 
@@ -106,8 +104,6 @@ export abstract class FieldFormat {
    *
    * @property {reactConvert}
    * @protected
-   * have to remove the protected because of
-   * https://github.com/Microsoft/TypeScript/issues/17293
    */
   reactConvert: ReactContextTypeConvert = (val, options) => {
     // Arrays: mirror the html_content_type bracket/comma rendering but with React nodes.
