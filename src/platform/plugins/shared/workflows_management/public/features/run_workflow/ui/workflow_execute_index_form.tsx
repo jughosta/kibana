@@ -340,7 +340,7 @@ export const WorkflowExecuteIndexForm = ({
                     <React.Fragment key={index}>
                       <EuiDescriptionListTitle>{title}</EuiDescriptionListTitle>
                       <EuiDescriptionListDescription>
-                        {description || '-'}
+                        {description == null || description === '' ? '-' : description}
                       </EuiDescriptionListDescription>
                     </React.Fragment>
                   ))}
