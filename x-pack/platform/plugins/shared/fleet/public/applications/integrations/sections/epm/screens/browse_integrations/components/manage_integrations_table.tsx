@@ -5,17 +5,16 @@
  * 2.0.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from '@emotion/react';
 import {
   EuiBadge,
-  EuiCallOut,
+  EuiButton,
   EuiEmptyPrompt,
   EuiFilterButton,
   EuiFilterGroup,
   EuiFlexItem,
   EuiFlexGroup,
-  EuiIcon,
   EuiLink,
   EuiLoadingSpinner,
   EuiSpacer,
@@ -23,23 +22,40 @@ import {
   EuiSelectable,
   EuiInMemoryTable,
   EuiText,
+  EuiToolTip,
   useEuiTheme,
+  EuiCallOut,
 } from '@elastic/eui';
-import type { EuiBasicTableColumn, EuiSearchBarProps, EuiSelectableOption } from '@elastic/eui';
+import type {
+  EuiBasicTableColumn,
+  EuiSearchBarProps,
+  EuiSelectableOption,
+  EuiTableSelectionType,
+} from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
-import { useQuery } from '@kbn/react-query';
+import { useQuery, useQueryClient } from '@kbn/react-query';
 import type { UserProfileWithAvatar } from '@kbn/user-profile-components';
 import { UserAvatar } from '@kbn/user-profile-components';
-import type { DataStreamResponse, TaskStatus } from '@kbn/automatic-import-v2-plugin/common';
 
 import { PackageIcon } from '../../../../../../../components/package_icon';
 
+import { useGetPackagesQuery } from '../../../../../../../hooks/use_request/epm';
 import { useStartServices } from '../../../../../hooks';
 
 import { ManageIntegrationActions } from './manage_integration_actions';
 import type { ReviewIntegrationDetails } from './manage_integration_actions';
 import { CreateNewIntegrationButton } from './create_new_integration';
+
+export type DataStreamResultsFlyoutComponent = NonNullable<
+  ReturnType<typeof useStartServices>['automaticImport']
+>['components']['DataStreamResultsFlyout'];
+export type DataStreamResponse =
+  React.ComponentProps<DataStreamResultsFlyoutComponent>['dataStream'];
+export type TaskStatus = DataStreamResponse['status'];
+export interface AutomaticImportTelemetry {
+  reportEvent(event: string, data: Record<string, unknown>): void;
+}
 
 export interface CreatedIntegrationRow {
   integrationId: string;
@@ -88,14 +104,40 @@ export const ManageIntegrationsTable: React.FC<{
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<CreatedIntegrationRow[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkInstalling, setIsBulkInstalling] = useState(false);
+
+  const queryClient = useQueryClient();
+  const { data: packagesData } = useGetPackagesQuery({});
+  const installedPackageVersions = useMemo(
+    () =>
+      new Map(
+        (packagesData?.items ?? [])
+          .filter((item) => item.status === 'installed')
+          .map((item) => [item.name, item.version])
+      ),
+    [packagesData]
+  );
   const { euiTheme } = useEuiTheme();
   const {
     application,
-    automaticImportVTwo,
+    automaticImport,
     http,
     notifications,
     userProfile: userProfileService,
   } = useStartServices();
+
+  const hasReportedView = useRef(false);
+  useEffect(() => {
+    if (!isLoading && !hasReportedView.current) {
+      (automaticImport?.telemetry as AutomaticImportTelemetry)?.reportEvent(
+        'automatic_import_manage_integrations_table_viewed',
+        {}
+      );
+      hasReportedView.current = true;
+    }
+  }, [isLoading, automaticImport]);
 
   const integrationsWithActions = useMemo(() => {
     return integrations.map((item) => {
@@ -118,10 +160,16 @@ export const ManageIntegrationsTable: React.FC<{
         default:
           displayStatus = 'in_progress';
       }
+      let availableAction: string | undefined;
+      if (item.status === 'approved') {
+        availableAction = 'approved';
+      } else if (isIntegrationPackageReady(item)) {
+        availableAction = 'review_approve';
+      }
       return {
         ...item,
         displayStatus,
-        availableAction: isIntegrationPackageReady(item) ? 'review_approve' : 'edit',
+        availableAction,
       };
     });
   }, [integrations]);
@@ -166,7 +214,7 @@ export const ManageIntegrationsTable: React.FC<{
 
   const goToEditIntegration = useCallback(
     (integrationId: string) => {
-      application.navigateToApp('automaticImportVTwo', {
+      application.navigateToApp('automaticImport', {
         path: `/edit/${integrationId}`,
       });
     },
@@ -175,7 +223,7 @@ export const ManageIntegrationsTable: React.FC<{
 
   const getEditIntegrationHref = useCallback(
     (integrationId: string) =>
-      application.getUrlForApp('automaticImportVTwo', {
+      application.getUrlForApp('automaticImport', {
         path: `/edit/${integrationId}`,
       }),
     [application]
@@ -185,7 +233,7 @@ export const ManageIntegrationsTable: React.FC<{
     async (integrationId: string) => {
       try {
         await http.delete(
-          `/api/automatic_import_v2/integrations/${encodeURIComponent(integrationId)}`,
+          `/api/automatic_import/integrations/${encodeURIComponent(integrationId)}`,
           { version: '1' }
         );
         notifications.toasts.addSuccess({
@@ -215,7 +263,7 @@ export const ManageIntegrationsTable: React.FC<{
           version?: string;
           dataStreams: DataStreamResponse[];
         };
-      }>(`/api/automatic_import_v2/integrations/${encodeURIComponent(integrationId)}`, {
+      }>(`/api/automatic_import/integrations/${encodeURIComponent(integrationId)}`, {
         version: '1',
       });
 
@@ -233,7 +281,7 @@ export const ManageIntegrationsTable: React.FC<{
     async (integrationId: string) => {
       try {
         const response = await http.get(
-          `/api/automatic_import_v2/integrations/${encodeURIComponent(integrationId)}/download`,
+          `/api/automatic_import/integrations/${encodeURIComponent(integrationId)}/download`,
           {
             version: '1',
             headers: { Accept: 'application/zip' },
@@ -253,6 +301,10 @@ export const ManageIntegrationsTable: React.FC<{
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        (automaticImport?.telemetry as AutomaticImportTelemetry)?.reportEvent(
+          'automatic_import_integration_download_zip_clicked',
+          {}
+        );
       } catch (error) {
         notifications.toasts.addError(error as Error, {
           title: i18n.translate(
@@ -262,17 +314,17 @@ export const ManageIntegrationsTable: React.FC<{
         });
       }
     },
-    [http, notifications]
+    [http, notifications, automaticImport]
   );
 
   const approveAndDeployIntegration = useCallback(
-    async (integrationId: string, version: string) => {
+    async (integrationId: string, version: string, categories: string[]) => {
       try {
         await http.post(
-          `/api/automatic_import_v2/integrations/${encodeURIComponent(integrationId)}/approve`,
+          `/api/automatic_import/integrations/${encodeURIComponent(integrationId)}/approve`,
           {
             version: '1',
-            body: JSON.stringify({ version }),
+            body: JSON.stringify({ version, categories }),
           }
         );
 
@@ -304,10 +356,11 @@ export const ManageIntegrationsTable: React.FC<{
     async (integrationId: string) => {
       try {
         const zipBlob = await http.get(
-          `/api/automatic_import_v2/integrations/${encodeURIComponent(integrationId)}/download`,
+          `/api/automatic_import/integrations/${encodeURIComponent(integrationId)}/download`,
           {
             version: '1',
             headers: { Accept: 'application/zip' },
+            query: { intent: 'install' },
           }
         );
 
@@ -319,6 +372,7 @@ export const ManageIntegrationsTable: React.FC<{
           body: zipBlob as unknown as BodyInit,
         });
 
+        await queryClient.invalidateQueries({ queryKey: ['get-packages'] });
         notifications.toasts.addSuccess({
           title: i18n.translate(
             'xpack.fleet.epmList.manageIntegrations.actions.installSuccessTitle',
@@ -334,8 +388,42 @@ export const ManageIntegrationsTable: React.FC<{
         });
       }
     },
-    [http, notifications]
+    [http, notifications, queryClient]
   );
+
+  const selection: EuiTableSelectionType<CreatedIntegrationRow> = useMemo(
+    () => ({
+      onSelectionChange: (items: CreatedIntegrationRow[]) => setSelectedItems(items),
+    }),
+    []
+  );
+
+  const handleBulkDelete = useCallback(async () => {
+    setIsBulkDeleting(true);
+    try {
+      await Promise.all(selectedItems.map((item) => deleteIntegration(item.integrationId)));
+      setSelectedItems([]);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedItems, deleteIntegration]);
+
+  const handleBulkInstall = useCallback(async () => {
+    const approvedItems = selectedItems.filter(
+      (item) =>
+        item.status === 'approved' &&
+        installedPackageVersions.get(item.integrationId) !== item.version
+    );
+    setIsBulkInstalling(true);
+    try {
+      await Promise.all(approvedItems.map((item) => installToCluster(item.integrationId)));
+      setSelectedItems([]);
+    } finally {
+      setIsBulkInstalling(false);
+    }
+  }, [selectedItems, installToCluster, installedPackageVersions]);
+
+  const canBulkInstall = selectedItems.every((item) => item.status === 'approved');
 
   const columns = useMemo<Array<EuiBasicTableColumn<CreatedIntegrationRow>>>(
     () => [
@@ -347,6 +435,7 @@ export const ManageIntegrationsTable: React.FC<{
             defaultMessage="Integration name"
           />
         ),
+        width: '22%',
         render: (title: string, item: CreatedIntegrationRow) => (
           <EuiFlexGroup gutterSize="s" alignItems="center" responsive={false}>
             <EuiFlexItem grow={false}>
@@ -376,7 +465,7 @@ export const ManageIntegrationsTable: React.FC<{
             {item.successfulDataStreamCount}/{item.totalDataStreamCount}
           </EuiBadge>
         ),
-        width: '80px',
+        width: '12%',
       },
       {
         field: 'version',
@@ -386,6 +475,7 @@ export const ManageIntegrationsTable: React.FC<{
             defaultMessage="Version"
           />
         ),
+        width: '10%',
         render: (version: string | undefined) => version ?? '-',
       },
       {
@@ -396,6 +486,7 @@ export const ManageIntegrationsTable: React.FC<{
             defaultMessage="Created by"
           />
         ),
+        width: '16%',
         render: (_createdBy: string, item: CreatedIntegrationRow) => {
           const profile = item.createdByProfileUid
             ? userProfiles.get(item.createdByProfileUid)
@@ -420,16 +511,28 @@ export const ManageIntegrationsTable: React.FC<{
         name: (
           <FormattedMessage
             id="xpack.fleet.epmList.manageIntegrations.table.status"
-            defaultMessage="Status"
+            defaultMessage="Analysing Status"
           />
         ),
         render: (status: TaskStatus) => {
           const { color, iconType, label, isInProgress } = getStatusDisplay(status);
+          const badgeStyle = {
+            borderRadius: '999px',
+            paddingLeft: euiTheme.size.s,
+            paddingRight: euiTheme.size.s,
+            gap: '2px',
+            fontFamily: euiTheme.font.family,
+            fontWeight: euiTheme.font.weight.medium,
+            fontSize: euiTheme.size.m,
+          };
           if (isInProgress) {
             return (
               <EuiBadge
                 color={color}
-                style={{ backgroundColor: euiTheme.colors.backgroundLightText }}
+                style={{
+                  ...badgeStyle,
+                  backgroundColor: euiTheme.colors.backgroundLightText,
+                }}
               >
                 <EuiFlexGroup gutterSize="xs" alignItems="center" responsive={false}>
                   <EuiFlexItem grow={false}>
@@ -441,35 +544,43 @@ export const ManageIntegrationsTable: React.FC<{
             );
           }
           return (
-            <EuiBadge color={color} iconType={iconType}>
+            <EuiBadge color={color} iconType={iconType} style={badgeStyle}>
               {label}
             </EuiBadge>
           );
         },
-        width: '124px',
+        width: '14%',
       },
       {
-        name: '',
+        name: (
+          <FormattedMessage
+            id="xpack.fleet.epmList.manageIntegrations.table.approvalStatus"
+            defaultMessage="Approval Status"
+          />
+        ),
+        width: '18%',
         render: (item: CreatedIntegrationRow) => {
           if (item.status === 'approved') {
             return (
-              <EuiBadge color="hollow" style={{ color: euiTheme.colors.textSubdued }}>
-                <EuiFlexGroup gutterSize="xs" alignItems="center" responsive={false}>
-                  <EuiFlexItem grow={false}>
-                    <EuiIcon
-                      type="checkInCircleFilled"
-                      color="success"
-                      size="m"
-                      aria-hidden={true}
-                    />
-                  </EuiFlexItem>
-                  <EuiFlexItem grow={false}>
-                    <FormattedMessage
-                      id="xpack.fleet.epmList.manageIntegrations.status.approved"
-                      defaultMessage="Approved"
-                    />
-                  </EuiFlexItem>
-                </EuiFlexGroup>
+              <EuiBadge
+                color="hollow"
+                iconType="check"
+                style={{
+                  color: euiTheme.colors.textParagraph,
+                  borderRadius: '999px',
+                  border: `1px solid ${euiTheme.colors.borderBasePlain}`,
+                  paddingLeft: euiTheme.size.s,
+                  paddingRight: euiTheme.size.s,
+                  gap: '2px',
+                  fontFamily: euiTheme.font.family,
+                  fontWeight: euiTheme.font.weight.medium,
+                  fontSize: euiTheme.size.m,
+                }}
+              >
+                <FormattedMessage
+                  id="xpack.fleet.epmList.manageIntegrations.status.approved"
+                  defaultMessage="Approved"
+                />
               </EuiBadge>
             );
           }
@@ -479,32 +590,13 @@ export const ManageIntegrationsTable: React.FC<{
               <ManageIntegrationActions
                 integration={item}
                 isPackageReady={true}
+                installedVersion={installedPackageVersions.get(item.integrationId)}
                 inlineActionType="reviewApprove"
                 showMenuButton={false}
                 onEdit={goToEditIntegration}
                 onDelete={deleteIntegration}
                 DataStreamResultsFlyoutComponent={
-                  automaticImportVTwo?.components.DataStreamResultsFlyout
-                }
-                onFetchReviewDetails={fetchIntegrationReviewDetails}
-                onApproveAndDeploy={approveAndDeployIntegration}
-                onDownloadZip={downloadZipPackage}
-                onInstallToCluster={installToCluster}
-              />
-            );
-          }
-
-          if (item.status === 'failed' || item.status === 'cancelled') {
-            return (
-              <ManageIntegrationActions
-                integration={item}
-                isPackageReady={false}
-                inlineActionType="editIntegration"
-                showMenuButton={false}
-                onEdit={goToEditIntegration}
-                onDelete={deleteIntegration}
-                DataStreamResultsFlyoutComponent={
-                  automaticImportVTwo?.components.DataStreamResultsFlyout
+                  automaticImport?.components.DataStreamResultsFlyout
                 }
                 onFetchReviewDetails={fetchIntegrationReviewDetails}
                 onApproveAndDeploy={approveAndDeployIntegration}
@@ -516,7 +608,6 @@ export const ManageIntegrationsTable: React.FC<{
 
           return null;
         },
-        width: '140px',
       },
       {
         name: (
@@ -525,16 +616,15 @@ export const ManageIntegrationsTable: React.FC<{
             defaultMessage="Actions"
           />
         ),
-        width: '48px',
+        width: '8%',
         render: (item: CreatedIntegrationRow) => (
           <ManageIntegrationActions
             integration={item}
             isPackageReady={isIntegrationPackageReady(item)}
+            installedVersion={installedPackageVersions.get(item.integrationId)}
             onEdit={goToEditIntegration}
             onDelete={deleteIntegration}
-            DataStreamResultsFlyoutComponent={
-              automaticImportVTwo?.components.DataStreamResultsFlyout
-            }
+            DataStreamResultsFlyoutComponent={automaticImport?.components.DataStreamResultsFlyout}
             onFetchReviewDetails={fetchIntegrationReviewDetails}
             onApproveAndDeploy={approveAndDeployIntegration}
             onDownloadZip={downloadZipPackage}
@@ -551,9 +641,15 @@ export const ManageIntegrationsTable: React.FC<{
       approveAndDeployIntegration,
       downloadZipPackage,
       installToCluster,
-      automaticImportVTwo?.components.DataStreamResultsFlyout,
+      installedPackageVersions,
+      automaticImport?.components.DataStreamResultsFlyout,
       euiTheme.colors.backgroundLightText,
-      euiTheme.colors.textSubdued,
+      euiTheme.colors.textParagraph,
+      euiTheme.colors.borderBasePlain,
+      euiTheme.font.family,
+      euiTheme.font.weight.medium,
+      euiTheme.size.s,
+      euiTheme.size.m,
       userProfiles,
     ]
   );
@@ -563,7 +659,11 @@ export const ManageIntegrationsTable: React.FC<{
       key: 'review_approve',
       checked: selectedActions.includes('review_approve') ? 'on' : undefined,
     },
-    { label: 'Edit', key: 'edit', checked: selectedActions.includes('edit') ? 'on' : undefined },
+    {
+      label: 'Approved',
+      key: 'approved',
+      checked: selectedActions.includes('approved') ? 'on' : undefined,
+    },
   ];
 
   const statusOptions: EuiSelectableOption[] = [
@@ -588,13 +688,18 @@ export const ManageIntegrationsTable: React.FC<{
       checked: selectedStatuses.includes('cancelled') ? 'on' : undefined,
     },
   ];
-  const filteredIntegrations = integrationsWithActions.filter((item) => {
-    const matchesAction =
-      selectedActions.length === 0 || selectedActions.includes(item.availableAction);
-    const matchesStatus =
-      selectedStatuses.length === 0 || selectedStatuses.includes(item.displayStatus);
-    return matchesAction && matchesStatus;
-  });
+  const filteredIntegrations = useMemo(
+    () =>
+      integrationsWithActions.filter((item) => {
+        const matchesAction =
+          selectedActions.length === 0 ||
+          (item.availableAction !== undefined && selectedActions.includes(item.availableAction));
+        const matchesStatus =
+          selectedStatuses.length === 0 || selectedStatuses.includes(item.displayStatus);
+        return matchesAction && matchesStatus;
+      }),
+    [integrationsWithActions, selectedActions, selectedStatuses]
+  );
 
   const filterButtonStyle = css`
     .euiFilterButton {
@@ -609,9 +714,14 @@ export const ManageIntegrationsTable: React.FC<{
       <EuiFlexItem grow={false}>
         <EuiFilterGroup css={filterButtonStyle}>
           <EuiPopover
+            aria-label={i18n.translate(
+              'xpack.fleet.epmList.manageIntegrations.actionsFilterPopover',
+              { defaultMessage: 'Filter by actions' }
+            )}
             button={
               <EuiFilterButton
                 iconType="arrowDown"
+                data-test-subj="manageIntegrationsActionsFilterBtn"
                 onClick={() => setIsActionsFilterOpen(!isActionsFilterOpen)}
                 isSelected={isActionsFilterOpen}
                 hasActiveFilters={selectedActions.length > 0}
@@ -635,9 +745,14 @@ export const ManageIntegrationsTable: React.FC<{
       <EuiFlexItem grow={false}>
         <EuiFilterGroup css={filterButtonStyle}>
           <EuiPopover
+            aria-label={i18n.translate(
+              'xpack.fleet.epmList.manageIntegrations.statusFilterPopover',
+              { defaultMessage: 'Filter by status' }
+            )}
             button={
               <EuiFilterButton
                 iconType="arrowDown"
+                data-test-subj="manageIntegrationsStatusFilterBtn"
                 onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)}
                 isSelected={isStatusFilterOpen}
                 hasActiveFilters={selectedStatuses.length > 0}
@@ -669,18 +784,80 @@ export const ManageIntegrationsTable: React.FC<{
       incremental: true,
       placeholder: 'Search integrations',
     },
-    toolsRight: [filterButtons],
+    toolsRight: [
+      <React.Fragment key="manageIntegrationsSearchTools">{filterButtons}</React.Fragment>,
+    ],
   };
 
   const countText = (
     <>
-      <EuiText size="s">
-        <FormattedMessage
-          id="xpack.fleet.epmList.manageIntegrations.showingCount"
-          defaultMessage="Showing {count} integrations"
-          values={{ count: filteredIntegrations.length }}
-        />
-      </EuiText>
+      {selectedItems.length > 0 ? (
+        <EuiFlexGroup gutterSize="s" alignItems="center" responsive={false}>
+          <EuiFlexItem grow={false}>
+            <EuiText size="s">
+              <FormattedMessage
+                id="xpack.fleet.epmList.manageIntegrations.selectedCount"
+                defaultMessage="{count} selected"
+                values={{ count: selectedItems.length }}
+              />
+            </EuiText>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiButton
+              size="s"
+              color="danger"
+              iconType="trash"
+              isLoading={isBulkDeleting}
+              onClick={handleBulkDelete}
+              data-test-subj="manageIntegrationsBulkDeleteBtn"
+            >
+              <FormattedMessage
+                id="xpack.fleet.epmList.manageIntegrations.bulkDelete"
+                defaultMessage="Delete"
+              />
+            </EuiButton>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiToolTip
+              content={
+                !canBulkInstall
+                  ? i18n.translate(
+                      'xpack.fleet.epmList.manageIntegrations.bulkInstallDisabledTooltip',
+                      {
+                        defaultMessage:
+                          'Not all selected integrations are approved. Deselect unapproved integrations to install.',
+                      }
+                    )
+                  : undefined
+              }
+            >
+              <span>
+                <EuiButton
+                  size="s"
+                  iconType="exportAction"
+                  isLoading={isBulkInstalling}
+                  isDisabled={!canBulkInstall}
+                  onClick={handleBulkInstall}
+                  data-test-subj="manageIntegrationsBulkInstallBtn"
+                >
+                  <FormattedMessage
+                    id="xpack.fleet.epmList.manageIntegrations.bulkInstall"
+                    defaultMessage="Install"
+                  />
+                </EuiButton>
+              </span>
+            </EuiToolTip>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      ) : (
+        <EuiText size="s">
+          <FormattedMessage
+            id="xpack.fleet.epmList.manageIntegrations.showingCount"
+            defaultMessage="Showing {count} integrations"
+            values={{ count: filteredIntegrations.length }}
+          />
+        </EuiText>
+      )}
       <EuiSpacer size="m" />
     </>
   );
@@ -701,6 +878,7 @@ export const ManageIntegrationsTable: React.FC<{
             defaultMessage="Unable to load integrations"
           />
         }
+        data-test-subj="manageIntegrationsTableError"
       />
     );
   }
@@ -709,16 +887,18 @@ export const ManageIntegrationsTable: React.FC<{
     <>
       <EuiInMemoryTable
         items={filteredIntegrations}
+        itemId="integrationId"
         columns={columns}
         search={search}
         childrenBetween={countText}
+        selection={selection}
         tableCaption={i18n.translate('xpack.fleet.epmList.manageIntegrations.tableCaption', {
           defaultMessage: 'Manage created integrations',
         })}
         pagination
         sorting
         data-test-subj="manageIntegrationsTable"
-        tableLayout="auto"
+        tableLayout="fixed"
       />
     </>
   );
