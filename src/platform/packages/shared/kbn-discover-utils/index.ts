@@ -75,8 +75,6 @@ export {
   getSortForSearchSource,
   getEsQuerySort,
   getTieBreakerFieldName,
-  escapeAndPreserveHighlightTags,
-  getHighlightedFieldValue,
   severityOrder,
 } from './src';
 

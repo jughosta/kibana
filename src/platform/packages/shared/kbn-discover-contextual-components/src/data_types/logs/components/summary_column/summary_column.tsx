@@ -18,8 +18,9 @@ import {
   type ShouldShowFieldInTableHandler,
   TRACE_FIELDS,
   getMessageFieldWithFallbacks,
+  getAvailableTraceFields,
 } from '@kbn/discover-utils';
-import { getAvailableTraceFields, getHighlightedFieldValue } from '@kbn/discover-utils';
+import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { Resource } from './resource';
 import { Content } from './content';
 import {
@@ -166,14 +167,17 @@ export const SummaryCellPopover = (props: AllSummaryColumnProps) => {
   const { field, value, formattedValue } = getMessageFieldWithFallbacks(row.flattened, {
     includeFormattedValue: true,
   });
-  const highlights = field ? row.raw.highlight?.[field] : undefined;
-  const messageCodeBlockProps = formattedValue
-    ? { language: 'json', children: formattedValue }
+
+  // For formatted JSON values, render as JSON code block
+  // For plain text, use field formatter's reactConvert which handles search highlighting natively
+  const messageContent = formattedValue
+    ? { type: 'json' as const, content: formattedValue }
     : {
-        language: 'txt',
-        dangerouslySetInnerHTML: {
-          __html: getHighlightedFieldValue(value ?? '', highlights),
-        },
+        type: 'text' as const,
+        content: fieldFormats.getDefaultInstance(KBN_FIELD_TYPES.STRING).reactConvert(value ?? '', {
+          hit: row.raw,
+          field: field ? { name: field } : undefined,
+        }),
       };
   const shouldRenderContent = Boolean(field && value);
 
@@ -207,13 +211,27 @@ export const SummaryCellPopover = (props: AllSummaryColumnProps) => {
             <EuiText color="subdued" size="xs">
               {field}
             </EuiText>
-            <EuiCodeBlock
-              overflowHeight={100}
-              paddingSize="s"
-              isCopyable
-              fontSize="s"
-              {...messageCodeBlockProps}
-            />
+            {messageContent.type === 'json' ? (
+              <EuiCodeBlock
+                overflowHeight={100}
+                paddingSize="s"
+                isCopyable
+                fontSize="s"
+                language="json"
+              >
+                {messageContent.content}
+              </EuiCodeBlock>
+            ) : (
+              <EuiCodeBlock
+                overflowHeight={100}
+                paddingSize="s"
+                isCopyable
+                fontSize="s"
+                language="txt"
+              >
+                {messageContent.content}
+              </EuiCodeBlock>
+            )}
           </EuiFlexGroup>
         )}
         {shouldRenderSource && (

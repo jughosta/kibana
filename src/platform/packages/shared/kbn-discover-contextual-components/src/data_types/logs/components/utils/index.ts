@@ -8,3 +8,4 @@
  */
 
 export * from './truncate_preserve_highlight_tags';
+export { truncateReactNode } from './truncate_react_node';
