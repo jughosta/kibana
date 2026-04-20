@@ -125,19 +125,13 @@ function getTopLevelObjectPairsReact(
     const displayKey = dataView.fields.getByName
       ? dataView.fields.getByName(key)?.displayName
       : undefined;
-    const formattedValues = values.map((value: unknown) =>
-      formatFieldValueReact({ value, hit: row, fieldFormats, dataView, field: subField })
-    );
     // Join ReactNode values with ', ' separator, using keyed Fragments to avoid React warnings
-    const formatted: ReactNode =
-      formattedValues.length === 1
-        ? formattedValues[0]
-        : formattedValues.map((val, idx) => (
-            <Fragment key={`${key}-${idx}`}>
-              {idx > 0 ? ', ' : null}
-              {val}
-            </Fragment>
-          ));
+    const formatted: ReactNode = values.map((value: unknown, idx) => (
+      <Fragment key={`${key}-${idx}`}>
+        {idx > 0 ? ', ' : null}
+        {formatFieldValueReact({ value, hit: row, fieldFormats, dataView, field: subField })}
+      </Fragment>
+    ));
     const pairs = highlights[key] ? highlightPairs : sourcePairs;
     if (displayKey) {
       if (shouldShowFieldHandler(displayKey)) {
