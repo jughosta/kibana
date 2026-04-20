@@ -14,6 +14,7 @@ import { dataViewMock } from '@kbn/discover-utils/src/__mocks__';
 import { fieldFormatsMock } from '@kbn/field-formats-plugin/common/mocks';
 import { render, screen } from '@testing-library/react';
 import { DataGridDensity } from '@kbn/unified-data-table';
+import type { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import { getServiceNameCell } from './service_name_cell';
 import type { CellRenderersExtensionParams } from '../../../context_awareness';
 
@@ -38,7 +39,11 @@ jest.mock('../../../hooks/use_discover_services', () => {
   };
 });
 
-const renderCell = (serviceNameField: string, record: DataTableRecord) => {
+const renderCell = (
+  serviceNameField: string,
+  record: DataTableRecord,
+  fieldFormats: FieldFormatsStart = fieldFormatsMock
+) => {
   const cellRenderersExtensionParamsMock: CellRenderersExtensionParams = {
     actions: {
       addFilter: jest.fn(),
@@ -58,7 +63,7 @@ const renderCell = (serviceNameField: string, record: DataTableRecord) => {
       isDetails={false}
       row={record}
       dataView={dataViewMock}
-      fieldFormats={fieldFormatsMock}
+      fieldFormats={fieldFormats}
       setCellProps={() => {}}
       closePopover={() => {}}
       columnsMeta={undefined}
@@ -94,5 +99,37 @@ describe('getServiceNameCell', () => {
     const record = buildDataTableRecord({ fields: { 'agent.name': 'nodejs' } }, dataViewMock);
     renderCell('service.name', record);
     expect(screen.queryByTestId('serviceNameCell-empty')).toBeInTheDocument();
+  });
+
+  it('renders search highlights when present in hit.highlight', () => {
+    const mockReactConvert = jest.fn().mockImplementation((value, options) => {
+      // Simulate formatter behavior: wrap matching text in mark tags when highlights exist
+      if (options?.hit?.highlight?.bytes) {
+        return <mark className="ffSearch__highlight">{value}</mark>;
+      }
+      return value;
+    });
+    const mockFieldFormats = {
+      ...fieldFormatsMock,
+      getDefaultInstance: jest.fn().mockReturnValue({
+        reactConvert: mockReactConvert,
+      }),
+    } as unknown as FieldFormatsStart;
+
+    const record = buildDataTableRecord(
+      {
+        fields: { bytes: '12345' },
+        highlight: { bytes: ['<em>123</em>45'] },
+      },
+      dataViewMock
+    );
+    renderCell('bytes', record, mockFieldFormats);
+
+    expect(mockReactConvert).toHaveBeenCalledWith('12345', {
+      hit: record.raw,
+      field: { name: 'bytes' },
+    });
+    // The mark element should be rendered
+    expect(screen.getByText('12345').closest('mark')).toHaveClass('ffSearch__highlight');
   });
 });

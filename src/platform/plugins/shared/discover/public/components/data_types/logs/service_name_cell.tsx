@@ -15,10 +15,10 @@ import { dynamic } from '@kbn/shared-ux-utility';
 import type { DataGridCellValueElementProps } from '@kbn/unified-data-table';
 import { css } from '@emotion/react';
 import {
-  formatFieldValue,
   getFieldValue,
   OTEL_RESOURCE_ATTRIBUTES_TELEMETRY_SDK_LANGUAGE,
 } from '@kbn/discover-utils';
+import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { FieldBadgeWithActions } from '@kbn/discover-contextual-components/src/data_types/logs/components/cell_actions_popover';
 import { useDiscoverServices } from '../../../hooks/use_discover_services';
 import type { CellRenderersExtensionParams } from '../../../context_awareness';
@@ -55,21 +55,20 @@ export const getServiceNameCell =
       </EuiToolTip>
     );
 
-    const value = formatFieldValue(
-      serviceNameValue,
-      props.row.raw,
-      props.fieldFormats,
-      props.dataView,
-      field,
-      'html'
-    );
+    const formattedValue = props.fieldFormats
+      .getDefaultInstance(KBN_FIELD_TYPES.STRING)
+      .reactConvert(serviceNameValue, {
+        hit: props.row.raw,
+        field: field ? { name: field.name } : undefined,
+      });
 
     return (
       <FieldBadgeWithActions
         onFilter={actions.addFilter}
         icon={getIcon}
         rawValue={serviceNameValue}
-        value={value}
+        formattedValue={formattedValue}
+        textValue={String(serviceNameValue)}
         name={serviceNameField}
         property={field}
         core={core}
