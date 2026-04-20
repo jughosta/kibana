@@ -663,6 +663,7 @@
     "@kbn/feedback-components": "link:src/platform/packages/shared/feedback-components",
     "@kbn/feedback-plugin": "link:x-pack/platform/plugins/private/feedback",
     "@kbn/feedback-registry": "link:x-pack/platform/packages/private/feedback-registry",
+    "@kbn/field-formats-benchmarks": "link:src/platform/packages/shared/kbn-field-formats-benchmarks",
     "@kbn/field-formats-common": "link:src/platform/packages/shared/kbn-field-formats-common",
     "@kbn/field-formats-example-plugin": "link:examples/field_formats_example",
     "@kbn/field-formats-plugin": "link:src/platform/plugins/shared/field_formats",
