@@ -1250,6 +1250,8 @@
       "@kbn/feedback-plugin/*": ["x-pack/platform/plugins/private/feedback/*"],
       "@kbn/feedback-registry": ["x-pack/platform/packages/private/feedback-registry"],
       "@kbn/feedback-registry/*": ["x-pack/platform/packages/private/feedback-registry/*"],
+      "@kbn/field-formats-benchmarks": ["src/platform/packages/shared/kbn-field-formats-benchmarks"],
+      "@kbn/field-formats-benchmarks/*": ["src/platform/packages/shared/kbn-field-formats-benchmarks/*"],
       "@kbn/field-formats-common": ["src/platform/packages/shared/kbn-field-formats-common"],
       "@kbn/field-formats-common/*": ["src/platform/packages/shared/kbn-field-formats-common/*"],
       "@kbn/field-formats-example-plugin": ["examples/field_formats_example"],

@@ -1,0 +1,10 @@
+{
+  "type": "shared-common",
+  "id": "@kbn/field-formats-benchmarks",
+  "owner": [
+    "@elastic/kibana-data-discovery"
+  ],
+  "group": "platform",
+  "visibility": "private",
+  "description": "Benchmarks for field formatters performance"
+}
