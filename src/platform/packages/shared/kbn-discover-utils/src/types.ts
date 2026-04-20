@@ -63,7 +63,7 @@ export type DataTableColumnsMeta = Record<
 
 import type { ReactNode } from 'react';
 
-type FormattedHitReactPair = readonly [
+type FormattedHitPair = readonly [
   fieldDisplayName: string,
   formattedValue: ReactNode,
   fieldName: string | null // `null` is when number of fields is limited and there is an extra pair about it
@@ -72,7 +72,7 @@ type FormattedHitReactPair = readonly [
 /**
  * Pairs array for each field in the hit where values are ReactNodes
  */
-export type FormattedHitReact = FormattedHitReactPair[];
+export type FormattedHit = FormattedHitPair[];
 
 export interface LogDocumentOverview
   extends LogResourceFields,

@@ -13,5 +13,5 @@ export type {
   EsHitRecord,
   IgnoredReason,
   ShouldShowFieldInTableHandler,
-  FormattedHitReact,
+  FormattedHit,
 } from './src/types';

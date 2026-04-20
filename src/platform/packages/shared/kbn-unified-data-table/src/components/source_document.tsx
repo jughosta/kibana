@@ -13,7 +13,7 @@ import type {
   DataTableColumnsMeta,
   DataTableRecord,
   EsHitRecord,
-  FormattedHitReact,
+  FormattedHit,
   ShouldShowFieldInTableHandler,
 } from '@kbn/discover-utils/src/types';
 import type { DataView } from '@kbn/data-views-plugin/common';
@@ -61,7 +61,7 @@ export function SourceDocument({
   columnsMeta: DataTableColumnsMeta | undefined;
 }) {
   const styles = useMemoCss(componentStyles);
-  const pairs: FormattedHitReact = useTopLevelObjectColumns
+  const pairs: FormattedHit = useTopLevelObjectColumns
     ? getTopLevelObjectPairsReact(
         row.raw,
         columnId,
@@ -110,12 +110,12 @@ function getTopLevelObjectPairsReact(
   shouldShowFieldHandler: ShouldShowFieldInTableHandler,
   fieldFormats: FieldFormatsStart,
   columnsMeta: DataTableColumnsMeta | undefined
-): FormattedHitReact {
+): FormattedHit {
   const innerColumns = getInnerColumns(row.fields as Record<string, unknown[]>, columnId);
   // Put the most important fields first
   const highlights: Record<string, unknown> = (row.highlight as Record<string, unknown>) ?? {};
-  const highlightPairs: FormattedHitReact = [];
-  const sourcePairs: FormattedHitReact = [];
+  const highlightPairs: FormattedHit = [];
+  const sourcePairs: FormattedHit = [];
   Object.entries(innerColumns).forEach(([key, values]) => {
     const subField = getDataViewFieldOrCreateFromColumnMeta({
       dataView,

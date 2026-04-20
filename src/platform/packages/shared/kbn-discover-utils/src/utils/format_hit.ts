@@ -15,7 +15,7 @@ import { getDataViewFieldOrCreateFromColumnMeta } from '@kbn/data-view-utils';
 import type {
   DataTableRecord,
   ShouldShowFieldInTableHandler,
-  FormattedHitReact,
+  FormattedHit,
   EsHitRecord,
   DataTableColumnsMeta,
 } from '../types';
@@ -30,9 +30,9 @@ type PartialHitReactPair = [
   fieldName: string | null
 ];
 
-const formattedHitReactCache = new WeakMap<
+const formattedHitCache = new WeakMap<
   EsHitRecord,
-  { formattedHit: FormattedHitReact; maxEntries: number }
+  { formattedHit: FormattedHit; maxEntries: number }
 >();
 
 /**
@@ -51,8 +51,8 @@ export function formatHitReact(
   maxEntries: number,
   fieldFormats: FieldFormatsStart,
   columnsMeta: DataTableColumnsMeta | undefined
-): FormattedHitReact {
-  const cached = formattedHitReactCache.get(hit.raw);
+): FormattedHit {
+  const cached = formattedHitCache.get(hit.raw);
 
   if (cached && cached.maxEntries === maxEntries) {
     return cached.formattedHit;
@@ -137,9 +137,9 @@ export function formatHitReact(
     ]);
   }
 
-  const formattedHitReact = renderedPairs as FormattedHitReact;
+  const formattedHit = renderedPairs as FormattedHit;
 
-  formattedHitReactCache.set(hit.raw, { formattedHit: formattedHitReact, maxEntries });
+  formattedHitCache.set(hit.raw, { formattedHit, maxEntries });
 
-  return formattedHitReact;
+  return formattedHit;
 }
