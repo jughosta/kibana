@@ -32,6 +32,16 @@ const config: InitialBenchConfig = {
         missing: 'skip',
       },
     },
+    {
+      kind: 'module',
+      name: 'cell_render.react',
+      description:
+        'Benchmark cell rendering with reactConvert + React SSR (for cross-branch comparison)',
+      module: require.resolve('./benchmarks/cell_render_react.bench'),
+      compare: {
+        missing: 'skip',
+      },
+    },
   ],
 };
 
