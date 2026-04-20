@@ -166,13 +166,13 @@ export const createResourceFields = ({
   return availableResourceFields.map((name) => {
     const property = dataView.getFieldByName(name);
     const rawValue = resourceDoc[name];
-    const formattedValue = formatFieldValueReact(
-      rawValue,
-      row.raw,
+    const formattedValue = formatFieldValueReact({
+      value: rawValue,
+      hit: row.raw,
       fieldFormats,
       dataView,
-      property
-    );
+      field: property,
+    });
     const textValue = String(rawValue ?? '');
 
     return {
@@ -205,13 +205,13 @@ export const createResourceFieldsWithOtelFallback = ({
   return availableFields.map((name) => {
     const property = dataView.getFieldByName(name);
     const rawValue = row.flattened[name];
-    const formattedValue = formatFieldValueReact(
-      rawValue,
-      row.raw,
+    const formattedValue = formatFieldValueReact({
+      value: rawValue,
+      hit: row.raw,
       fieldFormats,
       dataView,
-      property
-    );
+      field: property,
+    });
     const textValue = String(rawValue ?? '');
 
     return {
