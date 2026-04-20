@@ -177,7 +177,13 @@ const DiffCellValue = ({
   if (!diffMode || diffMode === 'basic') {
     return (
       <span className={CELL_CLASS}>
-        {formatFieldValueReact(comparisonValue, comparisonDoc.raw, fieldFormats, dataView, field)}
+        {formatFieldValueReact({
+          value: comparisonValue,
+          hit: comparisonDoc.raw,
+          fieldFormats,
+          dataView,
+          field,
+        })}
       </span>
     );
   }

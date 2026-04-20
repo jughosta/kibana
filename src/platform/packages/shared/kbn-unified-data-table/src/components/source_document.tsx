@@ -126,7 +126,7 @@ function getTopLevelObjectPairsReact(
       ? dataView.fields.getByName(key)?.displayName
       : undefined;
     const formattedValues = values.map((value: unknown) =>
-      formatFieldValueReact(value, row, fieldFormats, dataView, subField)
+      formatFieldValueReact({ value, hit: row, fieldFormats, dataView, field: subField })
     );
     // Join ReactNode values with ', ' separator, using keyed Fragments to avoid React warnings
     const formatted: ReactNode =

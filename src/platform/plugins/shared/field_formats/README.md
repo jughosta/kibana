@@ -37,7 +37,7 @@ User Data → Field Formatter → {text|html|react} → Consumer Component
 import { formatFieldValueReact } from '@kbn/discover-utils';
 
 // Using the utility function
-const reactNode = formatFieldValueReact(value, hit, fieldFormats, dataView, field);
+const reactNode = formatFieldValueReact({ value, hit, fieldFormats, dataView, field });
 
 // Render directly in your component
 return <div className="my-cell">{reactNode}</div>;
@@ -169,7 +169,7 @@ reactConvertSingle = (value) => <span style={{ color: 'red' }}>{value}</span>;
 #### ✅ **Use Instead: Direct React Rendering**
 ```typescript
 // SAFE - No XSS risk
-<div>{formatFieldValueReact(value, hit, fieldFormats, dataView, field)}</div>
+<div>{formatFieldValueReact({ value, hit, fieldFormats, dataView, field })}</div>
 ```
 
 ### Migration Steps

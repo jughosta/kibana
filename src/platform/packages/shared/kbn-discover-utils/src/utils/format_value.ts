@@ -64,26 +64,29 @@ export function formatFieldValue(
   return dataView.getFormatterForField(field).convert(value, usedContentType, converterOptions);
 }
 
+export interface FormatFieldValueReactParams {
+  value: unknown;
+  hit: EsHitRecord;
+  fieldFormats: FieldFormatsStart;
+  dataView?: DataView;
+  field?: DataViewField;
+  options?: ReactContextTypeOptions;
+}
+
 /**
  * React equivalent of formatFieldValue. Returns a ReactNode rendered via reactConvert,
  * which is safe to render directly without dangerouslySetInnerHTML.
  *
- * @param value The value to format
- * @param hit The actual search hit (for highlight information)
- * @param fieldFormats Field formatters
- * @param dataView The data view if available
- * @param field The field that value was from if available
- * @param options Options for the converter
  * @returns A ReactNode that can be rendered directly
  */
-export function formatFieldValueReact(
-  value: unknown,
-  hit: EsHitRecord,
-  fieldFormats: FieldFormatsStart,
-  dataView?: DataView,
-  field?: DataViewField,
-  options?: ReactContextTypeOptions
-): ReactNode {
+export const formatFieldValueReact = ({
+  value,
+  hit,
+  fieldFormats,
+  dataView,
+  field,
+  options,
+}: FormatFieldValueReactParams): ReactNode => {
   const converterOptions: ReactContextTypeOptions = { ...options, hit, field };
 
   const formatter =
@@ -92,4 +95,4 @@ export function formatFieldValueReact(
       : dataView.getFormatterForField(field);
 
   return formatter.reactConvert(value, converterOptions);
-}
+};

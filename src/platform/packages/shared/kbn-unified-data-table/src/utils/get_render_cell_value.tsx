@@ -157,7 +157,13 @@ export const getRenderCellValueFn = ({
 
     return (
       <span className={CELL_CLASS}>
-        {formatFieldValueReact(row.flattened[columnId], row.raw, fieldFormats, dataView, field)}
+        {formatFieldValueReact({
+          value: row.flattened[columnId],
+          hit: row.raw,
+          fieldFormats,
+          dataView,
+          field,
+        })}
       </span>
     );
   };
@@ -230,7 +236,13 @@ function renderPopoverContent({
       <EuiFlexItem>
         <DataTablePopoverCellValue>
           <span>
-            {formatFieldValueReact(row.flattened[columnId], row.raw, fieldFormats, dataView, field)}
+            {formatFieldValueReact({
+              value: row.flattened[columnId],
+              hit: row.raw,
+              fieldFormats,
+              dataView,
+              field,
+            })}
           </span>
         </DataTablePopoverCellValue>
       </EuiFlexItem>

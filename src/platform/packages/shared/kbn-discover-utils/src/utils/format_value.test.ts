@@ -81,7 +81,13 @@ describe('formatFieldValueReact', () => {
     formatterForFieldMock.mockReturnValue({ reactConvert: reactConvertMock });
     const field = dataViewMock.fields.getByName('message');
 
-    const result = formatFieldValueReact('foo', hit, services.fieldFormats, dataViewMock, field);
+    const result = formatFieldValueReact({
+      value: 'foo',
+      hit,
+      fieldFormats: services.fieldFormats,
+      dataView: dataViewMock,
+      field,
+    });
 
     expect(dataViewMock.getFormatterForField).toHaveBeenCalledWith(field);
     expect(reactConvertMock).toHaveBeenCalledWith('foo', { field, hit });
@@ -94,7 +100,12 @@ describe('formatFieldValueReact', () => {
       reactConvert: reactConvertMock,
     });
 
-    const result = formatFieldValueReact('foo', hit, services.fieldFormats, dataViewMock);
+    const result = formatFieldValueReact({
+      value: 'foo',
+      hit,
+      fieldFormats: services.fieldFormats,
+      dataView: dataViewMock,
+    });
 
     expect(services.fieldFormats.getDefaultInstance).toHaveBeenCalledWith('string');
     expect(reactConvertMock).toHaveBeenCalledWith('foo', { field: undefined, hit });
@@ -107,7 +118,11 @@ describe('formatFieldValueReact', () => {
       reactConvert: reactConvertMock,
     });
 
-    const result = formatFieldValueReact('foo', hit, services.fieldFormats);
+    const result = formatFieldValueReact({
+      value: 'foo',
+      hit,
+      fieldFormats: services.fieldFormats,
+    });
 
     expect(services.fieldFormats.getDefaultInstance).toHaveBeenCalledWith('string');
     expect(reactConvertMock).toHaveBeenCalledWith('foo', { field: undefined, hit });

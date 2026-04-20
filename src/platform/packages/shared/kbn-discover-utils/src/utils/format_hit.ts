@@ -114,7 +114,14 @@ export function formatHitReact(
       fieldName: key,
       columnMeta: columnsMeta?.[key],
     });
-    pair[1] = formatFieldValueReact(flattened[key], hit.raw, fieldFormats, dataView, field);
+
+    pair[1] = formatFieldValueReact({
+      value: flattened[key],
+      hit: hit.raw,
+      fieldFormats,
+      dataView,
+      field,
+    });
   }
 
   // If document has more formatted fields than configured via MAX_DOC_FIELDS_DISPLAYED we cut
