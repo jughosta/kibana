@@ -11,6 +11,7 @@ import React, { useMemo, type ReactNode } from 'react';
 import { SourceDocument, type DataGridCellValueElementProps } from '@kbn/unified-data-table';
 import type { ShouldShowFieldInTableHandler } from '@kbn/discover-utils';
 import {
+  formatStringFieldAsReact,
   getMessageFieldWithFallbacks,
   getLogLevelCoalescedValue,
   getLogLevelColor,
@@ -18,7 +19,6 @@ import {
   OTEL_MESSAGE_FIELD,
 } from '@kbn/discover-utils';
 import { MESSAGE_FIELD } from '@kbn/discover-utils';
-import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import type { EuiThemeComputed } from '@elastic/eui';
 import { makeHighContrastColor, useEuiTheme } from '@elastic/eui';
 import { useKibanaIsDarkMode } from '@kbn/react-kibana-context-theme';
@@ -188,14 +188,12 @@ export const Content = ({
     if (!value) return undefined;
 
     // Use field formatter's reactConvert which handles search highlighting natively
-    // Pass field name for highlight lookup in hit.highlight.
-    // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
-    const withSearchHighlights = fieldFormats
-      .getDefaultInstance(KBN_FIELD_TYPES.STRING)
-      .reactConvert(value, {
-        hit: row.raw,
-        field: field ? { name: field } : undefined,
-      });
+    const withSearchHighlights = formatStringFieldAsReact({
+      value,
+      hit: row.raw,
+      fieldFormats,
+      fieldName: field,
+    });
 
     // Then apply log level highlighting on top, preserving search highlights
     return applyLogLevelHighlighting(withSearchHighlights, euiTheme, isDarkTheme);

@@ -23,6 +23,9 @@ export function truncateReactNode(node: ReactNode, maxLength: number, text: stri
   }
 
   const halfLength = Math.floor(maxLength / 2);
+  if (halfLength === 0) {
+    return '...';
+  }
   const startText = text.slice(0, halfLength);
   const endText = text.slice(-halfLength);
   const truncatedText = `${startText}...${endText}`;

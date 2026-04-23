@@ -6,7 +6,7 @@
  * your election, the "Elastic License 2.0", the "GNU Affero General Public
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   EuiCodeBlock,
   EuiFlexGroup,
@@ -17,13 +17,13 @@ import {
 } from '@elastic/eui';
 
 import {
+  formatStringFieldAsReact,
   getMessageFieldWithFallbacks,
   type DataTableRecord,
   type LogDocumentOverview,
 } from '@kbn/discover-utils';
 import type { ObservabilityStreamsFeature } from '@kbn/discover-shared-plugin/public';
 import type { DataView } from '@kbn/data-views-plugin/common';
-import { KBN_FIELD_TYPES } from '@kbn/field-types';
 import { Badges } from '../badges/badges';
 import { HoverActionPopover } from '../hover_popover_action';
 import { getUnifiedDocViewerServices } from '../../../../plugin';
@@ -48,19 +48,22 @@ export const ContentBreakdown = ({
 
   const rawFieldValue = hit && field ? hit.flattened[field] : undefined;
 
-  // For formatted JSON values, render as JSON code block
-  // For plain text, use field formatter's reactConvert which handles search highlighting natively
-  // Pass field name for highlight lookup in hit.highlight.
-  // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
-  const messageContent = formattedValue
-    ? { type: 'json' as const, content: formattedValue }
-    : {
-        type: 'text' as const,
-        content: fieldFormats.getDefaultInstance(KBN_FIELD_TYPES.STRING).reactConvert(value ?? '', {
-          hit: hit.raw,
-          field: field ? { name: field } : undefined,
-        }),
-      };
+  const messageCodeBlockProps = useMemo(
+    () =>
+      formattedValue
+        ? { language: 'json', children: formattedValue }
+        : {
+            language: 'txt',
+            children: formatStringFieldAsReact({
+              value: value ?? '',
+              hit: hit.raw,
+              fieldFormats,
+              dataView,
+              fieldName: field,
+            }),
+          },
+    [dataView, field, fieldFormats, formattedValue, hit.raw, value]
+  );
   const hasMessageField = field && value;
 
   return (
@@ -100,27 +103,13 @@ export const ContentBreakdown = ({
               anchorPosition="downCenter"
               display="block"
             >
-              {messageContent.type === 'json' ? (
-                <EuiCodeBlock
-                  overflowHeight={100}
-                  paddingSize="s"
-                  isCopyable
-                  fontSize="s"
-                  language="json"
-                >
-                  {messageContent.content}
-                </EuiCodeBlock>
-              ) : (
-                <EuiCodeBlock
-                  overflowHeight={100}
-                  paddingSize="s"
-                  isCopyable
-                  fontSize="s"
-                  language="txt"
-                >
-                  {messageContent.content}
-                </EuiCodeBlock>
-              )}
+              <EuiCodeBlock
+                overflowHeight={100}
+                paddingSize="s"
+                isCopyable
+                fontSize="s"
+                {...messageCodeBlockProps}
+              />
             </HoverActionPopover>
           )}
         </EuiFlexGroup>

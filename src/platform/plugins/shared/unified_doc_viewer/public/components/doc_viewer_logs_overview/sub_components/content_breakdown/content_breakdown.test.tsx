@@ -116,6 +116,20 @@ describe('ContentBreakdown', () => {
       expect(container.querySelector('john')).toBeNull();
     });
 
+    it('renders pretty-printed JSON when message is valid JSON and skips reactConvert', () => {
+      const json = { foo: { bar: true } };
+      const message = JSON.stringify(json);
+      const hit = buildHit({ message });
+      const formattedDoc = { message } as any;
+
+      render(<ContentBreakdown dataView={mockDataView} formattedDoc={formattedDoc} hit={hit} />);
+
+      const codeBlock = screen.getByTestId('codeBlock');
+      expect(codeBlock.textContent).toBe(JSON.stringify(json, null, 2));
+      // The JSON path uses formattedValue directly — reactConvert should not be called
+      expect(mockReactConvert).not.toHaveBeenCalled();
+    });
+
     it('applies highlights even when field is not in data view (e.g., OTel body.text)', () => {
       const fieldName = 'body.text';
       const message = 'OTel log message with search term';
@@ -142,6 +156,59 @@ describe('ContentBreakdown', () => {
         message,
         expect.objectContaining({
           field: { name: fieldName },
+          hit: expect.objectContaining({
+            highlight: { [fieldName]: highlights },
+          }),
+        })
+      );
+
+      // Verify the highlighted content is rendered
+      const markElement = container.querySelector('mark.ffSearch__highlight');
+      expect(markElement).toBeInTheDocument();
+      expect(markElement).toHaveTextContent('search');
+    });
+
+    it('uses DataViewField from data view when field exists and applies highlights', () => {
+      const fieldName = 'message';
+      const message = 'log message with search term';
+      const highlights = [
+        'log message with @kibana-highlighted-field@search@/kibana-highlighted-field@ term',
+      ];
+      const hit = buildHit({ [fieldName]: message }, { [fieldName]: highlights });
+      const formattedDoc = { message } as any;
+
+      const mockDataViewField = {
+        name: fieldName,
+        type: 'string',
+        esTypes: ['text'],
+        searchable: true,
+        aggregatable: false,
+      };
+
+      const dataViewWithField = {
+        ...mockDataView,
+        fields: {
+          getAll: () => [mockDataViewField],
+          getByName: (name: string) => (name === fieldName ? mockDataViewField : undefined),
+        },
+      } as unknown as DataView;
+
+      // Mock the formatter to return React nodes with highlighted content
+      mockReactConvert.mockImplementationOnce(() => (
+        <>
+          log message with <mark className="ffSearch__highlight">search</mark> term
+        </>
+      ));
+
+      const { container } = render(
+        <ContentBreakdown dataView={dataViewWithField} formattedDoc={formattedDoc} hit={hit} />
+      );
+
+      // Verify the formatter was called with full DataViewField (not just { name })
+      expect(mockReactConvert).toHaveBeenCalledWith(
+        message,
+        expect.objectContaining({
+          field: mockDataViewField,
           hit: expect.objectContaining({
             highlight: { [fieldName]: highlights },
           }),

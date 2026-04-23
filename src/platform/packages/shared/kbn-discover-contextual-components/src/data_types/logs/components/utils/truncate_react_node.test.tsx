@@ -94,4 +94,12 @@ describe('truncateReactNode', () => {
       expect(container.textContent).toContain('...');
     });
   });
+
+  describe('edge cases with small maxLength', () => {
+    it('truncates correctly when maxLength is 2', () => {
+      const text = 'hello';
+      const result = truncateReactNode(text, 2, text);
+      expect(result).toBe('h...o');
+    });
+  });
 });
