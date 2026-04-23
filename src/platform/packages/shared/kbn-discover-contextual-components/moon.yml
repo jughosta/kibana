@@ -33,7 +33,6 @@ dependsOn:
   - '@kbn/data-views-plugin'
   - '@kbn/data-view-utils'
   - '@kbn/react-kibana-context-theme'
-  - '@kbn/field-types'
 tags:
   - shared-browser
   - package
