@@ -65,7 +65,7 @@ export const getServiceNameCell =
           dataView: props.dataView,
           fieldName: serviceNameField,
         }),
-      [serviceNameValue, serviceNameField, props.row.raw, props.fieldFormats, props.dataView]
+      [serviceNameValue, props.row.raw, props.fieldFormats, props.dataView]
     );
 
     const textValue = useMemo(() => extractTextFromReactNode(formattedValue), [formattedValue]);
