@@ -20,7 +20,14 @@ describe('FormatEditorSamples', () => {
           samples={[
             { input: 'test', output: 'TEST' },
             { input: 123, output: '456' },
-            { input: ['foo', 'bar'], output: '<span>foo</span>, <span>bar</span>' },
+            {
+              input: ['foo', 'bar'],
+              output: (
+                <>
+                  <span>foo</span>, <span>bar</span>
+                </>
+              ),
+            },
           ]}
         />
       </I18nProvider>
@@ -36,6 +43,8 @@ describe('FormatEditorSamples', () => {
     expect(screen.getByText('123')).toBeInTheDocument();
     expect(screen.getByText('456')).toBeInTheDocument();
     expect(screen.getByText('["foo","bar"]')).toBeInTheDocument();
+    expect(screen.getByText('foo')).toBeInTheDocument();
+    expect(screen.getByText('bar')).toBeInTheDocument();
   });
 
   it('should render nothing if there are no samples', () => {
