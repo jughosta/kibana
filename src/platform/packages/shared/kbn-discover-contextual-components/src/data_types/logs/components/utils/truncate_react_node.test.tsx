@@ -91,7 +91,7 @@ describe('truncateReactNode', () => {
       const result = truncateReactNode(node, 20, text);
       const { container } = render(<>{result}</>);
       // Complex arrays fall back to plain truncated text
-      expect(container.textContent).toContain('...');
+      expect(container.textContent).toBe('First part...of message');
     });
   });
 

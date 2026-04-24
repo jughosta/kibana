@@ -8,7 +8,7 @@
  */
 
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   EuiBadge,
   type EuiBadgeProps,
@@ -215,10 +215,11 @@ export function FieldBadgeWithActions({
 }: FieldBadgeWithActionsPropsAndDependencies) {
   const MAX_LENGTH = 20;
 
-  // Pass textValue to avoid traversing the React tree to extract text
-  const displayValue = truncateTitle
-    ? truncateReactNode(formattedValue, MAX_LENGTH, textValue)
-    : formattedValue;
+  const displayValue = useMemo(
+    () =>
+      truncateTitle ? truncateReactNode(formattedValue, MAX_LENGTH, textValue) : formattedValue,
+    [truncateTitle, formattedValue, textValue]
+  );
 
   return (
     <CellActionsPopover

@@ -40,6 +40,7 @@ import type { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import type { FieldBadgeWithActionsProps } from '../cell_actions_popover';
 import { FieldBadgeWithActions } from '../cell_actions_popover';
 import { TransactionNameIcon } from './icons/transaction_name_icon';
+import { extractTextFromReactNode } from '../utils';
 
 type FieldKey = keyof DataTableRecord['flattened'];
 type FieldValue = NonNullable<DataTableRecord['flattened'][FieldKey]>;
@@ -173,7 +174,7 @@ export const createResourceFields = ({
       dataView,
       field: property,
     });
-    const textValue = String(rawValue ?? '');
+    const textValue = extractTextFromReactNode(formattedValue);
 
     return {
       name,
@@ -212,7 +213,7 @@ export const createResourceFieldsWithOtelFallback = ({
       dataView,
       field: property,
     });
-    const textValue = String(rawValue ?? '');
+    const textValue = extractTextFromReactNode(formattedValue);
 
     return {
       name,
