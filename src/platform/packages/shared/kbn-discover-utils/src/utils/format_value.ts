@@ -37,17 +37,6 @@ export interface FormatFieldValueTextParams extends FormatFieldValueBaseParams {
   options?: TextContextTypeOptions;
 }
 
-export interface FormatFieldAsStringReactParams {
-  value: unknown;
-  hit: EsHitRecord;
-  fieldFormats: FieldFormatsStart;
-  /** Optional data view to look up the field. If provided with fieldName, will attempt to get the DataViewField */
-  dataView?: DataView;
-  /** The field name for highlight lookup. If dataView is provided, will attempt to get DataViewField from it */
-  fieldName?: string;
-  options?: ReactContextTypeOptions;
-}
-
 /**
  * Returns the appropriate field formatter for the given field and data view,
  * or the default string formatter if no field/data view is available.
@@ -140,6 +129,17 @@ export const formatFieldValueText = ({
   return getFieldFormatter(fieldFormats, dataView, field).convert(value, 'text', options);
 };
 
+export interface FormatFieldStringWithHighlightsParams {
+  value: unknown;
+  hit: EsHitRecord;
+  fieldFormats: FieldFormatsStart;
+  /** Optional data view to look up the field. If provided with fieldName, will attempt to get the DataViewField */
+  dataView?: DataView;
+  /** The field name for highlight lookup. If dataView is provided, will attempt to get DataViewField from it */
+  fieldName?: string;
+  options?: ReactContextTypeOptions;
+}
+
 /**
  * Formats a value using the default string formatter with React output and search highlighting.
  *
@@ -162,7 +162,7 @@ export const formatFieldStringValueWithHighlights = ({
   dataView,
   fieldName,
   options,
-}: FormatFieldAsStringReactParams): ReactNode => {
+}: FormatFieldStringWithHighlightsParams): ReactNode => {
   // Pass field name for highlight lookup in hit.highlight.
   // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
   const field = fieldName

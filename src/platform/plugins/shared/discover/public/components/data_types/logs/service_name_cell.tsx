@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { UseEuiTheme } from '@elastic/eui';
 import { EuiToolTip } from '@elastic/eui';
 import type { AgentName } from '@kbn/elastic-agent-utils';
@@ -17,8 +17,9 @@ import { css } from '@emotion/react';
 import {
   getFieldValue,
   OTEL_RESOURCE_ATTRIBUTES_TELEMETRY_SDK_LANGUAGE,
+  formatFieldStringValueWithHighlights,
 } from '@kbn/discover-utils';
-import { KBN_FIELD_TYPES } from '@kbn/field-types';
+import { extractTextFromReactNode } from '@kbn/discover-contextual-components/src/data_types/logs/components/utils';
 import { FieldBadgeWithActions } from '@kbn/discover-contextual-components/src/data_types/logs/components/cell_actions_popover';
 import { useDiscoverServices } from '../../../hooks/use_discover_services';
 import type { CellRenderersExtensionParams } from '../../../context_awareness';
@@ -55,12 +56,19 @@ export const getServiceNameCell =
       </EuiToolTip>
     );
 
-    const formattedValue = props.fieldFormats
-      .getDefaultInstance(KBN_FIELD_TYPES.STRING)
-      .reactConvert(serviceNameValue, {
-        hit: props.row.raw,
-        field: field ? { name: field.name } : undefined,
-      });
+    const formattedValue = useMemo(
+      () =>
+        formatFieldStringValueWithHighlights({
+          value: serviceNameValue,
+          hit: props.row.raw,
+          fieldFormats: props.fieldFormats,
+          dataView: props.dataView,
+          fieldName: serviceNameField,
+        }),
+      [serviceNameValue, props.row.raw, props.fieldFormats, props.dataView]
+    );
+
+    const textValue = useMemo(() => extractTextFromReactNode(formattedValue), [formattedValue]);
 
     return (
       <FieldBadgeWithActions
@@ -68,7 +76,7 @@ export const getServiceNameCell =
         icon={getIcon}
         rawValue={serviceNameValue}
         formattedValue={formattedValue}
-        textValue={String(serviceNameValue)}
+        textValue={textValue}
         name={serviceNameField}
         property={field}
         core={core}

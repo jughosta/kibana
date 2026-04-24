@@ -101,35 +101,41 @@ describe('getServiceNameCell', () => {
     expect(screen.queryByTestId('serviceNameCell-empty')).toBeInTheDocument();
   });
 
-  it('renders search highlights when present in hit.highlight', () => {
-    const mockReactConvert = jest.fn().mockImplementation((value, options) => {
-      // Simulate formatter behavior: wrap matching text in mark tags when highlights exist
-      if (options?.hit?.highlight?.bytes) {
-        return <mark className="ffSearch__highlight">{value}</mark>;
-      }
-      return value;
-    });
+  describe('when hit.highlight is present', () => {
     const mockFieldFormats = {
       ...fieldFormatsMock,
       getDefaultInstance: jest.fn().mockReturnValue({
-        reactConvert: mockReactConvert,
+        reactConvert: jest.fn().mockImplementation((value, options) => {
+          if (options?.hit?.highlight?.bytes) {
+            return <mark className="ffSearch__highlight">{value}</mark>;
+          }
+          return value;
+        }),
       }),
     } as unknown as FieldFormatsStart;
 
     const record = buildDataTableRecord(
       {
         fields: { bytes: '12345' },
-        highlight: { bytes: ['<em>123</em>45'] },
+        highlight: { bytes: ['<em>12345</em>'] },
       },
       dataViewMock
     );
-    renderCell('bytes', record, mockFieldFormats);
 
-    expect(mockReactConvert).toHaveBeenCalledWith('12345', {
-      hit: record.raw,
-      field: { name: 'bytes' },
+    it('renders search highlights', () => {
+      renderCell('bytes', record, mockFieldFormats);
+      expect(screen.getByText('12345').closest('mark')).toHaveClass('ffSearch__highlight');
     });
-    // The mark element should be rendered
-    expect(screen.getByText('12345').closest('mark')).toHaveClass('ffSearch__highlight');
+
+    it('sets textValue to plain text extracted from the formatted value', () => {
+      renderCell('bytes', record, mockFieldFormats);
+      // highlights are rendered
+      expect(screen.getByText('12345').closest('mark')).toHaveClass('ffSearch__highlight');
+      // textValue is plain text extracted from the <mark> React element
+      expect(screen.getByTestId('dataTableCellActionsPopover_bytes')).toHaveAttribute(
+        'title',
+        '12345'
+      );
+    });
   });
 });
