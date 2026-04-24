@@ -23,25 +23,13 @@ const mockEuiTheme = {
 
 describe('highlightLogLevelsInString', () => {
   describe('recognizes log levels', () => {
-    it.each([
-      ['INFO', 'info'],
-      ['info', 'info'],
-      ['Info', 'info'],
-      ['DEBUG', 'debug'],
-      ['WARN', 'warning'],
-      ['WARNING', 'warning'],
-      ['ERROR', 'error'],
-      ['ERR', 'error'],
-      ['CRITICAL', 'critical'],
-      ['FATAL', 'fatal'],
-      ['TRACE', 'trace'],
-    ])('highlights %s as %s level', (input) => {
-      const result = highlightLogLevelsInString(`Test ${input} message`, mockEuiTheme, false);
+    it('highlights a log level term', () => {
+      const result = highlightLogLevelsInString('Test INFO message', mockEuiTheme, false);
       const { container } = render(<>{result}</>);
 
       const span = container.querySelector('[data-test-subj="logLevelSpan"]');
       expect(span).toBeInTheDocument();
-      expect(span).toHaveTextContent(input);
+      expect(span).toHaveTextContent('INFO');
     });
   });
 

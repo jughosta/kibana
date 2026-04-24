@@ -11,7 +11,7 @@ import React, { useMemo, type ReactNode } from 'react';
 import { SourceDocument, type DataGridCellValueElementProps } from '@kbn/unified-data-table';
 import type { ShouldShowFieldInTableHandler } from '@kbn/discover-utils';
 import {
-  formatStringFieldAsReact,
+  formatFieldStringValueWithHighlights,
   getMessageFieldWithFallbacks,
   getLogLevelCoalescedValue,
   getLogLevelColor,
@@ -188,7 +188,7 @@ export const Content = ({
     if (!value) return undefined;
 
     // Use field formatter's reactConvert which handles search highlighting natively
-    const withSearchHighlights = formatStringFieldAsReact({
+    const withSearchHighlights = formatFieldStringValueWithHighlights({
       value,
       hit: row.raw,
       fieldFormats,

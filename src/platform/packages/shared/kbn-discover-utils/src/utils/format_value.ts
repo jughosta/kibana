@@ -155,7 +155,7 @@ export const formatFieldValueText = ({
  * @param options - Additional options for the formatter
  * @returns A ReactNode that can be rendered directly
  */
-export const formatStringFieldAsReact = ({
+export const formatFieldStringValueWithHighlights = ({
   value,
   hit,
   fieldFormats,

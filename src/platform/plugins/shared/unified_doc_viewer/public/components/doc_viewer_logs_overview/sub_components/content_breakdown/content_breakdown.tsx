@@ -17,7 +17,7 @@ import {
 } from '@elastic/eui';
 
 import {
-  formatStringFieldAsReact,
+  formatFieldStringValueWithHighlights,
   getMessageFieldWithFallbacks,
   type DataTableRecord,
   type LogDocumentOverview,
@@ -56,7 +56,7 @@ export const ContentBreakdown = ({
             language: 'txt',
             // Pass field name for highlight lookup in hit.highlight.
             // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
-            children: formatStringFieldAsReact({
+            children: formatFieldStringValueWithHighlights({
               value: value ?? '',
               hit: hit.raw,
               fieldFormats,

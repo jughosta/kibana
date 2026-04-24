@@ -17,7 +17,7 @@ import type { SharePluginStart } from '@kbn/share-plugin/public';
 import {
   type ShouldShowFieldInTableHandler,
   TRACE_FIELDS,
-  formatStringFieldAsReact,
+  formatFieldStringValueWithHighlights,
   getMessageFieldWithFallbacks,
   getAvailableTraceFields,
 } from '@kbn/discover-utils';
@@ -174,7 +174,7 @@ export const SummaryCellPopover = (props: AllSummaryColumnProps) => {
     ? { language: 'json', children: formattedValue }
     : {
         language: 'txt',
-        children: formatStringFieldAsReact({
+        children: formatFieldStringValueWithHighlights({
           value: value ?? '',
           hit: row.raw,
           fieldFormats,

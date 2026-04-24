@@ -40,7 +40,7 @@ export {
   formatFieldValue,
   formatFieldValueReact,
   formatFieldValueText,
-  formatStringFieldAsReact,
+  formatFieldStringValueWithHighlights,
   formatHitReact,
   getDocId,
   getLogDocumentOverview,
