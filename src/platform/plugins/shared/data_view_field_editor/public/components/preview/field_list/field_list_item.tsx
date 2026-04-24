@@ -40,6 +40,10 @@ import { ITEM_HEIGHT } from './constants';
  * Recursively checks if a ReactNode tree contains an img element.
  */
 const containsImgElement = (node: ReactNode): boolean => {
+  if (Array.isArray(node)) {
+    return node.some(containsImgElement);
+  }
+
   if (!isValidElement(node)) {
     return false;
   }
