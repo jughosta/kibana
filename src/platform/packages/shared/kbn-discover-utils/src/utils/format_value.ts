@@ -156,13 +156,13 @@ export const formatFieldValueText = ({
  * @returns A ReactNode that can be rendered directly
  */
 export const formatStringFieldAsReact = ({
-  value,
-  hit,
-  fieldFormats,
-  dataView,
-  fieldName,
-  options,
-}: FormatFieldAsStringReactParams): ReactNode => {
+   value,
+   hit,
+   fieldFormats,
+   dataView,
+   fieldName,
+   options,
+ }: FormatFieldAsStringReactParams): ReactNode => {
   // Pass field name for highlight lookup in hit.highlight.
   // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
   const field = fieldName
@@ -175,3 +175,4 @@ export const formatStringFieldAsReact = ({
     field,
   });
 };
+

@@ -54,6 +54,8 @@ export const ContentBreakdown = ({
         ? { language: 'json', children: formattedValue }
         : {
             language: 'txt',
+            // Pass field name for highlight lookup in hit.highlight.
+            // The field may not exist in the data view (e.g., OTel body.text) but highlights should still apply.
             children: formatStringFieldAsReact({
               value: value ?? '',
               hit: hit.raw,

@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import React, { type ReactNode } from 'react';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ContentBreakdown } from './content_breakdown';
 import { buildDataTableRecord } from '@kbn/discover-utils';
@@ -15,7 +15,7 @@ import type { DataView } from '@kbn/data-views-plugin/common';
 
 jest.mock('@elastic/eui', () => ({
   ...jest.requireActual('@elastic/eui'),
-  EuiCodeBlock: ({ children }: { children: ReactNode }) => (
+  EuiCodeBlock: ({ children }: { children?: React.ReactNode }) => (
     <pre>
       <code data-test-subj="codeBlock">{children}</code>
     </pre>
