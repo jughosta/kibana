@@ -5,7 +5,7 @@
  * 2.0.
  */
 
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { EuiBadge, EuiLink } from '@elastic/eui';
 import classNames from 'classnames';
 import type { PaletteOutput } from '@kbn/coloring';
@@ -123,7 +123,7 @@ export const applyCellColoring = ({
 // -----------------------------
 
 export interface HtmlCellProps {
-  content: string;
+  content: ReactNode;
   alignment: Alignment;
   fitRowToContent?: boolean;
   isColored: boolean;
@@ -131,14 +131,11 @@ export interface HtmlCellProps {
 
 export const HtmlCell = ({ content, alignment, fitRowToContent, isColored }: HtmlCellProps) => (
   <div
-    /*
-     * dangerouslySetInnerHTML is necessary because the field formatter might produce HTML markup
-     * which is produced in a safe way.
-     */
-    dangerouslySetInnerHTML={{ __html: content }} // eslint-disable-line react/no-danger
     data-test-subj="lnsTableCellContent"
     className={getCellClassName(alignment, fitRowToContent, isColored)}
-  />
+  >
+    {content}
+  </div>
 );
 
 export interface LinkCellProps {

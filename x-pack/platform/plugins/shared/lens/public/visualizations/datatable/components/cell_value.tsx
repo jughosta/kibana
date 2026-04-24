@@ -54,10 +54,12 @@ export const createGridCell = (
     const isNonColorable = isNonColorableValue(rawValue);
     const renderMode = getRenderMode(colorMode, isClickable, isNonColorable);
 
-    // Badge and link modes need plain text; html mode uses the formatter's html output.
-    const contentFormat = renderMode !== 'html' ? 'text' : 'html';
     const fallbackText = rawValue == null ? '' : String(rawValue);
-    const content = formatter?.convert(rawValue, contentFormat) ?? fallbackText;
+    // Badge and link modes need plain text; default (html) mode uses the formatter's React output
+    const textContent =
+      renderMode !== 'html' ? formatter?.convert(rawValue, 'text') ?? fallbackText : '';
+    const reactContent =
+      renderMode === 'html' ? formatter?.reactConvert(rawValue) ?? fallbackText : null;
 
     const alignment = alignments?.get(columnId);
 
@@ -114,7 +116,7 @@ export const createGridCell = (
       case 'badge':
         return (
           <BadgeCell
-            label={content}
+            label={textContent}
             badgeColor={badgeColor}
             isClickable={isClickable}
             onClick={onFilter}
@@ -141,7 +143,7 @@ export const createGridCell = (
 
         return (
           <LinkCell
-            content={content}
+            content={textContent}
             linkColor={linkColor}
             onClick={onFilter}
             alignment={alignment}
@@ -154,7 +156,7 @@ export const createGridCell = (
       default:
         return (
           <HtmlCell
-            content={content}
+            content={reactContent}
             alignment={alignment}
             fitRowToContent={fitRowToContent}
             isColored={Boolean(cellStyle)}
