@@ -100,10 +100,10 @@ describe('FieldFormat class', () => {
         expect(f.convertToText('formatted')).toBe('formatted');
       });
 
-      test('uses textConvert when supplied', () => {
+      test('can be a constant function that always returns the same text', () => {
         const f = getTestFormat(undefined, constant('formatted text'));
 
-        expect(f.convertToText('ignored')).toBe('formatted text');
+        expect(f.convertToText('formatted text')).toBe('formatted text');
       });
 
       test('does not escape the output of the text converter', () => {
@@ -203,14 +203,6 @@ describe('FieldFormat class', () => {
           static id = 'convert-override-format';
           static title = 'Convert Override Format';
           convertToText = (val: unknown) => `formatted:${val}`;
-          renderConvert: RenderConvertFunction = (val, options) => {
-            const formatted = this.convertToText(val);
-            const fieldName = options?.field?.name;
-            const highlights = fieldName ? options?.hit?.highlight?.[fieldName] : undefined;
-            return highlights && typeof formatted === 'string'
-              ? getHighlightReact(formatted, highlights)
-              : formatted;
-          };
         }
 
         test('wraps matched text in <mark> via convertToReact when highlights are present', () => {

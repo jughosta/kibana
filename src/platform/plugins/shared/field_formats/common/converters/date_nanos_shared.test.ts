@@ -158,7 +158,7 @@ describe('Date Nanos Format', () => {
     );
   });
 
-  test('convertToReact passes through script-like string content', () => {
+  test('convertToReact returns raw string for unhighlighted content (React escapes at render)', () => {
     const dateNanos = new DateNanosFormat(
       {
         pattern: 'MMM D, YYYY @ HH:mm:ss.SSS',

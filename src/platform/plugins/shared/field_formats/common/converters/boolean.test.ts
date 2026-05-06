@@ -75,7 +75,7 @@ describe('Boolean Format', () => {
     expectReactElementWithNull(boolean.convertToReact(undefined));
   });
 
-  test('convertToReact passes through script-like string content', () => {
+  test('convertToReact returns raw string for unhighlighted content (React escapes at render)', () => {
     expect(boolean.convertToReact('<script>alert("test")</script>')).toBe(
       '<script>alert("test")</script>'
     );

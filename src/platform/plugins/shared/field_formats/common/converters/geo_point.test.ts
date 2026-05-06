@@ -116,7 +116,7 @@ describe('GeoPoint Format', () => {
       expectReactElementWithNull(geoPointFormat.convertToReact(undefined));
     });
 
-    test('convertToReact passes through script-like string content', () => {
+    test('convertToReact returns raw string for unhighlighted content (React escapes at render)', () => {
       const geoPointFormat = new GeoPointFormat(
         {
           transform: 'lat_lon_string',

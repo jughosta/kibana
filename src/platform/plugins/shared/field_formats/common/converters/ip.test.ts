@@ -29,7 +29,7 @@ describe('IP Address Format', () => {
     expectReactElementWithNull(ip.convertToReact(undefined));
   });
 
-  test('convertToReact passes through script-like string content', () => {
+  test('convertToReact returns raw string for unhighlighted content (React escapes at render)', () => {
     expect(ip.convertToReact('<script>alert("test")</script>')).toBe(
       '<script>alert("test")</script>'
     );
