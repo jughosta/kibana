@@ -13,14 +13,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/server';
 import { constant } from 'lodash';
 import { FieldFormat } from './field_format';
-import { asPrettyString, getHighlightReact } from './utils';
+import { asPrettyString } from './utils';
 import { highlightTags } from './utils/highlight/highlight_tags';
-import type {
-  FieldFormatParams,
-  ReactContextTypeOptions,
-  RenderConvertFunction,
-  TextContextTypeOptions,
-} from './types';
+import type { FieldFormatParams, ReactContextTypeOptions, TextContextTypeOptions } from './types';
 import { NULL_LABEL } from '@kbn/field-formats-common';
 import { expectReactElementAsArray } from './test_utils';
 
@@ -198,11 +193,11 @@ describe('FieldFormat class', () => {
         ).toBe('lorem ipsum');
       });
 
-      describe('for formatters that override convertToText (mimics AggsTermsFieldFormat)', () => {
+      describe('for formatters that override textConvert (mimics AggsTermsFieldFormat)', () => {
         class ConvertOverrideFormat extends FieldFormat {
           static id = 'convert-override-format';
           static title = 'Convert Override Format';
-          convertToText = (val: unknown) => `formatted:${val}`;
+          textConvert = (val: unknown) => `formatted:${val}`;
         }
 
         test('wraps matched text in <mark> via convertToReact when highlights are present', () => {
