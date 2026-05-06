@@ -33,7 +33,7 @@ export const Axes: FC<Props> = ({ chartData }) => {
         id="bottom"
         position={Position.Bottom}
         showOverlappingTicks={true}
-        tickFormat={(value) => xAxisFormatter.convert(value)}
+        tickFormat={(value) => xAxisFormatter.convertToText(value)}
         labelFormat={() => ''}
       />
       <Axis id="left" position={Position.Left} tickFormat={tickFormatter} domain={yDomain} />

@@ -17,8 +17,8 @@ jest.mock('../../contexts/kibana', () => ({
 
 jest.mock('../../formatters/format_value', () => ({
   formatValue: jest.fn((value, mlFunction, fieldFormat) => {
-    if (fieldFormat && fieldFormat.convert) {
-      return fieldFormat.convert(value, 'text');
+    if (fieldFormat && fieldFormat.convertToText) {
+      return fieldFormat.convertToText(value);
     }
     return value.toString();
   }),
@@ -138,7 +138,7 @@ describe('AnomalyValueDisplay', () => {
 
   it('Handles custom field format for non-time functions', () => {
     const customFormat = {
-      convert: jest.fn().mockReturnValue('42.50%'),
+      convertToText: jest.fn().mockReturnValue('42.50%'),
     } as unknown as FieldFormat;
 
     const { getByTestId } = render(

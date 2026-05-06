@@ -8,7 +8,6 @@
  */
 
 import { SourceFormat } from './source';
-import { TEXT_CONTEXT_TYPE } from '../content_types';
 import { expectReactElementWithNull } from '../test_utils';
 
 describe('Source Format', () => {
@@ -22,10 +21,10 @@ describe('Source Format', () => {
       also: 'with "quotes" or \'single quotes\'',
     };
 
-    expect(source.convert({ field: 'field', hit }, TEXT_CONTEXT_TYPE)).toBe(
+    expect(source.convertToText({ field: 'field', hit })).toBe(
       `{"field":"field","hit":{"foo":"bar","number":42,"hello":"<h1>World</h1>","also":"with \\"quotes\\" or 'single quotes'"}}`
     );
-    expect(source.reactConvert({ field: 'field', hit })).toBe(
+    expect(source.convertToReact({ field: 'field', hit })).toBe(
       `{"field":"field","hit":{"foo":"bar","number":42,"hello":"<h1>World</h1>","also":"with \\"quotes\\" or 'single quotes'"}}`
     );
   });
@@ -33,23 +32,23 @@ describe('Source Format', () => {
   test('returns a plain JSON string for an object', () => {
     const source = new SourceFormat({}, jest.fn());
 
-    expect(source.convert({ foo: 'bar', n: 42 }, TEXT_CONTEXT_TYPE)).toBe('{"foo":"bar","n":42}');
-    expect(source.reactConvert({ foo: 'bar', n: 42 })).toBe('{"foo":"bar","n":42}');
+    expect(source.convertToText({ foo: 'bar', n: 42 })).toBe('{"foo":"bar","n":42}');
+    expect(source.convertToReact({ foo: 'bar', n: 42 })).toBe('{"foo":"bar","n":42}');
   });
 
   test('handles missing values', () => {
     const source = new SourceFormat({}, jest.fn());
 
-    expect(source.convert(null, TEXT_CONTEXT_TYPE)).toBe('null');
-    expect(source.convert(undefined, TEXT_CONTEXT_TYPE)).toBe(undefined);
-    expectReactElementWithNull(source.reactConvert(null));
-    expectReactElementWithNull(source.reactConvert(undefined));
+    expect(source.convertToText(null)).toBe('null');
+    expect(source.convertToText(undefined)).toBe(undefined);
+    expectReactElementWithNull(source.convertToReact(null));
+    expectReactElementWithNull(source.convertToReact(undefined));
   });
 
   test('returns the single element without brackets for a one-element array', () => {
     const source = new SourceFormat({}, jest.fn());
 
-    expect(source.convert([{ foo: 'bar' }], TEXT_CONTEXT_TYPE)).toBe('["{\\"foo\\":\\"bar\\"}"]');
-    expect(source.reactConvert([{ foo: 'bar' }])).toBe('{"foo":"bar"}');
+    expect(source.convertToText([{ foo: 'bar' }])).toBe('["{\\"foo\\":\\"bar\\"}"]');
+    expect(source.convertToReact([{ foo: 'bar' }])).toBe('{"foo":"bar"}');
   });
 });
